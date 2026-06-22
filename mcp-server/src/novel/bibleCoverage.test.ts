@@ -49,6 +49,9 @@ test('buildBibleCoverageReport reports unmapped sections, pending candidates and
 
   assert.equal(report.sectionCount, 2);
   assert.equal(report.pendingCandidates, 1);
+  assert.equal(report.claimMappedSections, 0);
+  assert.equal(report.canonicalNodeMappedSections, 0);
+  assert.equal(report.canonicalEdgeMappedSections, 0);
   assert.deepEqual(report.unmappedSections.map((section) => section.sectionKey), ['4.1']);
   assert.deepEqual(report.nodesWithoutEvidence.map((item) => item.label), ['Lisa']);
   assert.equal(report.genericRelatedToEdges, 1);
@@ -58,6 +61,72 @@ test('buildBibleCoverageReport reports unmapped sections, pending candidates and
     'canonical_nodes_without_evidence',
     'generic_related_to_edges',
   ]);
+});
+
+test('buildBibleCoverageReport distinguishes section-only, claim-only, duplicates and missing endpoints', () => {
+  const report = buildBibleCoverageReport({
+    sourceId: 'bibbia',
+    sections: [
+      node({ type: 'bible_section', label: 'bibbia::1', metadata: { sourceId: 'bibbia', sectionKey: '1', heading: 'Sezione', order: 1 } }),
+      node({ type: 'bible_section', label: 'bibbia::2', metadata: { sourceId: 'bibbia', sectionKey: '2', heading: 'Claim', order: 2 } }),
+      node({ type: 'bible_section', label: 'bibbia::3', metadata: { sourceId: 'bibbia', sectionKey: '3', heading: 'Typed', order: 3 } }),
+    ],
+    candidates: [
+      node({
+        type: 'bible_candidate',
+        label: 'candidate-section',
+        metadata: {
+          status: 'pending',
+          targetType: 'world_rule',
+          evidence: { sourceId: 'bibbia', sectionKey: '1' },
+          candidate: { candidateKind: 'node', targetType: 'world_rule', metadata: { granularity: 'section' } },
+        },
+      }),
+      node({
+        type: 'bible_candidate',
+        label: 'candidate-claim',
+        metadata: {
+          status: 'pending',
+          targetType: 'bible_claim',
+          evidence: { sourceId: 'bibbia', sectionKey: '2' },
+          candidate: { candidateKind: 'node', targetType: 'bible_claim', metadata: { granularity: 'atomic' } },
+        },
+      }),
+      node({
+        type: 'bible_candidate',
+        label: 'candidate-edge',
+        metadata: {
+          status: 'pending',
+          candidateKind: 'edge',
+          evidence: { sourceId: 'bibbia', sectionKey: '3' },
+          candidate: {
+            candidateKind: 'edge',
+            from: { type: 'character', label: 'Missing' },
+            to: { type: 'theme', label: 'Tema' },
+          },
+        },
+      }),
+    ],
+    canonicalNodes: [
+      node({ id: 'claim-1', type: 'bible_claim', label: 'Claim canonico', metadata: { canonStatus: 'canonical', evidence: { sourceId: 'bibbia', sectionKey: '2' } } }),
+      node({ type: 'theme', label: 'Tema', metadata: { canonStatus: 'canonical', evidence: { sourceId: 'bibbia', sectionKey: '3' } } }),
+      node({ type: 'theme', label: 'Tema', metadata: { canonStatus: 'canonical', evidence: { sourceId: 'bibbia', sectionKey: '3' } } }),
+    ],
+    edges: [],
+  });
+
+  assert.deepEqual(report.sectionMappedOnly.map((section) => section.sectionKey), ['1']);
+  assert.deepEqual(report.claimMappedOnly.map((section) => section.sectionKey), ['2']);
+  assert.equal(report.claimMappedSections, 1);
+  assert.equal(report.canonicalNodeMappedSections, 1);
+  assert.deepEqual(report.duplicateCanonicalNodes.map((item) => `${item.type}:${item.label}:${item.count}`), ['theme:Tema:2']);
+  assert.deepEqual(report.untypedClaims.map((item) => item.label), ['Claim canonico']);
+  assert.equal(report.pendingEdgeCandidatesWithMissingEndpoints.length, 1);
+  assert.ok(report.findings.some((finding) => finding.code === 'section_mapped_only'));
+  assert.ok(report.findings.some((finding) => finding.code === 'claim_mapped_only'));
+  assert.ok(report.findings.some((finding) => finding.code === 'duplicate_canonical_nodes'));
+  assert.ok(report.findings.some((finding) => finding.code === 'untyped_bible_claims'));
+  assert.ok(report.findings.some((finding) => finding.code === 'pending_edge_candidates_missing_endpoints'));
 });
 
 test('buildBibleCoverageReport ignores cross-source evidence when sourceId is filtered', () => {
@@ -180,10 +249,18 @@ test('buildChapterContextPacket groups context and carries coverage warnings', (
     coverageReport: {
       sectionCount: 1,
       mappedSections: 0,
+      claimMappedSections: 0,
+      canonicalNodeMappedSections: 0,
+      canonicalEdgeMappedSections: 0,
       unmappedSections: [{ sectionKey: '1', label: 'bibbia::1' }],
+      sectionMappedOnly: [],
+      claimMappedOnly: [],
       pendingCandidates: 0,
       nodesWithoutEvidence: [],
       genericRelatedToEdges: 0,
+      duplicateCanonicalNodes: [],
+      untypedClaims: [],
+      pendingEdgeCandidatesWithMissingEndpoints: [],
       findings: [{ code: 'unmapped_bible_sections', severity: 'warning', message: 'warning' }],
     },
   });

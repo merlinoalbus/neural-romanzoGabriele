@@ -8,7 +8,10 @@ test('novel node types are deterministic and unique', () => {
 });
 
 test('novel node type guard accepts domain types only', () => {
+  assert.equal(isNovelNodeType('artifact'), true);
   assert.equal(isNovelNodeType('character'), true);
+  assert.equal(isNovelNodeType('knowledge_state'), true);
+  assert.equal(isNovelNodeType('secret'), true);
   assert.equal(isNovelNodeType('world_rule'), true);
   assert.equal(isNovelNodeType('document'), false);
 });

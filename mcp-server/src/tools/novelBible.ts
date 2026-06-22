@@ -1,16 +1,22 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import crypto from 'node:crypto';
 import { z } from 'zod';
+import { KG_KINDS_LIST } from '../graph/ontology.js';
 import * as kg from '../graph/neo4jStore.js';
 import {
+  BIBLE_CANDIDATE_FAMILIES,
+  BIBLE_CANDIDATE_GRANULARITIES,
+  COMMITTABLE_BIBLE_NODE_TYPES,
   extractBibleCandidatesFromSection,
   validateBibleCandidateForCommit,
   type BibleCandidate,
+  type BibleCandidateFamily,
+  type BibleCandidateGranularity,
 } from '../novel/bibleCandidates.js';
 import { buildBibleCoverageReport, buildChapterContextPacket } from '../novel/bibleCoverage.js';
 import { buildBibleSectionsPlan, previewBibleSection, type BibleSectionsPlan } from '../novel/bibleSections.js';
 import { composeRecallQuery } from '../novel/context.js';
-import { normalizeChapterLabel } from '../novel/domain.js';
+import { normalizeChapterLabel, NOVEL_NODE_TYPES } from '../novel/domain.js';
 import { errorObj, toolError, toolStructured } from './responseHelpers.js';
 
 const jsonObj = z.record(z.string(), z.unknown());
@@ -70,11 +76,19 @@ const candidateEndpointZ = z.object({
   label: z.string(),
 });
 
+const candidateEvidenceSpanZ = z.object({
+  startChar: z.number().int().nonnegative().optional(),
+  endChar: z.number().int().nonnegative().optional(),
+  paragraphIndex: z.number().int().nonnegative().optional(),
+});
+
 const candidateEvidenceZ = z.object({
   sourceId: z.string(),
   sectionKey: z.string(),
   sectionLabel: z.string().optional(),
   contentHash: z.string().optional(),
+  path: z.array(z.string()).optional(),
+  span: candidateEvidenceSpanZ.optional(),
   textSnippet: z.string().optional(),
 });
 
@@ -103,6 +117,15 @@ const candidateSummaryZ = z.object({
   edgesCommitted: z.number().optional(),
 });
 
+const ontologyPacketZ = z.object({
+  nodeTypes: z.array(z.string()),
+  relationKinds: z.array(z.string()),
+  committableNodeTypes: z.array(z.string()),
+  candidateFamilies: z.array(z.string()),
+  granularities: z.array(z.string()),
+  evidencePolicy: z.array(z.string()),
+});
+
 const coverageFindingZ = z.object({
   code: z.string(),
   severity: z.enum(['info', 'warning', 'error']),
@@ -114,23 +137,57 @@ const coverageReportZ = z.object({
   sourceId: z.string().optional(),
   sectionCount: z.number(),
   mappedSections: z.number(),
+  claimMappedSections: z.number(),
+  canonicalNodeMappedSections: z.number(),
+  canonicalEdgeMappedSections: z.number(),
   unmappedSections: z.array(z.object({ sectionKey: z.string(), label: z.string(), heading: z.string().optional(), order: z.number().optional() })),
+  sectionMappedOnly: z.array(z.object({ sectionKey: z.string(), label: z.string(), heading: z.string().optional(), order: z.number().optional() })),
+  claimMappedOnly: z.array(z.object({ sectionKey: z.string(), label: z.string(), heading: z.string().optional(), order: z.number().optional() })),
   pendingCandidates: z.number(),
   nodesWithoutEvidence: z.array(z.object({ id: z.string(), type: z.string(), label: z.string() })),
   genericRelatedToEdges: z.number(),
+  duplicateCanonicalNodes: z.array(z.object({ type: z.string(), label: z.string(), count: z.number() })),
+  untypedClaims: z.array(z.object({ id: z.string(), label: z.string(), sectionKey: z.string().optional() })),
+  pendingEdgeCandidatesWithMissingEndpoints: z.array(z.object({
+    candidateId: z.string(),
+    endpoint: z.enum(['from', 'to']),
+    type: z.string(),
+    label: z.string(),
+  })),
   findings: z.array(coverageFindingZ),
 });
 
 const contextGroupsZ = z.object({
+  artifacts: z.array(nodeZ),
+  bibleClaims: z.array(nodeZ),
   chapters: z.array(nodeZ),
   drafts: z.array(nodeZ),
   characters: z.array(nodeZ),
+  characterBeliefs: z.array(nodeZ),
+  characterGoals: z.array(nodeZ),
+  characterStates: z.array(nodeZ),
+  characterTraits: z.array(nodeZ),
   characterVoices: z.array(nodeZ),
+  characterWounds: z.array(nodeZ),
+  conflicts: z.array(nodeZ),
+  emotionalStates: z.array(nodeZ),
+  entityClasses: z.array(nodeZ),
+  factions: z.array(nodeZ),
   relationshipDynamics: z.array(nodeZ),
   themes: z.array(nodeZ),
   locations: z.array(nodeZ),
   worldRules: z.array(nodeZ),
+  knowledgeStates: z.array(nodeZ),
+  motifs: z.array(nodeZ),
+  mysteries: z.array(nodeZ),
+  narrativeConstraints: z.array(nodeZ),
+  powers: z.array(nodeZ),
+  precognitiveData: z.array(nodeZ),
+  prophecies: z.array(nodeZ),
+  revelations: z.array(nodeZ),
+  secrets: z.array(nodeZ),
   styleRules: z.array(nodeZ),
+  symbols: z.array(nodeZ),
   plotThreads: z.array(nodeZ),
   foreshadowing: z.array(nodeZ),
   glossaryTerms: z.array(nodeZ),
@@ -214,25 +271,44 @@ async function listBibleCandidatesForSource(sourceId?: string, limit?: number): 
   return sourceId ? candidates.filter((candidate) => candidate.metadata.sourceId === sourceId) : candidates;
 }
 
+function bibleOntologyPacket(): z.infer<typeof ontologyPacketZ> {
+  return {
+    nodeTypes: [...NOVEL_NODE_TYPES],
+    relationKinds: [...KG_KINDS_LIST],
+    committableNodeTypes: [...COMMITTABLE_BIBLE_NODE_TYPES],
+    candidateFamilies: [...BIBLE_CANDIDATE_FAMILIES],
+    granularities: [...BIBLE_CANDIDATE_GRANULARITIES],
+    evidencePolicy: [
+      'Ogni candidato canonico deve indicare evidence.sourceId e evidence.sectionKey verso una bible_section importata.',
+      'I claim atomici e i candidati con metadata.granularity=atomic devono includere evidence.textSnippet.',
+      'Gli archi canonici devono avere evidence propria; related_to e ammesso solo come fallback da tipizzare.',
+      'Gli output editoriali restano draft/proposal e non diventano canone senza commit esplicito.',
+    ],
+  };
+}
+
+function filterCandidateNodesBySectionKeys(candidates: kg.GraphNode[], sectionKeys?: string[]): kg.GraphNode[] {
+  const keys = new Set((sectionKeys ?? []).map((key) => key.trim()).filter(Boolean));
+  if (!keys.size) return candidates;
+  return candidates.filter((candidate) => {
+    const evidence = candidate.metadata.evidence;
+    if (evidence && typeof evidence === 'object' && !Array.isArray(evidence)) {
+      return keys.has(String((evidence as Record<string, unknown>).sectionKey ?? ''));
+    }
+    const nested = candidate.metadata.candidate;
+    if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+      const nestedEvidence = (nested as Record<string, unknown>).evidence;
+      if (nestedEvidence && typeof nestedEvidence === 'object' && !Array.isArray(nestedEvidence)) {
+        return keys.has(String((nestedEvidence as Record<string, unknown>).sectionKey ?? ''));
+      }
+    }
+    return false;
+  });
+}
+
 async function listCanonicalNarrativeNodes(limit?: number): Promise<kg.GraphNode[]> {
-  const types = [
-    'chapter',
-    'character',
-    'character_state',
-    'character_voice',
-    'foreshadowing',
-    'glossary_term',
-    'location',
-    'plot_thread',
-    'relationship_dynamic',
-    'scene',
-    'style_rule',
-    'theme',
-    'timeline_event',
-    'world_rule',
-  ];
   const perTypeLimit = limit ?? 500;
-  const groups = await Promise.all(types.map((type) => kg.listNodesByType(type, { limit: perTypeLimit })));
+  const groups = await Promise.all(COMMITTABLE_BIBLE_NODE_TYPES.map((type) => kg.listNodesByType(type, { limit: perTypeLimit })));
   return groups.flat().filter((node) => node.metadata.canonStatus === 'canonical');
 }
 
@@ -257,6 +333,10 @@ async function findBibleSection(evidence: BibleCandidate['evidence']): Promise<k
   if (!section) return null;
   if (section.metadata.sourceId !== evidence.sourceId || section.metadata.sectionKey !== evidence.sectionKey) return null;
   return section;
+}
+
+function candidateEndpointKey(endpoint: { type: string; label: string }): string {
+  return `${endpoint.type}::${endpoint.label}`;
 }
 
 async function writeExtractedCandidates(sourceId: string, sections: kg.GraphNode[], candidates: BibleCandidate[]): Promise<{
@@ -326,7 +406,11 @@ async function loadCandidateNode(candidateIdOrNodeId: string): Promise<{ node: k
   return { node, candidate: toCandidate(candidate) };
 }
 
-async function commitBibleCandidate(candidate: BibleCandidate, candidateNode?: kg.GraphNode): Promise<{ node?: kg.GraphNode; edge?: kg.GraphEdge }> {
+async function commitBibleCandidate(
+  candidate: BibleCandidate,
+  candidateNode?: kg.GraphNode,
+  opts: { committedNodeByEndpoint?: Map<string, kg.GraphNode> } = {},
+): Promise<{ node?: kg.GraphNode; edge?: kg.GraphEdge }> {
   const section = await findBibleSection(candidate.evidence);
   if (!section) throw new Error(`missing_evidence_section: ${candidate.evidence.sourceId}/${candidate.evidence.sectionKey}`);
 
@@ -369,8 +453,8 @@ async function commitBibleCandidate(candidate: BibleCandidate, candidateNode?: k
     return { node: written.node };
   }
 
-  const from = await kg.getNodeByTypeLabel(candidate.from!.type, candidate.from!.label);
-  const to = await kg.getNodeByTypeLabel(candidate.to!.type, candidate.to!.label);
+  const from = opts.committedNodeByEndpoint?.get(candidateEndpointKey(candidate.from!)) ?? (await kg.getNodeByTypeLabel(candidate.from!.type, candidate.from!.label));
+  const to = opts.committedNodeByEndpoint?.get(candidateEndpointKey(candidate.to!)) ?? (await kg.getNodeByTypeLabel(candidate.to!.type, candidate.to!.label));
   if (!from || !to) throw new Error(`missing_edge_endpoint: ${candidate.candidateId}`);
   const edge = await kg.link({
     fromId: from.id,
@@ -442,6 +526,46 @@ async function commitBibleCandidate(candidate: BibleCandidate, candidateNode?: k
   return { edge };
 }
 
+async function missingEdgeEndpointsForBatch(loaded: Array<{ candidate: BibleCandidate }>): Promise<Array<{ candidateId: string; endpoint: 'from' | 'to'; type: string; label: string }>> {
+  const plannedNodes = new Set<string>();
+  for (const { candidate } of loaded) {
+    if (candidate.candidateKind === 'node' && candidate.targetType && candidate.label) {
+      plannedNodes.add(candidateEndpointKey({ type: candidate.targetType, label: candidate.label }));
+    }
+  }
+
+  const missing: Array<{ candidateId: string; endpoint: 'from' | 'to'; type: string; label: string }> = [];
+  for (const { candidate } of loaded) {
+    if (candidate.candidateKind !== 'edge') continue;
+    for (const endpointName of ['from', 'to'] as const) {
+      const endpoint = candidate[endpointName];
+      if (!endpoint) continue;
+      const key = candidateEndpointKey(endpoint);
+      if (plannedNodes.has(key)) continue;
+      const existing = await kg.getNodeByTypeLabel(endpoint.type, endpoint.label);
+      if (!existing) missing.push({ candidateId: candidate.candidateId, endpoint: endpointName, type: endpoint.type, label: endpoint.label });
+    }
+  }
+  return missing;
+}
+
+async function missingEvidenceSectionsForBatch(loaded: Array<{ candidate: BibleCandidate }>): Promise<Array<{ candidateId: string; sourceId: string; sectionKey: string }>> {
+  const missing: Array<{ candidateId: string; sourceId: string; sectionKey: string }> = [];
+  const checked = new Map<string, boolean>();
+  for (const { candidate } of loaded) {
+    const key = `${candidate.evidence.sourceId}::${candidate.evidence.sectionKey}`;
+    let exists = checked.get(key);
+    if (exists === undefined) {
+      exists = Boolean(await findBibleSection(candidate.evidence));
+      checked.set(key, exists);
+    }
+    if (!exists) {
+      missing.push({ candidateId: candidate.candidateId, sourceId: candidate.evidence.sourceId, sectionKey: candidate.evidence.sectionKey });
+    }
+  }
+  return missing;
+}
+
 export function registerNovelBibleTools(server: McpServer): void {
   server.registerTool(
     'novel_ingest_bible_sections',
@@ -510,6 +634,8 @@ export function registerNovelBibleTools(server: McpServer): void {
         sourceId: z.string(),
         sectionKeys: z.array(z.string()).optional(),
         limit: z.number().int().positive().optional(),
+        granularity: z.enum(BIBLE_CANDIDATE_GRANULARITIES).optional(),
+        families: z.array(z.enum(BIBLE_CANDIDATE_FAMILIES)).optional(),
         dryRun: z.boolean().optional(),
       },
       outputSchema: {
@@ -523,10 +649,15 @@ export function registerNovelBibleTools(server: McpServer): void {
       },
       annotations: { title: 'Novel extract bible candidates', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ sourceId, sectionKeys, limit, dryRun }) => {
+    async ({ sourceId, sectionKeys, limit, granularity, families, dryRun }) => {
       try {
         const sections = await listBibleSectionsForExtraction({ sourceId, sectionKeys, limit });
-        const candidates = sections.flatMap((section) => extractBibleCandidatesFromSection(section));
+        const candidates = sections.flatMap((section) =>
+          extractBibleCandidatesFromSection(section, {
+            granularity: granularity as BibleCandidateGranularity | undefined,
+            families: families as BibleCandidateFamily[] | undefined,
+          }),
+        );
         const summary = {
           sourceId,
           dryRun: Boolean(dryRun),
@@ -596,11 +727,26 @@ export function registerNovelBibleTools(server: McpServer): void {
           edgesCommitted: 0,
         };
         if (dryRun) return toolStructured({ ok: true, dryRun: true, summary });
+        const missingEvidenceSections = await missingEvidenceSectionsForBatch(loaded);
+        if (missingEvidenceSections.length) {
+          return toolError('NOVEL_COMMIT_CANDIDATES_MISSING_EVIDENCE_SECTIONS', 'One or more candidates reference missing Bible evidence sections.', { missingEvidenceSections });
+        }
+        const missingEndpoints = await missingEdgeEndpointsForBatch(loaded);
+        if (missingEndpoints.length) {
+          return toolError('NOVEL_COMMIT_CANDIDATES_MISSING_ENDPOINTS', 'One or more edge candidates reference missing endpoints.', { missingEndpoints });
+        }
         const committedNodes: kg.GraphNode[] = [];
         const committedEdges: kg.GraphEdge[] = [];
-        for (const item of loaded) {
+        const committedNodeByEndpoint = new Map<string, kg.GraphNode>();
+        for (const item of loaded.filter(({ candidate }) => candidate.candidateKind === 'node')) {
           const committed = await commitBibleCandidate(item.candidate, item.node);
-          if (committed.node) committedNodes.push(committed.node);
+          if (committed.node) {
+            committedNodes.push(committed.node);
+            committedNodeByEndpoint.set(candidateEndpointKey({ type: item.candidate.targetType!, label: item.candidate.label! }), committed.node);
+          }
+        }
+        for (const item of loaded.filter(({ candidate }) => candidate.candidateKind === 'edge')) {
+          const committed = await commitBibleCandidate(item.candidate, item.node, { committedNodeByEndpoint });
           if (committed.edge) committedEdges.push(committed.edge);
         }
         return toolStructured({
@@ -608,7 +754,7 @@ export function registerNovelBibleTools(server: McpServer): void {
           dryRun: false,
           summary: {
             ...summary,
-            candidatesCommitted: committedNodes.length,
+            candidatesCommitted: committedNodes.length + committedEdges.length,
             edgesCommitted: committedEdges.length,
           },
           committedNodes,
@@ -616,6 +762,71 @@ export function registerNovelBibleTools(server: McpServer): void {
         });
       } catch (err) {
         return toolError('NOVEL_COMMIT_BIBLE_CANDIDATES_FAILED', `novel_commit_bible_candidates failed: ${String(err)}`);
+      }
+    },
+  );
+
+  server.registerTool(
+    'novel_get_bible_ontology',
+    {
+      title: 'Novel get Bible ontology',
+      description: 'Read-only ontology packet for Bible mapping agents: node types, relation kinds, committable types, extraction families and evidence policy.',
+      inputSchema: {},
+      outputSchema: {
+        ok: z.boolean(),
+        readOnly: z.boolean().optional(),
+        ontology: ontologyPacketZ.optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'Novel get Bible ontology', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async () => toolStructured({ ok: true, readOnly: true, ontology: bibleOntologyPacket() }),
+  );
+
+  server.registerTool(
+    'novel_get_bible_mapping_packet',
+    {
+      title: 'Novel get Bible mapping packet',
+      description: 'Read-only packet for AI-assisted Bible mapping, including source sections, existing candidates, ontology and commit instructions.',
+      inputSchema: {
+        sourceId: z.string(),
+        sectionKeys: z.array(z.string()).optional(),
+        limit: z.number().int().positive().optional(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        readOnly: z.boolean().optional(),
+        sourceId: z.string().optional(),
+        sections: z.array(nodeZ).optional(),
+        candidates: z.array(nodeZ).optional(),
+        ontology: ontologyPacketZ.optional(),
+        instructions: z.array(z.string()).optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'Novel get Bible mapping packet', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ sourceId, sectionKeys, limit }) => {
+      try {
+        const [sections, candidates] = await Promise.all([
+          listBibleSectionsForExtraction({ sourceId, sectionKeys, limit }),
+          listBibleCandidatesForSource(sourceId, limit),
+        ]);
+        return toolStructured({
+          ok: true,
+          readOnly: true,
+          sourceId,
+          sections,
+          candidates: filterCandidateNodesBySectionKeys(candidates, sectionKeys),
+          ontology: bibleOntologyPacket(),
+          instructions: [
+            'Analizza il testo fonte e proponi solo candidati supportati da evidence verso una bible_section.',
+            'Usa tipi nodo e archi dell ontology packet; related_to solo se nessuna relazione specifica e corretta.',
+            'Per ogni claim atomico inserisci evidence.textSnippet e metadata.granularity=atomic.',
+            'Invia i candidati validati a novel_commit_bible_candidates; non trattare il mapping packet come canone.',
+          ],
+        });
+      } catch (err) {
+        return toolError('NOVEL_GET_BIBLE_MAPPING_PACKET_FAILED', `novel_get_bible_mapping_packet failed: ${String(err)}`, { sourceId });
       }
     },
   );

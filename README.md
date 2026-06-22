@@ -31,11 +31,14 @@ Il server MCP puo essere esposto separatamente tramite `MCP_HOST_PORT` per i con
 
 1. Importare l'indice della Bibbia come struttura, senza trasformarlo in contenuto canonico dettagliato.
 2. Importare la Bibbia completa a sezioni preservando testo, heading, path, ordine, hash e provenance.
-3. Generare candidati semantici, validarli e committarli solo con evidence verso `bible_section`.
-4. Controllare la copertura della Bibbia prima di usare il grafo per editing o scrittura.
-5. Importare bozze reali dei capitoli come materiale di lavoro.
-6. Prima di scrivere o revisionare, richiamare il context packet del capitolo.
-7. Salvare gli output degli step editoriali come lavoro operativo, non come canone.
+3. Generare candidati semantici a granularita `section`, `atomic` o `both`.
+4. Usare `novel_get_bible_mapping_packet` per mapping assistito: ogni candidato deve avere evidence verso `bible_section`.
+5. Committare solo candidati validati. Il commit puo creare nodi e archi nello stesso batch, ma rifiuta evidence o endpoint mancanti.
+6. Controllare la copertura della Bibbia prima di usare il grafo per editing o scrittura.
+7. Leggere `sectionMappedOnly` e `claimMappedOnly` come segnali di mapping incompleto, non come piena copertura semantica.
+8. Importare bozze reali dei capitoli come materiale di lavoro.
+9. Prima di scrivere o revisionare, richiamare il context packet del capitolo.
+10. Salvare gli output degli step editoriali come lavoro operativo, non come canone.
 
 I dati canonici devono sempre mantenere provenienza chiara. Le proposte creative o di revisione devono rimanere distinguibili dal canone approvato.
 
@@ -78,13 +81,37 @@ Tool narrativi disponibili:
 - `novel_ingest_outline`: importa solo struttura dell'indice.
 - `novel_ingest_bible`: conserva la Bibbia completa quando fornita.
 - `novel_ingest_bible_sections`: importa sezioni Bibbia gia estratte dal DOCX.
-- `novel_extract_bible_candidates`: genera candidati semantici non canonici.
-- `novel_commit_bible_candidates`: committa candidati validati con evidence obbligatoria.
-- `novel_bible_coverage_report`: segnala sezioni non mappate, candidati pendenti, nodi senza fonte e relazioni generiche.
-- `novel_get_chapter_context_packet`: prepara il pacchetto contesto per capitolo e step editoriale.
+- `novel_get_bible_ontology`: restituisce tipi nodo, archi, famiglie, granularita e policy evidence.
+- `novel_get_bible_mapping_packet`: restituisce sezioni, candidati esistenti, ontologia e istruzioni per mapping AI-assistito.
+- `novel_extract_bible_candidates`: genera candidati non canonici a granularita `section`, `atomic` o `both`, filtrabili per famiglia.
+- `novel_commit_bible_candidates`: committa candidati validati con evidence obbligatoria, prima nodi poi archi.
+- `novel_bible_coverage_report`: segnala sezioni non mappate, section-only, claim-only, nodi senza fonte, duplicati, claim non tipizzati e relazioni generiche.
+- `novel_get_chapter_context_packet`: prepara il pacchetto contesto per capitolo e step editoriale, con gruppi espliciti per segreti, conoscenza, poteri, artefatti, fazioni, profezie, simboli, timeline e worldbuilding.
 - `novel_ingest_chapter_draft`: salva bozze reali di capitolo.
 - `novel_recall_context`: prepara contesto narrativo per scrittura/revisione.
 - `novel_audit_chapter`: controlla rischi di coerenza senza modificare il grafo.
+
+## Ontologia Bibbia V2
+
+Tipi canonici principali:
+
+- Fonte e mapping: `bible_outline`, `bible_section`, `bible_candidate`, `bible_claim`, `bible_mapping_batch`, `bible_coverage_finding`
+- Personaggi: `character`, `character_state`, `character_voice`, `character_belief`, `character_goal`, `character_trait`, `character_wound`, `emotional_state`
+- Relazioni e trama: `relationship_dynamic`, `conflict`, `plot_thread`, `scene`, `chapter`, `timeline_event`, `foreshadowing`, `mystery`, `revelation`
+- Mondo: `world_rule`, `narrative_constraint`, `location`, `entity_class`, `faction`, `artifact`, `power`
+- Conoscenza e futuro narrativo: `knowledge_state`, `secret`, `prophecy`, `precognitive_data`
+- Stile e simboli: `style_rule`, `theme`, `motif`, `symbol`, `glossary_term`
+
+Relazioni da preferire a `related_to`:
+
+- Fonte/struttura: `derived_from`, `part_of`, `precedes`, `mentions`, `defines`
+- Causalita e payoff: `causes`, `motivates`, `changes_state`, `foreshadows`, `pays_off`, `sets_up`, `escalates`, `resolves`
+- Conoscenza: `knows`, `does_not_know`, `learns`, `misunderstands`, `hides_from`, `revealed_in`
+- Vincoli mondo: `constrains`, `requires`, `forbids`, `permits`, `costs`, `is_exception_to`
+- Spazio/tempo: `located_in`, `moves_to`, `occurs_at`, `occurs_in`
+- Simboli: `symbolizes`, `mirrors`, `contrasts`
+
+`related_to` resta un fallback ammesso, ma il coverage report lo segnala per futura tipizzazione.
 
 Tool workflow editoriale:
 

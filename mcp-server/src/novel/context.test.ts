@@ -28,12 +28,18 @@ test('groupNarrativeContext separates domain nodes and hides drafts by default',
     node('chapter', 'Capitolo 1'),
     node('chapter_draft', 'Capitolo 1 draft a'),
     node('character', 'Lisa Martini'),
+    node('secret', 'Segreto di Lisa'),
+    node('power', 'Dono della luce'),
+    node('artifact', 'Occhiali'),
     node('world_rule', '4.3 Angeli'),
     node('note', 'Nota'),
   ]);
   assert.equal(groups.chapters.length, 1);
   assert.equal(groups.drafts.length, 0);
   assert.equal(groups.characters.length, 1);
+  assert.equal(groups.secrets.length, 1);
+  assert.equal(groups.powers.length, 1);
+  assert.equal(groups.artifacts.length, 1);
   assert.equal(groups.worldRules.length, 1);
   assert.equal(groups.other.length, 1);
 });

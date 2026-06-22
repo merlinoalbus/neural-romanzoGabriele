@@ -2,15 +2,36 @@ import type { GraphNode } from '../graph/neo4jStore.js';
 import { normalizeChapterLabel } from './domain.js';
 
 export type NarrativeContextGroups = {
+  artifacts: GraphNode[];
+  bibleClaims: GraphNode[];
   chapters: GraphNode[];
   drafts: GraphNode[];
   characters: GraphNode[];
+  characterBeliefs: GraphNode[];
+  characterGoals: GraphNode[];
+  characterStates: GraphNode[];
+  characterTraits: GraphNode[];
   characterVoices: GraphNode[];
+  characterWounds: GraphNode[];
+  conflicts: GraphNode[];
+  emotionalStates: GraphNode[];
+  entityClasses: GraphNode[];
+  factions: GraphNode[];
   relationshipDynamics: GraphNode[];
   themes: GraphNode[];
   locations: GraphNode[];
   worldRules: GraphNode[];
+  knowledgeStates: GraphNode[];
+  motifs: GraphNode[];
+  mysteries: GraphNode[];
+  narrativeConstraints: GraphNode[];
+  powers: GraphNode[];
+  precognitiveData: GraphNode[];
+  prophecies: GraphNode[];
+  revelations: GraphNode[];
+  secrets: GraphNode[];
   styleRules: GraphNode[];
+  symbols: GraphNode[];
   plotThreads: GraphNode[];
   foreshadowing: GraphNode[];
   glossaryTerms: GraphNode[];
@@ -43,15 +64,36 @@ export function composeRecallQuery(input: { task: string; chapterNumber?: number
 
 export function emptyNarrativeContextGroups(): NarrativeContextGroups {
   return {
+    artifacts: [],
+    bibleClaims: [],
     chapters: [],
     drafts: [],
     characters: [],
+    characterBeliefs: [],
+    characterGoals: [],
+    characterStates: [],
+    characterTraits: [],
     characterVoices: [],
+    characterWounds: [],
+    conflicts: [],
+    emotionalStates: [],
+    entityClasses: [],
+    factions: [],
     relationshipDynamics: [],
     themes: [],
     locations: [],
     worldRules: [],
+    knowledgeStates: [],
+    motifs: [],
+    mysteries: [],
+    narrativeConstraints: [],
+    powers: [],
+    precognitiveData: [],
+    prophecies: [],
+    revelations: [],
+    secrets: [],
     styleRules: [],
+    symbols: [],
     plotThreads: [],
     foreshadowing: [],
     glossaryTerms: [],
@@ -65,6 +107,12 @@ export function groupNarrativeContext(nodes: GraphNode[], opts: { includeDrafts?
   for (const node of nodes) {
     if (!opts.includeDrafts && (node.type === 'chapter_draft' || node.type === 'document' || node.type === 'chunk')) continue;
     switch (node.type) {
+      case 'artifact':
+        groups.artifacts.push(node);
+        break;
+      case 'bible_claim':
+        groups.bibleClaims.push(node);
+        break;
       case 'chapter':
         groups.chapters.push(node);
         break;
@@ -74,8 +122,35 @@ export function groupNarrativeContext(nodes: GraphNode[], opts: { includeDrafts?
       case 'character':
         groups.characters.push(node);
         break;
+      case 'character_belief':
+        groups.characterBeliefs.push(node);
+        break;
+      case 'character_goal':
+        groups.characterGoals.push(node);
+        break;
+      case 'character_state':
+        groups.characterStates.push(node);
+        break;
+      case 'character_trait':
+        groups.characterTraits.push(node);
+        break;
       case 'character_voice':
         groups.characterVoices.push(node);
+        break;
+      case 'character_wound':
+        groups.characterWounds.push(node);
+        break;
+      case 'conflict':
+        groups.conflicts.push(node);
+        break;
+      case 'emotional_state':
+        groups.emotionalStates.push(node);
+        break;
+      case 'entity_class':
+        groups.entityClasses.push(node);
+        break;
+      case 'faction':
+        groups.factions.push(node);
         break;
       case 'relationship_dynamic':
         groups.relationshipDynamics.push(node);
@@ -89,8 +164,38 @@ export function groupNarrativeContext(nodes: GraphNode[], opts: { includeDrafts?
       case 'world_rule':
         groups.worldRules.push(node);
         break;
+      case 'knowledge_state':
+        groups.knowledgeStates.push(node);
+        break;
+      case 'motif':
+        groups.motifs.push(node);
+        break;
+      case 'mystery':
+        groups.mysteries.push(node);
+        break;
+      case 'narrative_constraint':
+        groups.narrativeConstraints.push(node);
+        break;
+      case 'power':
+        groups.powers.push(node);
+        break;
+      case 'precognitive_data':
+        groups.precognitiveData.push(node);
+        break;
+      case 'prophecy':
+        groups.prophecies.push(node);
+        break;
+      case 'revelation':
+        groups.revelations.push(node);
+        break;
+      case 'secret':
+        groups.secrets.push(node);
+        break;
       case 'style_rule':
         groups.styleRules.push(node);
+        break;
+      case 'symbol':
+        groups.symbols.push(node);
         break;
       case 'plot_thread':
         groups.plotThreads.push(node);

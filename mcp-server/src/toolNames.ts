@@ -26,6 +26,8 @@ export const MCP_TOOL_NAMES = {
   novel_ingest_bible_sections: 'novel_ingest_bible_sections',
   novel_extract_bible_candidates: 'novel_extract_bible_candidates',
   novel_commit_bible_candidates: 'novel_commit_bible_candidates',
+  novel_get_bible_ontology: 'novel_get_bible_ontology',
+  novel_get_bible_mapping_packet: 'novel_get_bible_mapping_packet',
   novel_bible_coverage_report: 'novel_bible_coverage_report',
   novel_get_chapter_context_packet: 'novel_get_chapter_context_packet',
   novel_ingest_chapter_draft: 'novel_ingest_chapter_draft',

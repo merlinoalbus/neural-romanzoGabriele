@@ -6,6 +6,10 @@ test('relation vocabulary accepts canonical kinds', () => {
   assert.equal(isCanonicalKind('mentions'), true);
   assert.equal(isCanonicalKind('appears_in'), true);
   assert.equal(isCanonicalKind('has_voice'), true);
+  assert.equal(isCanonicalKind('knows'), true);
+  assert.equal(isCanonicalKind('does_not_know'), true);
+  assert.equal(isCanonicalKind('requires'), true);
+  assert.equal(isCanonicalKind('symbolizes'), true);
   assert.equal(isCanonicalKind('pays_off'), true);
   assert.equal(isCanonicalKind('related_to'), true);
 });

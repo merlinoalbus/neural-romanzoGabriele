@@ -75,6 +75,62 @@ test('novel_commit_bible_candidates dryRun validates inline candidates before gr
   });
 });
 
+test('novel_commit_bible_candidates dryRun accepts node and edge candidates in one batch', async () => {
+  const server = new McpServer({ name: 'test', version: '1.0.0' });
+  registerNovelBibleTools(server);
+  const tool = registeredTool(server, 'novel_commit_bible_candidates');
+
+  const response = await tool.handler!({
+    dryRun: true,
+    candidates: [
+      {
+        candidateId: 'candidate-character-gabriele',
+        candidateKind: 'node',
+        targetType: 'character',
+        label: 'Gabriele',
+        content: 'Personaggio principale.',
+        evidence: { sourceId: 'bibbia-gabriele', sectionKey: '3.1' },
+        confidence: 0.9,
+        rationale: 'Personaggio validato.',
+        metadata: {},
+      },
+      {
+        candidateId: 'candidate-theme-identita',
+        candidateKind: 'node',
+        targetType: 'theme',
+        label: 'Identita',
+        content: 'Tema identitario.',
+        evidence: { sourceId: 'bibbia-gabriele', sectionKey: '2.3.1' },
+        confidence: 0.82,
+        rationale: 'Tema validato.',
+        metadata: {},
+      },
+      {
+        candidateId: 'candidate-edge-theme',
+        candidateKind: 'edge',
+        relationKind: 'has_theme',
+        from: { type: 'character', label: 'Gabriele' },
+        to: { type: 'theme', label: 'Identita' },
+        evidence: { sourceId: 'bibbia-gabriele', sectionKey: '2.3.1' },
+        confidence: 0.8,
+        rationale: 'Gabriele porta il tema identitario.',
+        metadata: {},
+      },
+    ],
+  });
+
+  const structured = response as { structuredContent?: Record<string, unknown> };
+  assert.equal(structured.structuredContent?.ok, true);
+  assert.deepEqual(structured.structuredContent?.summary, {
+    dryRun: true,
+    sectionsScanned: 0,
+    candidatesPlanned: 3,
+    candidatesWritten: 0,
+    candidatesCommitted: 0,
+    edgesCommitted: 0,
+  });
+});
+
 test('novel_commit_bible_candidates rejects candidates without evidence', async () => {
   const server = new McpServer({ name: 'test', version: '1.0.0' });
   registerNovelBibleTools(server);
@@ -105,9 +161,26 @@ test('novel_commit_bible_candidates rejects candidates without evidence', async 
 test('novel bible coverage and context packet tools are registered as read-only', () => {
   const server = new McpServer({ name: 'test', version: '1.0.0' });
   registerNovelBibleTools(server);
+  const ontologyTool = registeredTool(server, 'novel_get_bible_ontology') as { annotations?: Record<string, unknown> };
+  const mappingTool = registeredTool(server, 'novel_get_bible_mapping_packet') as { annotations?: Record<string, unknown> };
   const coverageTool = registeredTool(server, 'novel_bible_coverage_report') as { annotations?: Record<string, unknown> };
   const contextTool = registeredTool(server, 'novel_get_chapter_context_packet') as { annotations?: Record<string, unknown> };
 
+  assert.equal(ontologyTool.annotations?.readOnlyHint, true);
+  assert.equal(mappingTool.annotations?.readOnlyHint, true);
   assert.equal(coverageTool.annotations?.readOnlyHint, true);
   assert.equal(contextTool.annotations?.readOnlyHint, true);
+});
+
+test('novel_get_bible_ontology returns mapping contract without graph access', async () => {
+  const server = new McpServer({ name: 'test', version: '1.0.0' });
+  registerNovelBibleTools(server);
+  const tool = registeredTool(server, 'novel_get_bible_ontology');
+
+  const response = await tool.handler!({});
+  const structured = response as { structuredContent?: { ok?: boolean; readOnly?: boolean; ontology?: { nodeTypes?: string[]; relationKinds?: string[] } } };
+  assert.equal(structured.structuredContent?.ok, true);
+  assert.equal(structured.structuredContent?.readOnly, true);
+  assert.equal(structured.structuredContent?.ontology?.nodeTypes?.includes('bible_claim'), true);
+  assert.equal(structured.structuredContent?.ontology?.relationKinds?.includes('knows'), true);
 });

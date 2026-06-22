@@ -1,0 +1,3 @@
+Smoke document for run 2026-06-21T20-59-20-368Z.
+This content must be persisted through the backend NAS writer.
+The MCP service remains the graph writer and document ingestion entrypoint.

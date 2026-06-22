@@ -1,0 +1,116 @@
+services:
+  neural_be:
+    image: ghcr.io/merlinoalbus/neural-graph-platform-backend:latest
+    container_name: neural_be
+    restart: unless-stopped
+    expose:
+      - "3001"
+    environment:
+      - PORT=3001
+      - PROJECT_ID=${PROJECT_ID:-neural-graph-base}
+      - PROJECT_BASE_PATH=/data
+      - APP_ENV=${APP_ENV:-production}
+      - APP_VERSION=${APP_VERSION:-0.1.0}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - MCP_SHARED_SECRET=${MCP_SHARED_SECRET:-}
+      - NEO4J_URI=bolt://neural_neo4j:7687
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set in the stack environment}
+    depends_on:
+      - neural_neo4j
+    volumes:
+      - "${NAS_PROJECT_PATH:?NAS_PROJECT_PATH must be set}:/data"
+    user: "1000:1000"
+    networks:
+      - neural_network
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=${WATCHTOWER_SCOPE:-neural-graph-platform}"
+
+  neural_fe:
+    image: ghcr.io/merlinoalbus/neural-graph-platform-frontend:latest
+    container_name: neural_fe
+    restart: unless-stopped
+    ports:
+      - "${FE_HOST_PORT:-3000}:80"
+    depends_on:
+      - neural_be
+    networks:
+      - neural_network
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=${WATCHTOWER_SCOPE:-neural-graph-platform}"
+
+  neural_mcp:
+    image: ghcr.io/merlinoalbus/neural-graph-platform-mcp:latest
+    container_name: neural_mcp
+    restart: unless-stopped
+    ports:
+      - "${MCP_HOST_PORT:-3002}:3002"
+    environment:
+      - PROJECT_ID=${PROJECT_ID:-neural-graph-base}
+      - APP_ENV=${APP_ENV:-production}
+      - APP_VERSION=${APP_VERSION:-0.1.0}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - MCP_PORT=3002
+      - MCP_SHARED_SECRET=${MCP_SHARED_SECRET:-}
+      - MCP_SSE_KEEPALIVE_MS=${MCP_SSE_KEEPALIVE_MS:-25000}
+      - MCP_SESSION_TTL_MS=${MCP_SESSION_TTL_MS:-1800000}
+      - MCP_SESSION_CLEANUP_INTERVAL_MS=${MCP_SESSION_CLEANUP_INTERVAL_MS:-300000}
+      - MCP_INSTRUCTIONS_PATH=${MCP_INSTRUCTIONS_PATH:-./instructions.md}
+      - BACKEND_URL=http://neural_be:3001
+      - PROJECT_BASE_PATH=/data
+      - NEO4J_URI=bolt://neural_neo4j:7687
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set in the stack environment}
+    depends_on:
+      - neural_be
+      - neural_neo4j
+    volumes:
+      - "${NAS_PROJECT_PATH:?NAS_PROJECT_PATH must be set}:/data:ro"
+    user: "1000:1000"
+    networks:
+      - neural_network
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=${WATCHTOWER_SCOPE:-neural-graph-platform}"
+
+  neural_neo4j:
+    image: neo4j:5-community
+    container_name: neural_neo4j
+    restart: unless-stopped
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set in the stack environment}
+      - NEO4J_dbms_security_auth__minimum__password__length=16
+      - NEO4J_server_memory_heap_initial__size=1G
+      - NEO4J_server_memory_heap_max__size=1G
+      - NEO4J_server_memory_pagecache_size=1G
+    volumes:
+      - "neural_neo4j_data:/data"
+    networks:
+      - neural_network
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: neural_watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DOCKER_API_VERSION=${DOCKER_API_VERSION:-1.40}
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=120
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_INCLUDE_RESTARTING=true
+      - WATCHTOWER_SCOPE=${WATCHTOWER_SCOPE:-neural-graph-platform}
+    labels:
+      - "com.centurylinklabs.watchtower.scope=${WATCHTOWER_SCOPE:-neural-graph-platform}"
+    networks:
+      - neural_network
+
+networks:
+  neural_network:
+    driver: bridge
+
+volumes:
+  neural_neo4j_data:

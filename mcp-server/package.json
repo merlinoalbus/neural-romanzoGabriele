@@ -1,7 +1,7 @@
 {
-  "name": "neural-graph-platform-mcp",
+  "name": "romanzo-gabriele-neural-mcp",
   "version": "0.1.0",
-  "description": "Generic MCP server for Neo4j-backed neural knowledge graphs.",
+  "description": "MCP server for the Romanzo Gabriele narrative knowledge graph.",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

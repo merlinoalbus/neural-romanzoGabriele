@@ -20,7 +20,7 @@ app.get('/api/config', (_req, res) => {
 app.get('/healthz', (_req, res) => {
   res.status(200).json({
     status: 'ok',
-    server: 'neural-graph-platform-server',
+    server: 'romanzo-gabriele-neural-server',
     version: config.appVersion,
     environment: config.appEnv,
     project_id: config.projectId,
@@ -37,7 +37,7 @@ app.get('/readyz', async (_req, res) => {
   const healthy = neo4jConnected && storage.readable && storage.writable;
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'ok' : 'degraded',
-    server: 'neural-graph-platform-server',
+    server: 'romanzo-gabriele-neural-server',
     version: config.appVersion,
     environment: config.appEnv,
     project_id: config.projectId,

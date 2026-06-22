@@ -26,7 +26,7 @@ function assert(condition, message) {
 }
 
 async function main() {
-  const client = new Client({ name: 'neural-graph-platform-smoke', version: '0.1.0' });
+  const client = new Client({ name: 'romanzo-gabriele-neural-smoke', version: '0.1.0' });
   const transport = new StreamableHTTPClientTransport(new URL(mcpUrl));
 
   await client.connect(transport);

@@ -14,7 +14,7 @@ function intFromEnv(name: string, fallback: number): number {
 }
 
 export const config = {
-  projectId: process.env.PROJECT_ID || process.env.MCP_PROJECT_ID || 'neural-graph-base',
+  projectId: process.env.PROJECT_ID || process.env.MCP_PROJECT_ID || 'romanzo-gabriele',
   port: intFromEnv('MCP_PORT', 3002),
   backendUrl: (process.env.BACKEND_URL || 'http://localhost:3001').replace(/\/+$/, ''),
   mcpSharedSecret: process.env.MCP_SHARED_SECRET || '',

@@ -16,7 +16,7 @@ function intFromEnv(name: string, fallback: number): number {
 
 export const config = {
   port: intFromEnv('PORT', 3001),
-  projectId: process.env.PROJECT_ID || 'neural-graph-base',
+  projectId: process.env.PROJECT_ID || 'romanzo-gabriele',
   projectBasePath: path.resolve(process.env.PROJECT_BASE_PATH || '/data'),
   mcpSharedSecret: process.env.MCP_SHARED_SECRET || '',
   appEnv: normalizeAppEnv(process.env.APP_ENV),

@@ -1,17 +1,39 @@
-# Neural Graph Platform MCP Instructions
+# Rete Neurale Romanzo Gabriele MCP
 
-You are connected to a generic Neo4j-backed neural knowledge graph. The MCP tools are the persistent memory; you are responsible for interpreting source material and deciding which nodes and relations should exist.
+Sei collegato a una memoria narrativa Neo4j-backed per supportare stesura e revisione di un romanzo fantasy. Il grafo e' memoria persistente: ogni risposta narrativa deve distinguere tra canone fornito, struttura dedotta dall'indice, bozza reale e proposta non ancora approvata.
 
-Core workflow:
+## Regole Fondamentali
 
-1. Before writing, call `kg_recall` or `kg_search` to avoid duplicates.
-2. Prefer `kg_upsert_node` and `kg_link` for normal work.
-3. Use bulk tools for large ingestion batches.
-4. Keep provenance rich: source file, source URL, page, ticket id, chapter, date, operator, and import batch when known.
-5. Use `kg_ingest_document` for raw documents before deriving higher-level facts.
-6. Use `kg_audit_global` before and after cleanup.
-7. Use destructive tools only when the user explicitly asks for cleanup or deletion.
+1. Non inventare canone. Se un fatto non e' nel grafo o nella fonte fornita nella richiesta, dichiaralo come ipotesi o proposta.
+2. L'indice della Bibbia del Romanzo e' solo blueprint strutturale: puo creare sezioni, capitoli e categorie, ma non contenuti narrativi dettagliati.
+3. La Bibbia completa diventa fonte canonica solo quando viene fornita esplicitamente. In questo step usa `kg_ingest_document`; i tool `novel_*` sono futuri e non ancora registrati.
+4. Le bozze capitolo diventano materiale di lavoro solo quando vengono fornite tramite `kg_ingest_document` o strumenti equivalenti gia disponibili.
+5. Ogni nodo e relazione deve conservare provenienza: sourceId, tipo fonte, sezione, capitolo, data di import e operatore quando noti.
+6. Prima di scrivere, revisionare o suggerire continuita, usa `kg_recall` o `kg_search`. I tool `novel_*` non sono disponibili finche non compaiono in `list_mcp_capabilities`.
+7. Per audit di coerenza usa solo strumenti read-only.
+8. Usa strumenti distruttivi solo su richiesta esplicita dell'utente.
 
-Node types are intentionally open: `document`, `chunk`, `person`, `place`, `organization`, `event`, `concept`, `procedure`, `decision`, `thread`, `ticket`, `page`, `note`, and project-specific types are all acceptable.
+## Tipi Narrativi Attesi
 
-Relation kinds are intentionally closed by `ontology.ts`. If the exact relation does not exist yet, use `related_to` and leave enough metadata for a future specialization to type it properly.
+Usa tipi dominio quando applicabili:
+
+- `bible_outline`, `bible_section`
+- `character`, `character_voice`, `character_state`, `relationship_dynamic`
+- `theme`, `location`, `world_rule`
+- `timeline_event`, `chapter`, `scene`
+- `plot_thread`, `foreshadowing`
+- `style_rule`, `glossary_term`
+- `chapter_draft`, `continuity_finding`
+
+## Workflow Consigliato
+
+1. Conserva l'indice come struttura, non come contenuto narrativo completo.
+2. Importa la Bibbia completa solo quando sara fornita.
+3. Prima di lavorare su un capitolo, recupera nodi e relazioni rilevanti dal grafo.
+4. Dopo una bozza, segnala i limiti dei controlli automatici e non presentare ipotesi come canone.
+
+## Relazioni Narrative
+
+Preferisci relazioni tipizzate gia presenti nell'ontologia rispetto a `related_to`: `part_of`, `precedes`, `derived_from`, `mentions`, `appears_in`, `has_arc`, `has_voice`, `has_theme`, `defines`, `constrains`, `changes_state`, `reveals`, `conceals`, `foreshadows`, `pays_off`, `motivates`, `causes`, `supports`, `contradicts`, `depends_on`, `resolves`.
+
+Se manca una relazione precisa, usa `related_to` con metadata sufficiente per una futura specializzazione.

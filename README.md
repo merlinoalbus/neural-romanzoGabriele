@@ -1,74 +1,80 @@
-# Neural Graph Platform - Base Template
+# Rete Neurale Romanzo Gabriele
 
-Base repository for Neo4j-backed neural graph projects with the same deployment shape used by `manhua-app`: GitHub Actions, GHCR images, Portainer stack, NAS-mounted data, MCP tools, and a separated frontend.
+Repository specializzato per una memoria narrativa Neo4j-backed, accessibile da IA tramite server MCP, a supporto della stesura e revisione di un romanzo fantasy.
 
-## Architecture
+La piattaforma non inventa canone: conserva fonti, indice, Bibbia del Romanzo quando fornita, bozze dei capitoli e relazioni strutturate. L'indice della Bibbia viene usato come blueprint architetturale, non come contenuto completo.
 
-The stack is intentionally split by responsibility:
+## Architettura
 
-- `frontend/`: React UI for the neural graph. The browser calls only the frontend origin.
-- `server/`: internal backend for NAS persistence and read-only graph APIs used by the frontend.
-- `mcp-server/`: MCP HTTP/SSE server used by the AI. It exposes `kg_*` tools and writes to Neo4j.
-- `neo4j`: graph database, reachable only inside the Docker network.
+Lo stack resta diviso per responsabilita:
 
-The frontend does not call the MCP server. Nginx in the frontend container proxies `/api/v2/kg/*` to `neural_be`.
+- `frontend/`: dashboard React per esplorare il grafo narrativo.
+- `server/`: backend interno per persistenza NAS e API read-only usate dal frontend.
+- `mcp-server/`: server MCP HTTP/SSE usato dall'IA. In questo step espone solo i tool generici `kg_*`; i tool narrativi `novel_*` sono roadmap della specializzazione e non vanno considerati disponibili finche non saranno registrati nel server.
+- `neo4j`: database a grafo, accessibile solo dentro la rete Docker.
 
-## Services
+Il frontend non chiama direttamente il server MCP. Nginx nel container frontend inoltra `/api/v2/kg/*` al backend.
 
-Portainer runs:
+## Servizi
 
-- `neural_fe`
-- `neural_be`
-- `neural_mcp`
-- `neural_neo4j`
-- `watchtower`
+Portainer esegue:
 
-MCP can still be exposed separately for AI connectors through `MCP_HOST_PORT`, but it is not part of the browser path.
+- `romanzo_gabriele_fe`
+- `romanzo_gabriele_be`
+- `romanzo_gabriele_mcp`
+- `romanzo_gabriele_neo4j`
+- `romanzo_gabriele_watchtower`
 
-## Images
+Il server MCP puo essere esposto separatamente tramite `MCP_HOST_PORT` per i connector IA.
 
-Pushes to `main` publish:
+## Flusso Narrativo
 
-```text
-ghcr.io/merlinoalbus/neural-graph-platform-backend:latest
-ghcr.io/merlinoalbus/neural-graph-platform-frontend:latest
-ghcr.io/merlinoalbus/neural-graph-platform-mcp:latest
-```
+1. Importare l'indice della Bibbia come struttura, senza trasformarlo in contenuto canonico dettagliato.
+2. Importare la Bibbia completa solo quando viene fornita.
+3. Importare bozze reali dei capitoli come materiale di lavoro.
+4. Prima di scrivere o revisionare, richiamare il contesto dal grafo.
+5. Per controlli su un capitolo, usare strumenti read-only.
 
-Each image is also tagged with the commit SHA.
+I dati canonici devono sempre mantenere provenienza chiara. Le proposte creative o di revisione devono rimanere distinguibili dal canone approvato.
 
 ## Local Checks
 
+Su Windows usare `npm.cmd` per evitare blocchi PowerShell su `npm.ps1`:
+
 ```bash
-npm ci --prefix server
-npm run build --prefix server
-
-npm ci --prefix mcp-server
-npm run build --prefix mcp-server
-npm run lint --prefix mcp-server
-npm test --prefix mcp-server
-
-npm ci --prefix frontend
-npm run build --prefix frontend
+npm.cmd run typecheck --prefix server
+npm.cmd run typecheck --prefix mcp-server
+npm.cmd run lint --prefix mcp-server
+npm.cmd test --prefix mcp-server
+npm.cmd run typecheck --prefix frontend
+npm.cmd run build --prefix frontend
 ```
 
 ## Docker Stack
 
 ```bash
 cp .env.example .env
-# edit NEO4J_PASSWORD, MCP_SHARED_SECRET, NAS_PROJECT_PATH, and host ports
+# modificare NEO4J_PASSWORD, MCP_SHARED_SECRET, NAS_PROJECT_PATH e porte host
 docker compose up -d --build
 ```
 
-The frontend is served from `FE_HOST_PORT`. The frontend proxies graph UI calls to `server`, and `server` reads Neo4j in read-only mode.
+Il frontend viene servito da `FE_HOST_PORT`; il backend legge Neo4j in sola lettura per la UI; il server MCP scrive nel grafo tramite strumenti controllati.
 
-## Core MCP Tools
+## Tool MCP
 
-- Nodes: `kg_add_node`, `kg_upsert_node`, `kg_upsert_nodes`, `kg_update_node`, `kg_delete_node`
-- Edges: `kg_link`, `kg_link_bulk`, `kg_unlink`
-- Assets: `kg_attach_asset`
+Tool generici mantenuti:
+
+- Nodi: `kg_add_node`, `kg_upsert_node`, `kg_upsert_nodes`, `kg_update_node`, `kg_delete_node`
+- Archi: `kg_link`, `kg_link_bulk`, `kg_unlink`
+- Asset: `kg_attach_asset`
 - Retrieval: `kg_get_node`, `kg_search`, `kg_neighbors`, `kg_recall`, `kg_stats`
-- Maintenance: `kg_audit_global`, `kg_repair`
-- Documents: `kg_ingest_document`, `kg_get_document_chunks`, `kg_list_documents`
+- Manutenzione: `kg_audit_global`, `kg_repair`
+- Documenti: `kg_ingest_document`, `kg_get_document_chunks`, `kg_list_documents`
 
-`kg_ingest_document` writes graph nodes/chunks in Neo4j and asks `server` to save the source text under the NAS-mounted `/data/documents/...` path.
+Roadmap tool narrativi non ancora disponibili in questo step:
+
+- `novel_ingest_outline`: importa solo struttura dell'indice.
+- `novel_ingest_bible`: conserva la Bibbia completa quando fornita.
+- `novel_ingest_chapter_draft`: salva bozze reali di capitolo.
+- `novel_recall_context`: prepara contesto narrativo per scrittura/revisione.
+- `novel_audit_chapter`: controlla rischi di coerenza senza modificare il grafo.

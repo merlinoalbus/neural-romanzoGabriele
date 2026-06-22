@@ -4,6 +4,9 @@ import { assertCanonicalKind, isCanonicalKind, KG_KINDS_LIST } from './ontology.
 
 test('relation vocabulary accepts canonical kinds', () => {
   assert.equal(isCanonicalKind('mentions'), true);
+  assert.equal(isCanonicalKind('appears_in'), true);
+  assert.equal(isCanonicalKind('has_voice'), true);
+  assert.equal(isCanonicalKind('pays_off'), true);
   assert.equal(isCanonicalKind('related_to'), true);
 });
 

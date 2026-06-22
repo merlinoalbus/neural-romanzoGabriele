@@ -36,7 +36,7 @@ export function registerDiagnosticTools(server: McpServer): void {
     async () => toolStructured({
       ok: true,
       message: 'pong',
-      server: 'neural-graph-platform-mcp',
+      server: 'romanzo-gabriele-neural-mcp',
       version: config.appVersion,
       environment: config.appEnv,
       projectId: config.projectId,

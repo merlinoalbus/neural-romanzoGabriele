@@ -12,9 +12,9 @@ import { ALL_MCP_TOOL_NAMES } from './toolNames.js';
 import { registerDiagnosticTools } from './tools/diagnostics.js';
 import { registerKnowledgeGraphTools } from './tools/knowledgeGraph.js';
 
-const EMBEDDED_FALLBACK_INSTRUCTIONS = `# Neural Graph Platform MCP
+const EMBEDDED_FALLBACK_INSTRUCTIONS = `# Rete Neurale Romanzo Gabriele MCP
 
-Use kg_recall before writing. Prefer kg_upsert_node and kg_link. Keep provenance on every node and relation.`;
+Use kg_recall before writing. Do not invent canon. Keep provenance on every node and relation.`;
 
 function resolveInstructionsPath(rawPath: string): string {
   if (path.isAbsolute(rawPath)) return rawPath;
@@ -47,7 +47,7 @@ function registerTools(server: McpServer): void {
 
 function createMcpServer(): McpServer {
   const server = new McpServer({
-    name: 'neural-graph-platform-mcp',
+    name: 'romanzo-gabriele-neural-mcp',
     version: config.appVersion,
     ...({ instructions: mcpInstructions } as Record<string, unknown>),
   });
@@ -180,7 +180,7 @@ app.delete('/mcp', async (req, res) => {
 
 function versionInfo() {
   return {
-    server: 'neural-graph-platform-mcp',
+    server: 'romanzo-gabriele-neural-mcp',
     version: config.appVersion,
     environment: config.appEnv,
     project_id: config.projectId,

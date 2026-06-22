@@ -6,9 +6,9 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BE_IMAGE: ghcr.io/merlinoalbus/neural-graph-platform-backend
-  FE_IMAGE: ghcr.io/merlinoalbus/neural-graph-platform-frontend
-  MCP_IMAGE: ghcr.io/merlinoalbus/neural-graph-platform-mcp
+  BE_IMAGE: ghcr.io/merlinoalbus/romanzo-gabriele-neural-backend
+  FE_IMAGE: ghcr.io/merlinoalbus/romanzo-gabriele-neural-frontend
+  MCP_IMAGE: ghcr.io/merlinoalbus/romanzo-gabriele-neural-mcp
 
 jobs:
   build-backend:

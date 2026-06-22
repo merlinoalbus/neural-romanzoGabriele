@@ -1,7 +1,7 @@
 {
-  "name": "neural-graph-platform-server",
+  "name": "romanzo-gabriele-neural-server",
   "version": "0.1.0",
-  "description": "Internal backend for NAS storage and read-only graph APIs used by the frontend.",
+  "description": "Internal backend for the Romanzo Gabriele narrative graph and read-only frontend APIs.",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

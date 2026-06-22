@@ -140,7 +140,7 @@ export function App() {
     <div className="app-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">Neural Graph Platform</p>
+          <p className="eyebrow">Rete Neurale Romanzo Gabriele</p>
           <h1>Rete neurale</h1>
         </div>
         <button className="icon-button" title="Aggiorna statistiche" onClick={() => void refreshStats()}>

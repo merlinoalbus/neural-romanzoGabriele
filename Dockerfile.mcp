@@ -1,5 +1,5 @@
 ﻿# ============================================================
-# MCP Server - Generic Neural Graph Platform
+# MCP Server - Rete Neurale Romanzo Gabriele
 # ============================================================
 
 FROM node:22-alpine AS build

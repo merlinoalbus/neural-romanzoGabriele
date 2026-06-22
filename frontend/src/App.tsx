@@ -124,7 +124,6 @@ export function App() {
   const [tab, setTab] = useState<Tab>('search');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [adminSecret, setAdminSecret] = useState('');
   const [adminBusy, setAdminBusy] = useState(false);
   const [adminMessage, setAdminMessage] = useState<string | null>(null);
   const [importMode, setImportMode] = useState<ImportMode>('upsert');
@@ -196,23 +195,12 @@ export function App() {
     }
   }, [refreshStats]);
 
-  const requireAdminSecret = useCallback((): string | null => {
-    const secret = adminSecret.trim();
-    if (!secret) {
-      setError('Segreto admin richiesto');
-      return null;
-    }
-    return secret;
-  }, [adminSecret]);
-
   const runExport = useCallback(async () => {
-    const secret = requireAdminSecret();
-    if (!secret) return;
     setAdminBusy(true);
     setError(null);
     setAdminMessage(null);
     try {
-      const exported = await exportGraphSnapshot(secret);
+      const exported = await exportGraphSnapshot();
       const url = URL.createObjectURL(exported.blob);
       const link = document.createElement('a');
       link.href = url;
@@ -227,7 +215,7 @@ export function App() {
     } finally {
       setAdminBusy(false);
     }
-  }, [requireAdminSecret]);
+  }, []);
 
   const loadSnapshotFile = useCallback(async (file: File) => {
     setError(null);
@@ -245,13 +233,12 @@ export function App() {
   }, []);
 
   const runImportDryRun = useCallback(async () => {
-    const secret = requireAdminSecret();
-    if (!secret || !snapshot) return;
+    if (!snapshot) return;
     setAdminBusy(true);
     setError(null);
     setAdminMessage(null);
     try {
-      const result = await dryRunGraphSnapshotImport(snapshot, importMode, secret);
+      const result = await dryRunGraphSnapshotImport(snapshot, importMode);
       setImportResult(result);
       setAdminMessage(result.ok ? 'Dry-run import approvato' : 'Dry-run import respinto');
     } catch (err) {
@@ -259,17 +246,16 @@ export function App() {
     } finally {
       setAdminBusy(false);
     }
-  }, [importMode, requireAdminSecret, snapshot]);
+  }, [importMode, snapshot]);
 
   const runImportCommit = useCallback(async () => {
-    const secret = requireAdminSecret();
-    if (!secret || !snapshot || !importResult?.ok) return;
+    if (!snapshot || !importResult?.ok) return;
     if (importMode === 'replaceProject' && !window.confirm('Confermi la sostituzione completa del progetto corrente?')) return;
     setAdminBusy(true);
     setError(null);
     setAdminMessage(null);
     try {
-      const result = await commitGraphSnapshotImport(snapshot, importMode, secret, importResult.report.targetProjectId);
+      const result = await commitGraphSnapshotImport(snapshot, importMode, importResult.report.targetProjectId);
       setImportResult(result);
       setAdminMessage(result.ok ? `Import completato: ${result.written?.nodes ?? 0} nodi, ${result.written?.edges ?? 0} archi` : 'Import respinto');
       if (result.ok) void refreshStats();
@@ -278,7 +264,7 @@ export function App() {
     } finally {
       setAdminBusy(false);
     }
-  }, [importMode, importResult, refreshStats, requireAdminSecret, snapshot]);
+  }, [importMode, importResult, refreshStats, snapshot]);
 
   const activeList = tab === 'search' ? results : documents;
 
@@ -314,13 +300,6 @@ export function App() {
 
           {tab === 'admin' && (
             <div className="admin-box">
-              <input
-                type="password"
-                value={adminSecret}
-                onChange={(event) => setAdminSecret(event.target.value)}
-                placeholder="segreto admin"
-                autoComplete="off"
-              />
               <button className="command-button" onClick={() => void runExport()} disabled={adminBusy}>
                 <Download size={16} />Esporta modello
               </button>

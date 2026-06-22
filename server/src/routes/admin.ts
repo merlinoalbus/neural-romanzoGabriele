@@ -1,28 +1,7 @@
 import { Router } from 'express';
-import { config } from '../config.js';
 import { exportGraphSnapshot, importGraphSnapshot } from '../services/graphSnapshotService.js';
 
 const router = Router();
-
-function adminSecretFromHeader(raw: string | string[] | undefined): string {
-  if (Array.isArray(raw)) return raw[0] ?? '';
-  return raw ?? '';
-}
-
-router.use((req, res, next) => {
-  if (!config.mcpSharedSecret.trim()) {
-    res.status(503).json({ error: 'admin_secret_not_configured' });
-    return;
-  }
-  const direct = adminSecretFromHeader(req.headers['x-admin-secret']);
-  const auth = adminSecretFromHeader(req.headers.authorization);
-  const bearer = auth.toLowerCase().startsWith('bearer ') ? auth.slice(7) : '';
-  if (direct === config.mcpSharedSecret || bearer === config.mcpSharedSecret) {
-    next();
-    return;
-  }
-  res.status(401).json({ error: 'unauthorized' });
-});
 
 router.get('/export', async (_req, res) => {
   try {

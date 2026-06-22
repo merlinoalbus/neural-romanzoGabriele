@@ -76,13 +76,12 @@ async function getJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-async function postJson<T>(path: string, body: unknown, adminSecret: string): Promise<T> {
+async function postJson<T>(path: string, body: unknown): Promise<T> {
   const response = await fetch(path, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'X-Admin-Secret': adminSecret,
     },
     body: JSON.stringify(body),
   });
@@ -120,11 +119,10 @@ export function listKgDocuments(limit = 50): Promise<{ documents: KgNode[] }> {
   return getJson<{ documents: KgNode[] }>(`/api/v2/kg/documents?limit=${limit}`);
 }
 
-export async function exportGraphSnapshot(adminSecret: string): Promise<{ blob: Blob; filename: string }> {
+export async function exportGraphSnapshot(): Promise<{ blob: Blob; filename: string }> {
   const response = await fetch('/api/v2/admin/export', {
     headers: {
       Accept: 'application/json',
-      'X-Admin-Secret': adminSecret,
     },
   });
   if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${await response.text()}`);
@@ -134,15 +132,14 @@ export async function exportGraphSnapshot(adminSecret: string): Promise<{ blob: 
   };
 }
 
-export function dryRunGraphSnapshotImport(snapshot: GraphSnapshot, mode: ImportMode, adminSecret: string): Promise<SnapshotImportResult> {
-  return postJson<SnapshotImportResult>('/api/v2/admin/import/dry-run', { snapshot, mode }, adminSecret);
+export function dryRunGraphSnapshotImport(snapshot: GraphSnapshot, mode: ImportMode): Promise<SnapshotImportResult> {
+  return postJson<SnapshotImportResult>('/api/v2/admin/import/dry-run', { snapshot, mode });
 }
 
 export function commitGraphSnapshotImport(
   snapshot: GraphSnapshot,
   mode: ImportMode,
-  adminSecret: string,
   confirmProjectId?: string,
 ): Promise<SnapshotImportResult> {
-  return postJson<SnapshotImportResult>('/api/v2/admin/import/commit', { snapshot, mode, confirmProjectId }, adminSecret);
+  return postJson<SnapshotImportResult>('/api/v2/admin/import/commit', { snapshot, mode, confirmProjectId });
 }

@@ -44,6 +44,21 @@ test('groupNarrativeContext separates domain nodes and hides drafts by default',
   assert.equal(groups.other.length, 1);
 });
 
+test('groupNarrativeContext excludes Bible technical nodes from editorial packets', () => {
+  const groups = groupNarrativeContext([
+    node('character', 'Lisa Martini'),
+    node('bible_candidate', 'candidate-1'),
+    node('bible_coverage_finding', 'edge-evidence-1'),
+    node('bible_mapping_batch', 'batch-1'),
+    node('bible_outline', 'bibbia-gabriele-2025'),
+    node('bible_section', 'bibbia-gabriele-2025::3.2'),
+    node('note', 'Nota narrativa non tipizzata'),
+  ]);
+  assert.equal(groups.characters.length, 1);
+  assert.equal(groups.other.length, 1);
+  assert.equal(groups.other[0]?.label, 'Nota narrativa non tipizzata');
+});
+
 test('detectMentionedCharacters uses aliases and parenthetical names', () => {
   const characters = [
     node('character', 'Gabriele Rinaldi (Gabriel)'),

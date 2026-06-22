@@ -57,6 +57,16 @@ export type NovelNodeType = typeof NOVEL_NODE_TYPES[number];
 
 export const NOVEL_NODE_TYPE_SET: ReadonlySet<string> = new Set(NOVEL_NODE_TYPES);
 
+export const NOVEL_TECHNICAL_NODE_TYPES = [
+  'bible_candidate',
+  'bible_coverage_finding',
+  'bible_mapping_batch',
+  'bible_outline',
+  'bible_section',
+] as const satisfies readonly NovelNodeType[];
+
+export const NOVEL_TECHNICAL_NODE_TYPE_SET: ReadonlySet<string> = new Set(NOVEL_TECHNICAL_NODE_TYPES);
+
 export function isNovelNodeType(type: string): type is NovelNodeType {
   return NOVEL_NODE_TYPE_SET.has(type);
 }

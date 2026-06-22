@@ -1,5 +1,5 @@
 import type { GraphNode } from '../graph/neo4jStore.js';
-import { normalizeChapterLabel } from './domain.js';
+import { NOVEL_TECHNICAL_NODE_TYPE_SET, normalizeChapterLabel } from './domain.js';
 
 export type NarrativeContextGroups = {
   artifacts: GraphNode[];
@@ -105,6 +105,7 @@ export function emptyNarrativeContextGroups(): NarrativeContextGroups {
 export function groupNarrativeContext(nodes: GraphNode[], opts: { includeDrafts?: boolean } = {}): NarrativeContextGroups {
   const groups = emptyNarrativeContextGroups();
   for (const node of nodes) {
+    if (NOVEL_TECHNICAL_NODE_TYPE_SET.has(node.type)) continue;
     if (!opts.includeDrafts && (node.type === 'chapter_draft' || node.type === 'document' || node.type === 'chunk')) continue;
     switch (node.type) {
       case 'artifact':

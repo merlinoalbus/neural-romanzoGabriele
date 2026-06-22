@@ -2,9 +2,11 @@ import cors from 'cors';
 import express from 'express';
 import { checkDataPath, config, validateConfig } from './config.js';
 import { logger } from './logger.js';
+import adminRouter from './routes/admin.js';
 import documentsRouter from './routes/documents.js';
 import kgRouter from './routes/kg.js';
 import * as kg from './services/neo4jReadService.js';
+import { closeSnapshotDriver } from './services/graphSnapshotService.js';
 
 const app = express();
 app.use(cors());
@@ -12,6 +14,7 @@ app.use(express.json({ limit: '50mb' }));
 
 app.use('/api/v2/kg', kgRouter);
 app.use('/api/v2/documents', documentsRouter);
+app.use('/api/v2/admin', adminRouter);
 
 app.get('/api/config', (_req, res) => {
   res.json({ projectId: config.projectId, projectBasePath: config.projectBasePath });
@@ -64,8 +67,12 @@ async function main(): Promise<void> {
   app.listen(config.port, '0.0.0.0', () => logger.info('server listening', { port: config.port }));
 }
 
-process.on('SIGTERM', () => void kg.closeDriver().finally(() => process.exit(0)));
-process.on('SIGINT', () => void kg.closeDriver().finally(() => process.exit(0)));
+async function shutdown(): Promise<void> {
+  await Promise.all([kg.closeDriver(), closeSnapshotDriver()]);
+}
+
+process.on('SIGTERM', () => void shutdown().finally(() => process.exit(0)));
+process.on('SIGINT', () => void shutdown().finally(() => process.exit(0)));
 
 main().catch((err) => {
   logger.error('fatal error', { error: String(err) });

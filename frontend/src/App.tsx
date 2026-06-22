@@ -1,7 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { Database, FileText, Network, RefreshCw, Search, X } from 'lucide-react';
-import { getKgNeighbors, getKgNode, getKgStats, listKgDocuments, searchKg, type KgEdge, type KgNode, type KgStats } from './api';
+import { Database, Download, FileText, Network, RefreshCw, Search, ShieldCheck, Upload, X } from 'lucide-react';
+import {
+  commitGraphSnapshotImport,
+  dryRunGraphSnapshotImport,
+  exportGraphSnapshot,
+  getKgNeighbors,
+  getKgNode,
+  getKgStats,
+  listKgDocuments,
+  searchKg,
+  type GraphSnapshot,
+  type ImportMode,
+  type KgEdge,
+  type KgNode,
+  type KgStats,
+  type SnapshotImportResult,
+} from './api';
 
 const TYPE_COLORS: Record<string, string> = {
   bible_outline: '#6d28d9',
@@ -60,7 +75,7 @@ const TYPE_LABELS: Record<string, string> = {
 const colorFor = (type: string): string => TYPE_COLORS[type] ?? '#334155';
 const labelFor = (type: string): string => TYPE_LABELS[type] ?? type;
 
-type Tab = 'search' | 'documents';
+type Tab = 'search' | 'documents' | 'admin';
 
 interface GNode {
   id: string;
@@ -109,6 +124,13 @@ export function App() {
   const [tab, setTab] = useState<Tab>('search');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [adminSecret, setAdminSecret] = useState('');
+  const [adminBusy, setAdminBusy] = useState(false);
+  const [adminMessage, setAdminMessage] = useState<string | null>(null);
+  const [importMode, setImportMode] = useState<ImportMode>('upsert');
+  const [snapshot, setSnapshot] = useState<GraphSnapshot | null>(null);
+  const [snapshotFileName, setSnapshotFileName] = useState('');
+  const [importResult, setImportResult] = useState<SnapshotImportResult | null>(null);
   const graphRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ width: 900, height: 640 });
 
@@ -174,6 +196,90 @@ export function App() {
     }
   }, [refreshStats]);
 
+  const requireAdminSecret = useCallback((): string | null => {
+    const secret = adminSecret.trim();
+    if (!secret) {
+      setError('Segreto admin richiesto');
+      return null;
+    }
+    return secret;
+  }, [adminSecret]);
+
+  const runExport = useCallback(async () => {
+    const secret = requireAdminSecret();
+    if (!secret) return;
+    setAdminBusy(true);
+    setError(null);
+    setAdminMessage(null);
+    try {
+      const exported = await exportGraphSnapshot(secret);
+      const url = URL.createObjectURL(exported.blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = exported.filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setAdminMessage(`Export generato: ${exported.filename}`);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setAdminBusy(false);
+    }
+  }, [requireAdminSecret]);
+
+  const loadSnapshotFile = useCallback(async (file: File) => {
+    setError(null);
+    setAdminMessage(null);
+    setImportResult(null);
+    setSnapshot(null);
+    setSnapshotFileName(file.name);
+    try {
+      const parsed = JSON.parse(await file.text()) as GraphSnapshot;
+      setSnapshot(parsed);
+      setAdminMessage(`Snapshot caricato: ${file.name}`);
+    } catch (err) {
+      setError(`Snapshot non valido: ${String(err)}`);
+    }
+  }, []);
+
+  const runImportDryRun = useCallback(async () => {
+    const secret = requireAdminSecret();
+    if (!secret || !snapshot) return;
+    setAdminBusy(true);
+    setError(null);
+    setAdminMessage(null);
+    try {
+      const result = await dryRunGraphSnapshotImport(snapshot, importMode, secret);
+      setImportResult(result);
+      setAdminMessage(result.ok ? 'Dry-run import approvato' : 'Dry-run import respinto');
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setAdminBusy(false);
+    }
+  }, [importMode, requireAdminSecret, snapshot]);
+
+  const runImportCommit = useCallback(async () => {
+    const secret = requireAdminSecret();
+    if (!secret || !snapshot || !importResult?.ok) return;
+    if (importMode === 'replaceProject' && !window.confirm('Confermi la sostituzione completa del progetto corrente?')) return;
+    setAdminBusy(true);
+    setError(null);
+    setAdminMessage(null);
+    try {
+      const result = await commitGraphSnapshotImport(snapshot, importMode, secret, importResult.report.targetProjectId);
+      setImportResult(result);
+      setAdminMessage(result.ok ? `Import completato: ${result.written?.nodes ?? 0} nodi, ${result.written?.edges ?? 0} archi` : 'Import respinto');
+      if (result.ok) void refreshStats();
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setAdminBusy(false);
+    }
+  }, [importMode, importResult, refreshStats, requireAdminSecret, snapshot]);
+
   const activeList = tab === 'search' ? results : documents;
 
   return (
@@ -195,6 +301,7 @@ export function App() {
           <div className="tabs" role="tablist">
             <button className={tab === 'search' ? 'active' : ''} onClick={() => setTab('search')}><Search size={15} />Grafo</button>
             <button className={tab === 'documents' ? 'active' : ''} onClick={() => { setTab('documents'); void loadDocuments(); }}><FileText size={15} />Documenti</button>
+            <button className={tab === 'admin' ? 'active' : ''} onClick={() => setTab('admin')}><ShieldCheck size={15} />Admin</button>
           </div>
 
           {tab === 'search' && (
@@ -205,10 +312,63 @@ export function App() {
             </div>
           )}
 
+          {tab === 'admin' && (
+            <div className="admin-box">
+              <input
+                type="password"
+                value={adminSecret}
+                onChange={(event) => setAdminSecret(event.target.value)}
+                placeholder="segreto admin"
+                autoComplete="off"
+              />
+              <button className="command-button" onClick={() => void runExport()} disabled={adminBusy}>
+                <Download size={16} />Esporta modello
+              </button>
+              <label className="file-button">
+                <Upload size={16} />Carica snapshot
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) void loadSnapshotFile(file);
+                  }}
+                />
+              </label>
+              <select
+                value={importMode}
+                onChange={(event) => {
+                  setImportMode(event.target.value as ImportMode);
+                  setImportResult(null);
+                }}
+              >
+                <option value="upsert">upsert</option>
+                <option value="replaceProject">replace project</option>
+              </select>
+              <button className="command-button" onClick={() => void runImportDryRun()} disabled={adminBusy || !snapshot}>
+                Dry-run import
+              </button>
+              <button className="command-button danger" onClick={() => void runImportCommit()} disabled={adminBusy || !snapshot || !importResult?.ok}>
+                Commit import
+              </button>
+              {snapshotFileName && <div className="admin-line">{snapshotFileName}</div>}
+              {adminMessage && <div className="admin-line ok">{adminMessage}</div>}
+              {importResult && (
+                <div className="import-report">
+                  <b>{importResult.report.ok ? 'OK' : 'ERRORE'}</b>
+                  <span>Nodi: {importResult.report.counts.nodes} / attuali {importResult.report.counts.currentNodes}</span>
+                  <span>Archi: {importResult.report.counts.edges} / attuali {importResult.report.counts.currentEdges}</span>
+                  {importResult.report.warnings.map((warning) => <span key={warning} className="warn">{warning}</span>)}
+                  {importResult.report.errors.map((entry) => <span key={entry} className="bad">{entry}</span>)}
+                </div>
+              )}
+            </div>
+          )}
+
           {error && <div className="error-line">{error}</div>}
           {loading && <div className="loading-line">Caricamento</div>}
 
-          <div className="result-list">
+          <div className={tab === 'admin' ? 'result-list hidden' : 'result-list'}>
             {activeList.map((node) => (
               <button key={node.id} className={selectedId === node.id ? 'result active' : 'result'} onClick={() => void expandNode(node.id)}>
                 <span className="dot" style={{ background: colorFor(node.type) }} />

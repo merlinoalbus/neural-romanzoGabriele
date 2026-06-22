@@ -7,6 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api/v2/kg': 'http://localhost:3001',
+      '/api/v2/admin': 'http://localhost:3001',
       '/api/config': 'http://localhost:3001',
     },
   },

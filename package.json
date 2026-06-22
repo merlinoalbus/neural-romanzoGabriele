@@ -1,0 +1,63 @@
+{
+  "name": "romanzo-gabriele-neural",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Root orchestration scripts for the Romanzo Gabriele neural graph stack.",
+  "scripts": {
+    "docker:check:dev": "docker compose --env-file .env.dev -f docker-compose.yml config --quiet",
+    "docker:check:dev:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml config --quiet",
+    "docker:check:deploy": "docker compose --env-file .env.deploy.dev -f docker-compose.yml config --quiet",
+    "docker:check:deploy:tunnel": "docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml config --quiet",
+
+    "docker:config:dev": "docker compose --env-file .env.dev -f docker-compose.yml config",
+    "docker:config:dev:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml config",
+    "docker:config:deploy": "docker compose --env-file .env.deploy.dev -f docker-compose.yml config",
+    "docker:config:deploy:tunnel": "docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml config",
+
+    "docker:up:dev": "docker compose --env-file .env.dev -f docker-compose.yml up -d",
+    "docker:up:dev:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml up -d",
+    "docker:up:deploy": "docker compose --env-file .env.deploy.dev -f docker-compose.yml up -d",
+    "docker:up:deploy:tunnel": "docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml up -d",
+
+    "docker:down:dev": "docker compose --env-file .env.dev -f docker-compose.yml down",
+    "docker:down:dev:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml down",
+    "docker:down:deploy": "docker compose --env-file .env.deploy.dev -f docker-compose.yml down",
+    "docker:down:deploy:tunnel": "docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml down",
+
+    "docker:pull:dev": "docker compose --env-file .env.dev -f docker-compose.yml pull romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp",
+    "docker:pull:dev:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml pull romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp romanzo_gabriele_cloudflared",
+    "docker:pull:dev:all": "docker compose --env-file .env.dev -f docker-compose.yml pull",
+    "docker:pull:dev:all:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml pull",
+    "docker:pull:deploy": "docker compose --env-file .env.deploy.dev -f docker-compose.yml pull romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp",
+    "docker:pull:deploy:tunnel": "docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml pull romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp romanzo_gabriele_cloudflared",
+    "docker:pull:deploy:all": "docker compose --env-file .env.deploy.dev -f docker-compose.yml pull",
+    "docker:pull:deploy:all:tunnel": "docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml pull",
+
+    "docker:redeploy": "docker compose --env-file .env.dev -f docker-compose.yml pull romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp && docker compose --env-file .env.dev -f docker-compose.yml up -d --remove-orphans --force-recreate romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp && docker compose --env-file .env.dev -f docker-compose.yml ps",
+    "docker:redeploy:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml pull romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp romanzo_gabriele_cloudflared && docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml up -d --remove-orphans --force-recreate romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp romanzo_gabriele_cloudflared && docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml ps",
+    "docker:redeploy:dev": "docker compose --env-file .env.dev -f docker-compose.yml pull romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp && docker compose --env-file .env.dev -f docker-compose.yml up -d --remove-orphans --force-recreate romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp && docker compose --env-file .env.dev -f docker-compose.yml ps",
+    "docker:redeploy:dev:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml pull romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp romanzo_gabriele_cloudflared && docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml up -d --remove-orphans --force-recreate romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp romanzo_gabriele_cloudflared && docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml ps",
+    "docker:redeploy:deploy": "docker compose --env-file .env.deploy.dev -f docker-compose.yml pull romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp && docker compose --env-file .env.deploy.dev -f docker-compose.yml up -d --remove-orphans --force-recreate romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp && docker compose --env-file .env.deploy.dev -f docker-compose.yml ps",
+    "docker:redeploy:deploy:tunnel": "docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml pull romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp romanzo_gabriele_cloudflared && docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml up -d --remove-orphans --force-recreate romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp romanzo_gabriele_cloudflared && docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml ps",
+    "docker:redeploy:all": "docker compose --env-file .env.dev -f docker-compose.yml pull && docker compose --env-file .env.dev -f docker-compose.yml up -d --remove-orphans --force-recreate && docker compose --env-file .env.dev -f docker-compose.yml ps",
+    "docker:redeploy:all:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml pull && docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml up -d --remove-orphans --force-recreate && docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml ps",
+    "docker:redeploy:dev:all": "docker compose --env-file .env.dev -f docker-compose.yml pull && docker compose --env-file .env.dev -f docker-compose.yml up -d --remove-orphans --force-recreate && docker compose --env-file .env.dev -f docker-compose.yml ps",
+    "docker:redeploy:dev:all:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml pull && docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml up -d --remove-orphans --force-recreate && docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml ps",
+    "docker:redeploy:deploy:all": "docker compose --env-file .env.deploy.dev -f docker-compose.yml pull && docker compose --env-file .env.deploy.dev -f docker-compose.yml up -d --remove-orphans --force-recreate && docker compose --env-file .env.deploy.dev -f docker-compose.yml ps",
+    "docker:redeploy:deploy:all:tunnel": "docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml pull && docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml up -d --remove-orphans --force-recreate && docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml ps",
+
+    "docker:logs": "docker compose --env-file .env.dev -f docker-compose.yml logs -f --tail=100 romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp",
+    "docker:logs:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml logs -f --tail=100 romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp romanzo_gabriele_cloudflared",
+    "docker:logs:dev": "docker compose --env-file .env.dev -f docker-compose.yml logs -f --tail=100 romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp",
+    "docker:logs:dev:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml logs -f --tail=100 romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp romanzo_gabriele_cloudflared",
+    "docker:logs:deploy": "docker compose --env-file .env.deploy.dev -f docker-compose.yml logs -f --tail=100 romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp",
+    "docker:logs:deploy:tunnel": "docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml logs -f --tail=100 romanzo_gabriele_be romanzo_gabriele_fe romanzo_gabriele_mcp romanzo_gabriele_cloudflared",
+
+    "docker:ps": "docker compose --env-file .env.dev -f docker-compose.yml ps",
+    "docker:ps:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml ps",
+    "docker:ps:dev": "docker compose --env-file .env.dev -f docker-compose.yml ps",
+    "docker:ps:dev:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml ps",
+    "docker:ps:deploy": "docker compose --env-file .env.deploy.dev -f docker-compose.yml ps",
+    "docker:ps:deploy:tunnel": "docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml ps"
+  }
+}

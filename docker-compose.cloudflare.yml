@@ -1,0 +1,11 @@
+services:
+  romanzo_gabriele_cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: romanzo_gabriele_cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN must be set}
+    depends_on:
+      - romanzo_gabriele_fe
+      - romanzo_gabriele_mcp
+    networks:
+      - romanzo_gabriele_network

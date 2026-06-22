@@ -11,6 +11,10 @@ import { logger } from './logger.js';
 import { ALL_MCP_TOOL_NAMES } from './toolNames.js';
 import { registerDiagnosticTools } from './tools/diagnostics.js';
 import { registerKnowledgeGraphTools } from './tools/knowledgeGraph.js';
+import { registerNovelBibleTools } from './tools/novelBible.js';
+import { registerNovelContextTools } from './tools/novelContext.js';
+import { registerNovelEditingTools } from './tools/novelEditing.js';
+import { registerNovelIngestionTools } from './tools/novelIngestion.js';
 
 const EMBEDDED_FALLBACK_INSTRUCTIONS = `# Rete Neurale Romanzo Gabriele MCP
 
@@ -43,6 +47,10 @@ const mcpInstructions = loadInstructions();
 function registerTools(server: McpServer): void {
   registerDiagnosticTools(server);
   registerKnowledgeGraphTools(server);
+  registerNovelIngestionTools(server);
+  registerNovelBibleTools(server);
+  registerNovelContextTools(server);
+  registerNovelEditingTools(server);
 }
 
 function createMcpServer(): McpServer {

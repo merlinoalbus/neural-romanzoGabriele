@@ -21,6 +21,7 @@ export const KG_RELATION_VOCAB = {
     'reveals',
     'supports',
   ],
+  editorialWorkflow: ['approves', 'applies_to', 'revises', 'supersedes', 'validates'],
   actions: ['helps', 'assists', 'challenges', 'threatens', 'defeats', 'betrays', 'saves', 'creates', 'modifies'],
   fallback: ['related_to'],
 } as const;

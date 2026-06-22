@@ -10,7 +10,7 @@ Lo stack resta diviso per responsabilita:
 
 - `frontend/`: dashboard React per esplorare il grafo narrativo.
 - `server/`: backend interno per persistenza NAS e API read-only usate dal frontend.
-- `mcp-server/`: server MCP HTTP/SSE usato dall'IA. In questo step espone solo i tool generici `kg_*`; i tool narrativi `novel_*` sono roadmap della specializzazione e non vanno considerati disponibili finche non saranno registrati nel server.
+- `mcp-server/`: server MCP HTTP/SSE usato dall'IA. Espone i tool generici `kg_*` e i tool narrativi gia registrati.
 - `neo4j`: database a grafo, accessibile solo dentro la rete Docker.
 
 Il frontend non chiama direttamente il server MCP. Nginx nel container frontend inoltra `/api/v2/kg/*` al backend.
@@ -30,10 +30,12 @@ Il server MCP puo essere esposto separatamente tramite `MCP_HOST_PORT` per i con
 ## Flusso Narrativo
 
 1. Importare l'indice della Bibbia come struttura, senza trasformarlo in contenuto canonico dettagliato.
-2. Importare la Bibbia completa solo quando viene fornita.
-3. Importare bozze reali dei capitoli come materiale di lavoro.
-4. Prima di scrivere o revisionare, richiamare il contesto dal grafo.
-5. Per controlli su un capitolo, usare strumenti read-only.
+2. Importare la Bibbia completa a sezioni preservando testo, heading, path, ordine, hash e provenance.
+3. Generare candidati semantici, validarli e committarli solo con evidence verso `bible_section`.
+4. Controllare la copertura della Bibbia prima di usare il grafo per editing o scrittura.
+5. Importare bozze reali dei capitoli come materiale di lavoro.
+6. Prima di scrivere o revisionare, richiamare il context packet del capitolo.
+7. Salvare gli output degli step editoriali come lavoro operativo, non come canone.
 
 I dati canonici devono sempre mantenere provenienza chiara. Le proposte creative o di revisione devono rimanere distinguibili dal canone approvato.
 
@@ -71,10 +73,28 @@ Tool generici mantenuti:
 - Manutenzione: `kg_audit_global`, `kg_repair`
 - Documenti: `kg_ingest_document`, `kg_get_document_chunks`, `kg_list_documents`
 
-Roadmap tool narrativi non ancora disponibili in questo step:
+Tool narrativi disponibili:
 
 - `novel_ingest_outline`: importa solo struttura dell'indice.
 - `novel_ingest_bible`: conserva la Bibbia completa quando fornita.
+- `novel_ingest_bible_sections`: importa sezioni Bibbia gia estratte dal DOCX.
+- `novel_extract_bible_candidates`: genera candidati semantici non canonici.
+- `novel_commit_bible_candidates`: committa candidati validati con evidence obbligatoria.
+- `novel_bible_coverage_report`: segnala sezioni non mappate, candidati pendenti, nodi senza fonte e relazioni generiche.
+- `novel_get_chapter_context_packet`: prepara il pacchetto contesto per capitolo e step editoriale.
 - `novel_ingest_chapter_draft`: salva bozze reali di capitolo.
 - `novel_recall_context`: prepara contesto narrativo per scrittura/revisione.
 - `novel_audit_chapter`: controlla rischi di coerenza senza modificare il grafo.
+
+Tool workflow editoriale:
+
+- `novel_start_editing_session`
+- `novel_split_chapter_blocks`
+- `novel_save_editorial_findings`
+- `novel_save_user_decisions`
+- `novel_save_rewrite_block`
+- `novel_assemble_chapter_revision`
+- `novel_save_seam_review`
+- `novel_save_final_chapter`
+- `novel_create_visual_brief`
+- `novel_attach_generated_image`

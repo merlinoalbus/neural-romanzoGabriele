@@ -568,6 +568,33 @@ export async function search(query: string, opts: { type?: string; limit?: numbe
   }
 }
 
+export async function listNodesByType(type: string, opts: { limit?: number } = {}): Promise<GraphNode[]> {
+  const normalized = type.trim();
+  if (!normalized) return [];
+  const limit = clampInt(opts.limit, 100, 1, 500);
+  const records = await run(
+    'MATCH (n:Entity {projectId:$pid, type:$type}) RETURN n ORDER BY n.label LIMIT $limit',
+    { pid: pid(), type: normalized, limit: neo4j.int(limit) },
+  );
+  return records.map((record) => nodeFrom(record.get('n')));
+}
+
+export async function listNodesByTypeLabelPrefix(type: string, labelPrefix: string, opts: { limit?: number } = {}): Promise<GraphNode[]> {
+  const normalized = type.trim();
+  const prefix = labelPrefix.trim();
+  if (!normalized || !prefix) return [];
+  const params: Record<string, unknown> = { pid: pid(), type: normalized, prefix };
+  const limitClause = opts.limit ? ' LIMIT $limit' : '';
+  if (opts.limit) params.limit = neo4j.int(Math.max(1, Math.trunc(opts.limit)));
+  const records = await run(
+    `MATCH (n:Entity {projectId:$pid, type:$type})
+     WHERE n.label STARTS WITH $prefix
+     RETURN n ORDER BY n.label${limitClause}`,
+    params,
+  );
+  return records.map((record) => nodeFrom(record.get('n')));
+}
+
 export async function neighbors(nodeId: string, opts: { depth?: number; kinds?: string[] } = {}): Promise<{ nodes: GraphNode[]; edges: GraphEdge[] }> {
   const start = await getNodeById(nodeId);
   if (!start) return { nodes: [], edges: [] };

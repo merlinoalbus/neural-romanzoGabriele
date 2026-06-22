@@ -4,12 +4,28 @@ import { Database, FileText, Network, RefreshCw, Search, X } from 'lucide-react'
 import { getKgNeighbors, getKgNode, getKgStats, listKgDocuments, searchKg, type KgEdge, type KgNode, type KgStats } from './api';
 
 const TYPE_COLORS: Record<string, string> = {
+  bible_outline: '#6d28d9',
+  bible_section: '#7c3aed',
+  chapter: '#dc2626',
+  chapter_draft: '#f97316',
+  character: '#16a34a',
+  character_state: '#65a30d',
+  character_voice: '#0d9488',
+  continuity_finding: '#b91c1c',
   document: '#2563eb',
   chunk: '#64748b',
-  person: '#16a34a',
-  place: '#d97706',
+  foreshadowing: '#9333ea',
+  glossary_term: '#0891b2',
+  location: '#d97706',
   organization: '#db2777',
-  event: '#dc2626',
+  event: '#ef4444',
+  plot_thread: '#be123c',
+  relationship_dynamic: '#059669',
+  scene: '#f59e0b',
+  style_rule: '#4f46e5',
+  theme: '#8b5cf6',
+  timeline_event: '#ea580c',
+  world_rule: '#0369a1',
   concept: '#7c3aed',
   procedure: '#0891b2',
   decision: '#4f46e5',
@@ -18,7 +34,31 @@ const TYPE_COLORS: Record<string, string> = {
   note: '#475569',
 };
 
+const TYPE_LABELS: Record<string, string> = {
+  bible_outline: 'indice bibbia',
+  bible_section: 'sezione',
+  chapter: 'capitolo',
+  chapter_draft: 'bozza',
+  character: 'personaggio',
+  character_state: 'stato personaggio',
+  character_voice: 'voce',
+  continuity_finding: 'rilievo coerenza',
+  document: 'documento',
+  chunk: 'frammento',
+  foreshadowing: 'semina narrativa',
+  glossary_term: 'glossario',
+  location: 'luogo',
+  plot_thread: 'filo narrativo',
+  relationship_dynamic: 'relazione',
+  scene: 'scena',
+  style_rule: 'regola stile',
+  theme: 'tema',
+  timeline_event: 'evento timeline',
+  world_rule: 'regola mondo',
+};
+
 const colorFor = (type: string): string => TYPE_COLORS[type] ?? '#334155';
+const labelFor = (type: string): string => TYPE_LABELS[type] ?? type;
 
 type Tab = 'search' | 'documents';
 
@@ -50,7 +90,7 @@ function StatBar({ stats }: { stats: KgStats | null }) {
       {topTypes.map(([type, count]) => (
         <span className="type-stat" key={type}>
           <span className="dot" style={{ background: colorFor(type) }} />
-          {type}<b>{count}</b>
+          {labelFor(type)}<b>{count}</b>
         </span>
       ))}
     </div>
@@ -141,7 +181,7 @@ export function App() {
       <header className="topbar">
         <div>
           <p className="eyebrow">Rete Neurale Romanzo Gabriele</p>
-          <h1>Rete neurale</h1>
+          <h1>Grafo narrativo</h1>
         </div>
         <button className="icon-button" title="Aggiorna statistiche" onClick={() => void refreshStats()}>
           <RefreshCw size={18} />
@@ -153,14 +193,14 @@ export function App() {
       <main className="workspace">
         <aside className="sidebar">
           <div className="tabs" role="tablist">
-            <button className={tab === 'search' ? 'active' : ''} onClick={() => setTab('search')}><Search size={15} />Nodi</button>
+            <button className={tab === 'search' ? 'active' : ''} onClick={() => setTab('search')}><Search size={15} />Grafo</button>
             <button className={tab === 'documents' ? 'active' : ''} onClick={() => { setTab('documents'); void loadDocuments(); }}><FileText size={15} />Documenti</button>
           </div>
 
           {tab === 'search' && (
             <div className="search-box">
-              <input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void runSearch(); }} placeholder="Cerca" />
-              <input value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void runSearch(); }} placeholder="type" />
+              <input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void runSearch(); }} placeholder="Cerca nel romanzo" />
+              <input value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void runSearch(); }} placeholder="tipo" />
               <button className="icon-button primary" title="Cerca" onClick={() => void runSearch()}><Search size={18} /></button>
             </div>
           )}
@@ -172,10 +212,10 @@ export function App() {
             {activeList.map((node) => (
               <button key={node.id} className={selectedId === node.id ? 'result active' : 'result'} onClick={() => void expandNode(node.id)}>
                 <span className="dot" style={{ background: colorFor(node.type) }} />
-                <span className="result-main"><b>{node.label}</b><small>{node.type}</small></span>
+                <span className="result-main"><b>{node.label}</b><small>{labelFor(node.type)}</small></span>
               </button>
             ))}
-            {!activeList.length && !loading && <div className="empty-state">Nessun elemento</div>}
+            {!activeList.length && !loading && <div className="empty-state">Nessun elemento narrativo</div>}
           </div>
         </aside>
 
@@ -186,7 +226,7 @@ export function App() {
               height={dims.height}
               graphData={graph}
               nodeId="id"
-              nodeLabel={(node) => `${node.label} - ${node.type}`}
+              nodeLabel={(node) => `${node.label} - ${labelFor(node.type)}`}
               nodeColor={(node) => colorFor(node.type)}
               nodeRelSize={5}
               linkLabel={(link) => link.kind}
@@ -196,13 +236,13 @@ export function App() {
               onNodeClick={(node) => void expandNode(node.id)}
             />
           ) : (
-            <div className="graph-empty">Nessun grafo</div>
+            <div className="graph-empty">Seleziona un nodo narrativo</div>
           )}
 
           {detail && (
             <aside className="detail-panel">
               <button className="close-button" title="Chiudi" onClick={() => setDetail(null)}><X size={18} /></button>
-              <span className="node-type"><span className="dot" style={{ background: colorFor(detail.type) }} />{detail.type}</span>
+              <span className="node-type"><span className="dot" style={{ background: colorFor(detail.type) }} />{labelFor(detail.type)}</span>
               <h2>{detail.label}</h2>
               {detail.content && <p className="node-content">{detail.content}</p>}
               {Object.keys(detail.metadata).length > 0 && (

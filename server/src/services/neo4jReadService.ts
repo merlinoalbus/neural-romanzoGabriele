@@ -206,3 +206,16 @@ export async function listDocuments(opts: { sourceType?: string; limit?: number 
   const docs = records.map((rec) => nodeFrom(rec.get('n')));
   return opts.sourceType ? docs.filter((doc) => doc.metadata.sourceType === opts.sourceType) : docs;
 }
+
+export async function listNodes(opts: { type?: string; limit?: number } = {}): Promise<GraphNode[]> {
+  const limit = clampInt(opts.limit, 100, 1, 500);
+  const records = await run(
+    `MATCH (n:Entity {projectId:$pid})
+     WHERE $type IS NULL OR n.type = $type
+     RETURN n
+     ORDER BY n.updatedAt DESC, n.type, n.label
+     LIMIT $limit`,
+    { pid: config.projectId, type: opts.type ?? null, limit: neo4j.int(limit) },
+  );
+  return records.map((rec) => nodeFrom(rec.get('n')));
+}

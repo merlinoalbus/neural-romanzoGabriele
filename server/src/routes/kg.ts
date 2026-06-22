@@ -66,4 +66,14 @@ router.get('/documents', async (req, res) => {
   }
 });
 
+router.get('/nodes', async (req, res) => {
+  try {
+    const type = req.query.type ? String(req.query.type) : undefined;
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    res.json({ nodes: await kg.listNodes({ type, limit }) });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 export default router;

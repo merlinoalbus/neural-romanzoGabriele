@@ -9,6 +9,7 @@ import {
   getKgNode,
   getKgStats,
   listKgDocuments,
+  listKgNodes,
   searchKg,
   type GraphSnapshot,
   type ImportMode,
@@ -137,9 +138,26 @@ export function App() {
     setStats(await getKgStats());
   }, []);
 
+  const loadNodes = useCallback(async (type?: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await listKgNodes(80, type?.trim() || undefined);
+      setResults(response.nodes);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     void refreshStats().catch((err) => setError(String(err)));
   }, [refreshStats]);
+
+  useEffect(() => {
+    void loadNodes().catch((err) => setError(String(err)));
+  }, [loadNodes]);
 
   useEffect(() => {
     const element = graphRef.current;
@@ -153,7 +171,10 @@ export function App() {
 
   const runSearch = useCallback(async () => {
     const q = query.trim();
-    if (!q) return;
+    if (!q) {
+      void loadNodes(typeFilter);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -164,7 +185,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [query, typeFilter]);
+  }, [loadNodes, query, typeFilter]);
 
   const loadDocuments = useCallback(async () => {
     setLoading(true);
@@ -258,13 +279,17 @@ export function App() {
       const result = await commitGraphSnapshotImport(snapshot, importMode, importResult.report.targetProjectId);
       setImportResult(result);
       setAdminMessage(result.ok ? `Import completato: ${result.written?.nodes ?? 0} nodi, ${result.written?.edges ?? 0} archi` : 'Import respinto');
-      if (result.ok) void refreshStats();
+      if (result.ok) {
+        setTab('search');
+        void refreshStats();
+        void loadNodes();
+      }
     } catch (err) {
       setError(String(err));
     } finally {
       setAdminBusy(false);
     }
-  }, [importMode, importResult, refreshStats, snapshot]);
+  }, [importMode, importResult, loadNodes, refreshStats, snapshot]);
 
   const activeList = tab === 'search' ? results : documents;
 

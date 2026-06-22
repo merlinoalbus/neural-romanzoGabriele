@@ -119,6 +119,12 @@ export function listKgDocuments(limit = 50): Promise<{ documents: KgNode[] }> {
   return getJson<{ documents: KgNode[] }>(`/api/v2/kg/documents?limit=${limit}`);
 }
 
+export function listKgNodes(limit = 80, type?: string): Promise<{ nodes: KgNode[] }> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (type) params.set('type', type);
+  return getJson<{ nodes: KgNode[] }>(`/api/v2/kg/nodes?${params.toString()}`);
+}
+
 export async function exportGraphSnapshot(): Promise<{ blob: Blob; filename: string }> {
   const response = await fetch('/api/v2/admin/export', {
     headers: {

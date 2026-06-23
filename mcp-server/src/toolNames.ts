@@ -18,6 +18,7 @@ export const MCP_TOOL_NAMES = {
   kg_stats: 'kg_stats',
   kg_audit_global: 'kg_audit_global',
   kg_repair: 'kg_repair',
+  kg_run_consolidation: 'kg_run_consolidation',
   kg_ingest_document: 'kg_ingest_document',
   kg_get_document_chunks: 'kg_get_document_chunks',
   kg_list_documents: 'kg_list_documents',

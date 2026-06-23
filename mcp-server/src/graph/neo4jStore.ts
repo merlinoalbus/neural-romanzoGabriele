@@ -162,6 +162,11 @@ async function run(cypher: string, params: Record<string, unknown>): Promise<Neo
   return raw(cypher, params);
 }
 
+export async function runQuery(cypher: string, params: Record<string, unknown>): Promise<Neo4jRecord[]> {
+  return run(cypher, params);
+}
+
+
 export async function pingNeo4j(): Promise<boolean> {
   const records = await run('RETURN 1 AS ok', {});
   return records.length > 0;

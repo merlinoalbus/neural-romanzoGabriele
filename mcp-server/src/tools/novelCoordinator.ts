@@ -7,7 +7,6 @@ import { normalizeChapterLabel } from '../novel/domain.js';
 import { auditChapterContent } from '../novel/context.js';
 import { buildBibleCoverageReport } from '../novel/bibleCoverage.js';
 import {
-  listBibleSectionsForExtraction,
   listBibleCandidatesForSource,
   listCanonicalNarrativeNodes,
   listCoverageFindingsForSource,
@@ -79,9 +78,7 @@ export function registerNovelCoordinatorTools(server: McpServer): void {
           const report = buildBibleCoverageReport({ sourceId, sections, candidates, canonicalNodes, coverageFindings, edges: coverageEdges });
 
           const totalSections = report.sectionCount;
-          const mappedSections = report.mappedSections;
           const unmappedCount = report.unmappedSections.length;
-          const pendingCount = report.pendingCandidates;
           const duplicateNodes = report.duplicateCanonicalNodes.length;
           const untypedClaims = report.untypedClaims.length;
           const missingEndpoints = report.pendingEdgeCandidatesWithMissingEndpoints.length;

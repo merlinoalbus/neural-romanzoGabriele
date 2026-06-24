@@ -238,6 +238,19 @@ function compareCandidateNodeWithCanonical(discrepancies: BibleDiscrepancy[], pl
   const content = planned.content || contentOf(planned.candidate);
   const existingContent = existing.content || existing.label;
 
+  if (labelEquivalent && planned.label !== existing.label) {
+    addDiscrepancy(discrepancies, {
+      candidateId: planned.candidate.candidateId,
+      code: 'possible_duplicate_or_alias',
+      severity: 'error',
+      message: `Il candidato '${planned.label}' ha la stessa label normalizzata del nodo canonico '${existing.label}' ma una label testuale diversa.`,
+      requiredResolution: 'author_approved_merge',
+      existingNodeId: existing.id,
+      existingNodeType: existing.type,
+      existingNodeLabel: existing.label,
+    }, planned.candidate);
+  }
+
   if (labelEquivalent && normalizeText(content) !== normalizeText(existingContent)) {
     addDiscrepancy(discrepancies, {
       candidateId: planned.candidate.candidateId,
@@ -283,6 +296,17 @@ function comparePlannedNodes(discrepancies: BibleDiscrepancy[], left: PlannedNod
   const sameNormalizedLabel = left.normalizedLabel === right.normalizedLabel;
   const leftContent = left.content || contentOf(left.candidate);
   const rightContent = right.content || contentOf(right.candidate);
+
+  if (sameNormalizedLabel && left.label !== right.label) {
+    addDiscrepancy(discrepancies, {
+      candidateId: right.candidate.candidateId,
+      relatedCandidateId: left.candidate.candidateId,
+      code: 'intra_batch_possible_duplicate_or_alias',
+      severity: 'error',
+      message: `Il batch contiene due label testuali diverse ma normalizzate uguali: '${left.label}' e '${right.label}'.`,
+      requiredResolution: 'author_approved_merge',
+    }, right.candidate);
+  }
 
   if (sameNormalizedLabel && normalizeText(leftContent) !== normalizeText(rightContent)) {
     addDiscrepancy(discrepancies, {

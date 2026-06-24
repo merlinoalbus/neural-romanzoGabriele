@@ -15,7 +15,7 @@ import {
   type BibleCandidateGranularity,
 } from '../novel/bibleCandidates.js';
 import { buildBibleCoverageReport, buildChapterContextPacket } from '../novel/bibleCoverage.js';
-import { buildBibleDiscrepancyReport, type BibleDiscrepancy } from '../novel/bibleDiscrepancy.js';
+import { buildBibleDiscrepancyReport } from '../novel/bibleDiscrepancy.js';
 import { buildBibleSectionsPlan, previewBibleSection, type BibleSectionsPlan } from '../novel/bibleSections.js';
 import { composeRecallQuery } from '../novel/context.js';
 import { normalizeChapterLabel, NOVEL_NODE_TYPES } from '../novel/domain.js';
@@ -840,6 +840,22 @@ export function registerNovelBibleTools(server: McpServer): void {
         if (missingEndpoints.length) {
           return toolError('NOVEL_COMMIT_CANDIDATES_MISSING_ENDPOINTS', 'One or more edge candidates reference missing endpoints.', { missingEndpoints });
         }
+        const globalGraph = await loadGlobalCanonicalNarrativeGraph();
+        const discrepancyReport = buildBibleDiscrepancyReport(
+          loaded.map(({ candidate }) => candidate),
+          globalGraph.nodes,
+          globalGraph.edges,
+        );
+        if (discrepancyReport.hasBlockingDiscrepancies) {
+          return toolError(
+            'NOVEL_COMMIT_CANDIDATES_GLOBAL_DISCREPANCIES',
+            'One or more candidates conflict with the existing neural model or with the same commit batch.',
+            {
+              discrepancies: discrepancyReport.discrepancies,
+              discrepancySummary: discrepancyReport.summary,
+            },
+          );
+        }
         const committedNodes: kg.GraphNode[] = [];
         const committedEdges: kg.GraphEdge[] = [];
         const committedNodeByEndpoint = new Map<string, kg.GraphNode>();
@@ -864,6 +880,7 @@ export function registerNovelBibleTools(server: McpServer): void {
           },
           committedNodes,
           committedEdges,
+          discrepancies: discrepancyReport.discrepancies,
         });
       } catch (err) {
         return toolError('NOVEL_COMMIT_BIBLE_CANDIDATES_FAILED', `novel_commit_bible_candidates failed: ${String(err)}`);

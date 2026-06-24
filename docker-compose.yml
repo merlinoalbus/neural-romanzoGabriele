@@ -83,15 +83,18 @@ services:
     image: neo4j:5-community
     container_name: romanzo_gabriele_neo4j
     restart: unless-stopped
+    ports:
+      - "7687:7687"
+      - "7474:7474"
     environment:
       - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set in the stack environment}
-      - NEO4J_HEALTHCHECK_PASSWORD=${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set in the stack environment}
+      - HEALTHCHECK_PASSWORD=${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set in the stack environment}
       - NEO4J_dbms_security_auth__minimum__password__length=16
       - NEO4J_server_memory_heap_initial__size=1G
       - NEO4J_server_memory_heap_max__size=1G
       - NEO4J_server_memory_pagecache_size=1G
     healthcheck:
-      test: ["CMD-SHELL", "cypher-shell -a bolt://127.0.0.1:7687 -u neo4j -p \"$${NEO4J_HEALTHCHECK_PASSWORD}\" \"RETURN 1\" >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "cypher-shell -a bolt://127.0.0.1:7687 -u neo4j -p \"$${HEALTHCHECK_PASSWORD}\" \"RETURN 1\" >/dev/null 2>&1"]
       interval: 10s
       timeout: 10s
       retries: 12

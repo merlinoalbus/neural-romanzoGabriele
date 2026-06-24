@@ -139,14 +139,37 @@ export function registerNovelContextTools(server: McpServer): void {
     async ({ chapterNumber, content, checks }) => {
       try {
         const normalizedChecks = (checks?.length ? checks : DEFAULT_AUDIT_CHECKS) as AuditCheck[];
-        const [chapter, characters, styleRules, worldRules, themes, timelineEvents] = await Promise.all([
+        const [chapter, characters, styleRules, worldRules, themes, timelineEvents, traitsRes, secretsRes] = await Promise.all([
           kg.getNodeByTypeLabel('chapter', normalizeChapterLabel(chapterNumber)),
           kg.listNodesByType('character', { limit: 500 }),
           kg.listNodesByType('style_rule', { limit: 500 }),
           kg.listNodesByType('world_rule', { limit: 500 }),
           kg.listNodesByType('theme', { limit: 500 }),
           kg.listNodesByType('timeline_event', { limit: 500 }),
+          kg.runQuery(`
+            MATCH (t:Entity {type: 'character_trait'})-[:applies_to|part_of|derived_from]-(c:Entity {type: 'character'}) 
+            RETURN t.id as id, t.label as label, t.content as content, c.id as charId, c.label as charLabel
+          `, {}),
+          kg.runQuery(`
+            MATCH (s:Entity {type: 'secret'})-[r]-(c:Entity {type: 'character'}) 
+            RETURN s.id as id, s.label as label, s.content as content, c.id as charId, c.label as charLabel, type(r) as relKind
+          `, {}),
         ]);
+        const characterTraits = traitsRes.map((r) => ({
+          id: r.get('id') as string,
+          label: r.get('label') as string,
+          content: r.get('content') as string,
+          charId: r.get('charId') as string,
+          charLabel: r.get('charLabel') as string,
+        }));
+        const characterSecrets = secretsRes.map((r) => ({
+          id: r.get('id') as string,
+          label: r.get('label') as string,
+          content: r.get('content') as string,
+          charId: r.get('charId') as string,
+          charLabel: r.get('charLabel') as string,
+          relKind: r.get('relKind') as string,
+        }));
         const audit = auditChapterContent({
           chapterNumber,
           content,
@@ -157,6 +180,8 @@ export function registerNovelContextTools(server: McpServer): void {
           worldRules,
           themes,
           timelineEvents,
+          characterTraits,
+          characterSecrets,
         });
         const errors = audit.findings.filter((finding) => finding.severity === 'error').length;
         const warnings = audit.findings.filter((finding) => finding.severity === 'warning').length;

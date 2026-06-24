@@ -16,6 +16,7 @@ import { registerNovelContextTools } from './tools/novelContext.js';
 import { registerNovelEditingTools } from './tools/novelEditing.js';
 import { registerNovelIngestionTools } from './tools/novelIngestion.js';
 import { registerConsolidationTools } from './tools/consolidation.js';
+import { registerSandboxTools } from './tools/sandbox.js';
 
 const EMBEDDED_FALLBACK_INSTRUCTIONS = `# Rete Neurale Romanzo Gabriele MCP
 
@@ -53,6 +54,7 @@ function registerTools(server: McpServer): void {
   registerNovelContextTools(server);
   registerNovelEditingTools(server);
   registerConsolidationTools(server);
+  registerSandboxTools(server);
 }
 
 function createMcpServer(): McpServer {

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import * as kg from '../graph/neo4jStore.js';
 import { NOVEL_DRAFT_STATUSES, NOVEL_SOURCE_TYPES, normalizeChapterLabel } from '../novel/domain.js';
 import { buildOutlinePlan, type OutlineEntry, type OutlinePlan } from '../novel/outline.js';
+import { auditChapterContent } from '../novel/context.js';
 import { errorObj, toolError, toolStructured } from './responseHelpers.js';
 
 const jsonObj = z.record(z.string(), z.unknown());
@@ -365,6 +366,91 @@ export function registerNovelIngestionTools(server: McpServer): void {
           metadata: { chapterNumber, draftId: key },
           provenance: { source: 'novel_ingest_chapter_draft', sourceId, chapterNumber },
         });
+
+        // --- AUTONOMOUS LINTING ON INGEST ---
+        try {
+          const [characters, styleRules, worldRules, themes, timelineEvents, traitsRes, secretsRes] = await Promise.all([
+            kg.listNodesByType('character', { limit: 500 }),
+            kg.listNodesByType('style_rule', { limit: 500 }),
+            kg.listNodesByType('world_rule', { limit: 500 }),
+            kg.listNodesByType('theme', { limit: 500 }),
+            kg.listNodesByType('timeline_event', { limit: 500 }),
+            kg.runQuery(`
+              MATCH (t:Entity {type: 'character_trait'})-[:applies_to|part_of|derived_from]-(c:Entity {type: 'character'}) 
+              RETURN t.id as id, t.label as label, t.content as content, c.id as charId, c.label as charLabel
+            `, {}),
+            kg.runQuery(`
+              MATCH (s:Entity {type: 'secret'})-[r]-(c:Entity {type: 'character'}) 
+              RETURN s.id as id, s.label as label, s.content as content, c.id as charId, c.label as charLabel, type(r) as relKind
+            `, {}),
+          ]);
+
+          const characterTraits = traitsRes.map((r) => ({
+            id: r.get('id') as string,
+            label: r.get('label') as string,
+            content: r.get('content') as string,
+            charId: r.get('charId') as string,
+            charLabel: r.get('charLabel') as string,
+          }));
+
+          const characterSecrets = secretsRes.map((r) => ({
+            id: r.get('id') as string,
+            label: r.get('label') as string,
+            content: r.get('content') as string,
+            charId: r.get('charId') as string,
+            charLabel: r.get('charLabel') as string,
+            relKind: r.get('relKind') as string,
+          }));
+
+          const audit = auditChapterContent({
+            chapterNumber,
+            content,
+            chapter: chapterWrite.node,
+            characters,
+            styleRules,
+            worldRules,
+            themes,
+            timelineEvents,
+            characterTraits,
+            characterSecrets,
+          });
+
+          // Rimuovi eventuali continuity_finding vecchi per questo capitolo prima di inserire quelli nuovi
+          await kg.runQuery(`
+            MATCH (cf:Entity {type: 'continuity_finding'})-[:applies_to]->(c:Entity {type: 'chapter', label: $chapterLabel})
+            DETACH DELETE cf
+          `, { chapterLabel });
+
+          // Scrivi i nuovi warning trovati
+          for (const finding of audit.findings) {
+            if (finding.severity === 'warning' || finding.severity === 'error') {
+              const findingLabel = `${finding.code}:${chapterLabel}`;
+              const cfNode = await kg.upsertNode({
+                type: 'continuity_finding',
+                label: findingLabel,
+                content: finding.message,
+                metadata: {
+                  chapterNumber,
+                  code: finding.code,
+                  severity: finding.severity,
+                  evidence: finding.evidence || {},
+                },
+                provenance: { source: 'autonomous_ingest_linter', chapterNumber, sourceId },
+              });
+
+              await kg.link({
+                fromId: cfNode.node.id,
+                toId: chapterWrite.node.id,
+                kind: 'applies_to',
+                metadata: { chapterNumber },
+                provenance: { source: 'autonomous_ingest_linter', chapterNumber, sourceId },
+              });
+            }
+          }
+        } catch (linterErr) {
+          console.error('Autonomous ingest linter failed:', linterErr);
+        }
+
         return toolStructured({
           ok: true,
           chapter: chapterWrite.node,

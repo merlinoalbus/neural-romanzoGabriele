@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { Database, Download, FileText, Network, RefreshCw, Search, ShieldCheck, Upload, X } from 'lucide-react';
+import { Database, Download, FileText, ListChecks, Network, RefreshCw, Search, ShieldCheck, Upload, X } from 'lucide-react';
 import {
   commitGraphSnapshotImport,
   dryRunGraphSnapshotImport,
@@ -10,12 +10,14 @@ import {
   getKgStats,
   listKgDocuments,
   listKgNodes,
+  listKgOpenPoints,
   searchKg,
   type GraphSnapshot,
   type ImportMode,
   type KgEdge,
   type KgNode,
   type KgStats,
+  type OpenPoint,
   type SnapshotImportResult,
 } from './api';
 
@@ -76,7 +78,7 @@ const TYPE_LABELS: Record<string, string> = {
 const colorFor = (type: string): string => TYPE_COLORS[type] ?? '#334155';
 const labelFor = (type: string): string => TYPE_LABELS[type] ?? type;
 
-type Tab = 'search' | 'documents' | 'admin';
+type Tab = 'search' | 'openPoints' | 'documents' | 'admin';
 
 interface GNode {
   id: string;
@@ -95,6 +97,10 @@ function graphFrom(nodes: KgNode[], edges: KgEdge[]): { nodes: GNode[]; links: G
     nodes: nodes.map((node) => ({ id: node.id, label: node.label, type: node.type })),
     links: edges.map((edge) => ({ source: edge.fromId, target: edge.toId, kind: edge.kind })),
   };
+}
+
+function openPointTitle(point: OpenPoint): string {
+  return point.finding.label.replace(/^plot_thread_inactive:/, '');
 }
 
 function StatBar({ stats }: { stats: KgStats | null }) {
@@ -119,6 +125,8 @@ export function App() {
   const [typeFilter, setTypeFilter] = useState('');
   const [results, setResults] = useState<KgNode[]>([]);
   const [documents, setDocuments] = useState<KgNode[]>([]);
+  const [openPoints, setOpenPoints] = useState<OpenPoint[]>([]);
+  const [selectedOpenPointId, setSelectedOpenPointId] = useState<string | null>(null);
   const [graph, setGraph] = useState<{ nodes: GNode[]; links: GLink[] }>({ nodes: [], links: [] });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<KgNode | null>(null);
@@ -133,6 +141,11 @@ export function App() {
   const [importResult, setImportResult] = useState<SnapshotImportResult | null>(null);
   const graphRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ width: 900, height: 640 });
+
+  const selectedOpenPoint = useMemo(
+    () => openPoints.find((point) => point.finding.id === selectedOpenPointId) ?? null,
+    [openPoints, selectedOpenPointId],
+  );
 
   const refreshStats = useCallback(async () => {
     setStats(await getKgStats());
@@ -193,6 +206,23 @@ export function App() {
     try {
       const response = await listKgDocuments(80);
       setDocuments(response.documents);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadOpenPoints = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await listKgOpenPoints(160);
+      setOpenPoints(response.points);
+      setSelectedOpenPointId((current) => {
+        if (current && response.points.some((point) => point.finding.id === current)) return current;
+        return response.points[0]?.finding.id ?? null;
+      });
     } catch (err) {
       setError(String(err));
     } finally {
@@ -291,7 +321,7 @@ export function App() {
     }
   }, [importMode, importResult, loadNodes, refreshStats, snapshot]);
 
-  const activeList = tab === 'search' ? results : documents;
+  const activeList = tab === 'documents' ? documents : results;
 
   return (
     <div className="app-shell">
@@ -311,6 +341,7 @@ export function App() {
         <aside className="sidebar">
           <div className="tabs" role="tablist">
             <button className={tab === 'search' ? 'active' : ''} onClick={() => setTab('search')}><Search size={15} />Grafo</button>
+            <button className={tab === 'openPoints' ? 'active' : ''} onClick={() => { setTab('openPoints'); void loadOpenPoints(); }}><ListChecks size={15} />Punti aperti</button>
             <button className={tab === 'documents' ? 'active' : ''} onClick={() => { setTab('documents'); void loadDocuments(); }}><FileText size={15} />Documenti</button>
             <button className={tab === 'admin' ? 'active' : ''} onClick={() => setTab('admin')}><ShieldCheck size={15} />Admin</button>
           </div>
@@ -372,19 +403,66 @@ export function App() {
           {error && <div className="error-line">{error}</div>}
           {loading && <div className="loading-line">Caricamento</div>}
 
-          <div className={tab === 'admin' ? 'result-list hidden' : 'result-list'}>
-            {activeList.map((node) => (
-              <button key={node.id} className={selectedId === node.id ? 'result active' : 'result'} onClick={() => void expandNode(node.id)}>
-                <span className="dot" style={{ background: colorFor(node.type) }} />
-                <span className="result-main"><b>{node.label}</b><small>{labelFor(node.type)}</small></span>
-              </button>
-            ))}
-            {!activeList.length && !loading && <div className="empty-state">Nessun elemento narrativo</div>}
-          </div>
+          {tab === 'openPoints' ? (
+            <div className="open-point-list">
+              {openPoints.map((point) => (
+                <button
+                  key={point.finding.id}
+                  className={selectedOpenPointId === point.finding.id ? 'open-point active' : 'open-point'}
+                  onClick={() => setSelectedOpenPointId(point.finding.id)}
+                >
+                  <span className="open-point-marker" />
+                  <span className="open-point-main">
+                    <b>{openPointTitle(point)}</b>
+                    <small>{point.plotThread?.label ?? 'plot thread non collegato'}</small>
+                    <span>{point.finding.content}</span>
+                  </span>
+                </button>
+              ))}
+              {!openPoints.length && !loading && <div className="empty-state">Nessun punto aperto</div>}
+            </div>
+          ) : (
+            <div className={tab === 'admin' ? 'result-list hidden' : 'result-list'}>
+              {activeList.map((node) => (
+                <button key={node.id} className={selectedId === node.id ? 'result active' : 'result'} onClick={() => void expandNode(node.id)}>
+                  <span className="dot" style={{ background: colorFor(node.type) }} />
+                  <span className="result-main"><b>{node.label}</b><small>{labelFor(node.type)}</small></span>
+                </button>
+              ))}
+              {!activeList.length && !loading && <div className="empty-state">Nessun elemento narrativo</div>}
+            </div>
+          )}
         </aside>
 
         <section className="graph-panel" ref={graphRef}>
-          {graph.nodes.length > 0 ? (
+          {tab === 'openPoints' ? (
+            <div className="open-point-detail">
+              {selectedOpenPoint ? (
+                <>
+                  <span className="node-type"><span className="open-point-marker" />punto aperto</span>
+                  <h2>{openPointTitle(selectedOpenPoint)}</h2>
+                  <p className="node-content">{selectedOpenPoint.finding.content}</p>
+                  {selectedOpenPoint.plotThread && (
+                    <section>
+                      <h3>Filo narrativo</h3>
+                      <p className="node-content compact">{selectedOpenPoint.plotThread.label}</p>
+                      {selectedOpenPoint.plotThread.content && <p className="node-content compact">{selectedOpenPoint.plotThread.content}</p>}
+                    </section>
+                  )}
+                  <section>
+                    <h3>Metadata</h3>
+                    <pre>{JSON.stringify(selectedOpenPoint.finding.metadata, null, 2)}</pre>
+                  </section>
+                  <section>
+                    <h3>Provenienza</h3>
+                    <pre>{JSON.stringify(selectedOpenPoint.finding.provenance, null, 2)}</pre>
+                  </section>
+                </>
+              ) : (
+                <div className="graph-empty">Nessun punto aperto</div>
+              )}
+            </div>
+          ) : graph.nodes.length > 0 ? (
             <ForceGraph2D<GNode, GLink>
               width={dims.width}
               height={dims.height}
@@ -403,7 +481,7 @@ export function App() {
             <div className="graph-empty">Seleziona un nodo narrativo</div>
           )}
 
-          {detail && (
+          {tab !== 'openPoints' && detail && (
             <aside className="detail-panel">
               <button className="close-button" title="Chiudi" onClick={() => setDetail(null)}><X size={18} /></button>
               <span className="node-type"><span className="dot" style={{ background: colorFor(detail.type) }} />{labelFor(detail.type)}</span>

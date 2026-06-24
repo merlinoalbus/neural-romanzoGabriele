@@ -23,6 +23,11 @@ export interface GraphEdge {
   createdAt: string;
 }
 
+export interface OpenPoint {
+  finding: GraphNode;
+  plotThread: GraphNode | null;
+}
+
 const NARRATIVE_HIDDEN_NODE_TYPES = [
   'bible_candidate',
   'bible_coverage_finding',
@@ -30,6 +35,8 @@ const NARRATIVE_HIDDEN_NODE_TYPES = [
   'bible_outline',
   'bible_section',
 ];
+const OPEN_POINT_FINDING_TYPE = 'continuity_finding';
+const OPEN_POINT_LABEL_PREFIX = 'plot_thread_inactive:';
 
 interface NarrativeViewOpts {
   includeInternal?: boolean;
@@ -123,15 +130,20 @@ function isMissingIndexError(err: unknown): boolean {
   return /entity_fts|fulltext|NoSuchIndex|no such (index|fulltext)/i.test(String(err));
 }
 
-function viewParams(opts: NarrativeViewOpts = {}): { includeInternal: boolean; hiddenTypes: string[] } {
+function viewParams(opts: NarrativeViewOpts = {}): { includeInternal: boolean; hiddenTypes: string[]; openPointLabelPrefix: string } {
   return {
     includeInternal: opts.includeInternal === true,
     hiddenTypes: NARRATIVE_HIDDEN_NODE_TYPES,
+    openPointLabelPrefix: OPEN_POINT_LABEL_PREFIX,
   };
 }
 
+function isOpenPointFinding(node: GraphNode): boolean {
+  return node.type === OPEN_POINT_FINDING_TYPE && node.label.startsWith(OPEN_POINT_LABEL_PREFIX);
+}
+
 function isNarrativeVisible(node: GraphNode, opts: NarrativeViewOpts = {}): boolean {
-  return opts.includeInternal === true || !NARRATIVE_HIDDEN_NODE_TYPES.includes(node.type);
+  return opts.includeInternal === true || (!NARRATIVE_HIDDEN_NODE_TYPES.includes(node.type) && !isOpenPointFinding(node));
 }
 
 export async function pingNeo4j(): Promise<boolean> {
@@ -143,26 +155,48 @@ export async function stats(opts: NarrativeViewOpts = {}): Promise<{ nodes: numb
   const pid = config.projectId;
   const params = { pid, ...viewParams(opts) };
   const nodes = toInt(
-    (await run('MATCH (n:Entity {projectId:$pid}) WHERE $includeInternal OR NOT (n.type IN $hiddenTypes) RETURN count(n) AS c', params))[0]?.get('c') ?? 0,
+    (
+      await run(
+        `MATCH (n:Entity {projectId:$pid})
+         WHERE $includeInternal OR (NOT (n.type IN $hiddenTypes) AND NOT (n.type = 'continuity_finding' AND n.label STARTS WITH $openPointLabelPrefix))
+         RETURN count(n) AS c`,
+        params,
+      )
+    )[0]?.get('c') ?? 0,
   );
   const edges = toInt(
     (
       await run(
         `MATCH (a:Entity {projectId:$pid})-[r:REL]->(b:Entity {projectId:$pid})
-         WHERE $includeInternal OR (NOT (a.type IN $hiddenTypes) AND NOT (b.type IN $hiddenTypes))
+         WHERE $includeInternal OR (
+           NOT (a.type IN $hiddenTypes)
+           AND NOT (b.type IN $hiddenTypes)
+           AND NOT (a.type = 'continuity_finding' AND a.label STARTS WITH $openPointLabelPrefix)
+           AND NOT (b.type = 'continuity_finding' AND b.label STARTS WITH $openPointLabelPrefix)
+         )
          RETURN count(r) AS c`,
         params,
       )
     )[0]?.get('c') ?? 0,
   );
   const nodeTypes: Record<string, number> = {};
-  for (const rec of await run('MATCH (n:Entity {projectId:$pid}) WHERE $includeInternal OR NOT (n.type IN $hiddenTypes) RETURN n.type AS k, count(*) AS c ORDER BY c DESC', params)) {
+  for (const rec of await run(
+    `MATCH (n:Entity {projectId:$pid})
+     WHERE $includeInternal OR (NOT (n.type IN $hiddenTypes) AND NOT (n.type = 'continuity_finding' AND n.label STARTS WITH $openPointLabelPrefix))
+     RETURN n.type AS k, count(*) AS c ORDER BY c DESC`,
+    params,
+  )) {
     nodeTypes[String(rec.get('k'))] = toInt(rec.get('c'));
   }
   const edgeKinds: Record<string, number> = {};
   for (const rec of await run(
     `MATCH (a:Entity {projectId:$pid})-[r:REL]->(b:Entity {projectId:$pid})
-     WHERE $includeInternal OR (NOT (a.type IN $hiddenTypes) AND NOT (b.type IN $hiddenTypes))
+     WHERE $includeInternal OR (
+       NOT (a.type IN $hiddenTypes)
+       AND NOT (b.type IN $hiddenTypes)
+       AND NOT (a.type = 'continuity_finding' AND a.label STARTS WITH $openPointLabelPrefix)
+       AND NOT (b.type = 'continuity_finding' AND b.label STARTS WITH $openPointLabelPrefix)
+     )
      RETURN r.kind AS k, count(*) AS c ORDER BY c DESC`,
     params,
   )) {
@@ -180,7 +214,9 @@ export async function search(query: string, opts: { type?: string; limit?: numbe
   try {
     const records = await run(
       `CALL db.index.fulltext.queryNodes('entity_fts', $q) YIELD node, score
-       WHERE node.projectId = $pid AND ($includeInternal OR NOT (node.type IN $hiddenTypes)) ${opts.type ? 'AND node.type = $type' : ''}
+       WHERE node.projectId = $pid
+         AND ($includeInternal OR (NOT (node.type IN $hiddenTypes) AND NOT (node.type = 'continuity_finding' AND node.label STARTS WITH $openPointLabelPrefix)))
+         ${opts.type ? 'AND node.type = $type' : ''}
        RETURN node ORDER BY score DESC LIMIT $limit`,
       params,
     );
@@ -190,7 +226,9 @@ export async function search(query: string, opts: { type?: string; limit?: numbe
     const needle = query.trim();
     const records = await run(
       `MATCH (n:Entity {projectId:$pid})
-       WHERE (n.label CONTAINS $needle OR n.content CONTAINS $needle) AND ($includeInternal OR NOT (n.type IN $hiddenTypes)) ${opts.type ? 'AND n.type = $type' : ''}
+       WHERE (n.label CONTAINS $needle OR n.content CONTAINS $needle)
+         AND ($includeInternal OR (NOT (n.type IN $hiddenTypes) AND NOT (n.type = 'continuity_finding' AND n.label STARTS WITH $openPointLabelPrefix)))
+         ${opts.type ? 'AND n.type = $type' : ''}
        RETURN n LIMIT $limit`,
       { ...params, needle },
     );
@@ -223,20 +261,26 @@ export async function neighbors(nodeId: string, opts: { depth?: number; kinds?: 
   const params = { id: nodeId, pid, ...viewParams(opts) };
   const nodeRows = await run(
     `MATCH (s:Entity {id:$id, projectId:$pid})
-     WHERE $includeInternal OR NOT (s.type IN $hiddenTypes)
+     WHERE $includeInternal OR (NOT (s.type IN $hiddenTypes) AND NOT (s.type = 'continuity_finding' AND s.label STARTS WITH $openPointLabelPrefix))
      OPTIONAL MATCH p=(s)-[:REL*1..${depth}]-(m:Entity {projectId:$pid})
-     WHERE $includeInternal OR all(pathNode IN nodes(p) WHERE NOT (pathNode.type IN $hiddenTypes))
+     WHERE $includeInternal OR all(pathNode IN nodes(p) WHERE NOT (pathNode.type IN $hiddenTypes) AND NOT (pathNode.type = 'continuity_finding' AND pathNode.label STARTS WITH $openPointLabelPrefix))
      WITH s, collect(DISTINCT m.id) AS mids
      RETURN [s.id] + mids AS ids`,
     params,
   );
   const ids = (nodeRows.length ? (nodeRows[0].get('ids') as string[]) : []).filter(Boolean);
   if (!ids.length) return { nodes: [], edges: [] };
-  const nodes = await run('MATCH (n:Entity {projectId:$pid}) WHERE n.id IN $ids AND ($includeInternal OR NOT (n.type IN $hiddenTypes)) RETURN n', {
-    ids,
-    pid,
-    ...viewParams(opts),
-  });
+  const nodes = await run(
+    `MATCH (n:Entity {projectId:$pid})
+     WHERE n.id IN $ids
+       AND ($includeInternal OR (NOT (n.type IN $hiddenTypes) AND NOT (n.type = 'continuity_finding' AND n.label STARTS WITH $openPointLabelPrefix)))
+     RETURN n`,
+    {
+      ids,
+      pid,
+      ...viewParams(opts),
+    },
+  );
   const visibleIds = nodes.map((rec) => String((rec.get('n') as Node).properties.id));
   const edges = await run(
     `MATCH (a:Entity {projectId:$pid})-[rel:REL]->(b:Entity {projectId:$pid})
@@ -264,11 +308,34 @@ export async function listNodes(opts: { type?: string; limit?: number; includeIn
   const limit = clampInt(opts.limit, 100, 1, 500);
   const records = await run(
     `MATCH (n:Entity {projectId:$pid})
-     WHERE ($type IS NULL OR n.type = $type) AND ($includeInternal OR NOT (n.type IN $hiddenTypes))
+     WHERE ($type IS NULL OR n.type = $type)
+       AND ($includeInternal OR (NOT (n.type IN $hiddenTypes) AND NOT (n.type = 'continuity_finding' AND n.label STARTS WITH $openPointLabelPrefix)))
      RETURN n
      ORDER BY n.updatedAt DESC, n.type, n.label
      LIMIT $limit`,
     { pid: config.projectId, type: opts.type ?? null, limit: neo4j.int(limit), ...viewParams(opts) },
   );
   return records.map((rec) => nodeFrom(rec.get('n')));
+}
+
+export async function listOpenPoints(opts: { limit?: number } = {}): Promise<OpenPoint[]> {
+  const limit = clampInt(opts.limit, 100, 1, 500);
+  const records = await run(
+    `MATCH (finding:Entity {projectId:$pid, type:'continuity_finding'})
+     WHERE finding.label STARTS WITH $openPointLabelPrefix
+     OPTIONAL MATCH (finding)-[:REL {kind:'applies_to'}]->(linkedThread:Entity {projectId:$pid, type:'plot_thread'})
+     WITH finding, linkedThread
+     OPTIONAL MATCH (metadataThread:Entity {projectId:$pid, type:'plot_thread'})
+     WHERE linkedThread IS NULL AND finding.metadata CONTAINS metadataThread.id
+     WITH finding, linkedThread, collect(metadataThread) AS metadataThreads
+     WITH finding, coalesce(linkedThread, head([thread IN metadataThreads WHERE thread IS NOT NULL])) AS plotThread
+     RETURN finding, plotThread
+     ORDER BY finding.updatedAt DESC, finding.label
+     LIMIT $limit`,
+    { pid: config.projectId, openPointLabelPrefix: OPEN_POINT_LABEL_PREFIX, limit: neo4j.int(limit) },
+  );
+  return records.map((rec) => ({
+    finding: nodeFrom(rec.get('finding')),
+    plotThread: rec.get('plotThread') ? nodeFrom(rec.get('plotThread')) : null,
+  }));
 }

@@ -27,6 +27,11 @@ export interface KgStats {
   edgeKinds: Record<string, number>;
 }
 
+export interface OpenPoint {
+  finding: KgNode;
+  plotThread: KgNode | null;
+}
+
 export interface GraphSnapshot {
   schemaVersion: string;
   projectId: string;
@@ -123,6 +128,10 @@ export function listKgNodes(limit = 80, type?: string): Promise<{ nodes: KgNode[
   const params = new URLSearchParams({ limit: String(limit) });
   if (type) params.set('type', type);
   return getJson<{ nodes: KgNode[] }>(`/api/v2/kg/nodes?${params.toString()}`);
+}
+
+export function listKgOpenPoints(limit = 120): Promise<{ points: OpenPoint[] }> {
+  return getJson<{ points: OpenPoint[] }>(`/api/v2/kg/open-points?limit=${limit}`);
 }
 
 export async function exportGraphSnapshot(): Promise<{ blob: Blob; filename: string }> {

@@ -82,4 +82,13 @@ router.get('/nodes', async (req, res) => {
   }
 });
 
+router.get('/open-points', async (req, res) => {
+  try {
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    res.json({ points: await kg.listOpenPoints({ limit }) });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 export default router;

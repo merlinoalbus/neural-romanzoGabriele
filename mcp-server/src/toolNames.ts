@@ -45,6 +45,8 @@ export const MCP_TOOL_NAMES = {
   novel_save_final_chapter: 'novel_save_final_chapter',
   novel_create_visual_brief: 'novel_create_visual_brief',
   novel_attach_generated_image: 'novel_attach_generated_image',
+  novel_verify_ingestion_threshold: 'novel_verify_ingestion_threshold',
+  novel_get_coordination_prompt: 'novel_get_coordination_prompt',
 } as const;
 
 export type McpToolName = typeof MCP_TOOL_NAMES[keyof typeof MCP_TOOL_NAMES];

@@ -338,6 +338,189 @@ export async function runConsolidation(dryRun = true, runQuery = runQueryRaw): P
     }
   }
 
+  // Regola 4: character --has_arc--> character_state --changes_state--> character_state
+  // Se i due character_state appartengono allo stesso character, inferire: character_state1 --precedes--> character_state2
+  const inf4Res = await runQuery(
+    `MATCH (c:Entity {type: 'character'})-[:has_arc]->(cs1:Entity {type: 'character_state'})-[:changes_state]->(cs2:Entity {type: 'character_state'})
+     WHERE (c)-[:has_arc]->(cs2) AND NOT (cs1)-[:precedes]-(cs2)
+     RETURN cs1.id as cs1Id, cs1.label as cs1Label, cs1.type as cs1Type,
+            cs2.id as cs2Id, cs2.label as cs2Label, cs2.type as cs2Type,
+            c.label as charLabel`,
+    {}
+  );
+  for (const record of inf4Res) {
+    const from = { id: record.get('cs1Id') as string, type: record.get('cs1Type') as string, label: record.get('cs1Label') as string };
+    const to = { id: record.get('cs2Id') as string, type: record.get('cs2Type') as string, label: record.get('cs2Label') as string };
+    const kind = 'precedes';
+    const reason = `Sequenza temporale dello stato del personaggio '${record.get('charLabel')}' inferita: ${record.get('cs1Label')} precede ${record.get('cs2Label')}`;
+    inferredEdges.push({ from, to, kind, reason });
+    if (!dryRun) {
+      await runQuery(
+        `MATCH (from:Entity {id: $fromId}), (to:Entity {id: $toId})
+         MERGE (from)-[r:Relationship {kind: $kind}]->(to)
+         ON CREATE SET r.id = $id, r.weight = 0.9, r.metadata = $metadata, r.provenance = $provenance, r.createdAt = $createdAt`,
+        {
+          fromId: from.id,
+          toId: to.id,
+          kind,
+          id: crypto.randomUUID(),
+          metadata: JSON.stringify({ inferred: true, rule: 'state_precedes' }),
+          provenance: JSON.stringify({ source: 'consolidation_engine' }),
+          createdAt: new Date().toISOString(),
+        }
+      );
+    }
+  }
+
+  // Regola 5: timeline_event --causes--> timeline_event --causes--> timeline_event
+  // Inferire catena transitiva: timeline_event1 --sets_up--> timeline_event3
+  const inf5Res = await runQuery(
+    `MATCH (te1:Entity {type: 'timeline_event'})-[:causes]->(te2:Entity {type: 'timeline_event'})-[:causes]->(te3:Entity {type: 'timeline_event'})
+     WHERE NOT (te1)-[:sets_up]-(te3) AND te1.id <> te3.id
+     RETURN te1.id as te1Id, te1.label as te1Label, te1.type as te1Type,
+            te3.id as te3Id, te3.label as te3Label, te3.type as te3Type`,
+    {}
+  );
+  for (const record of inf5Res) {
+    const from = { id: record.get('te1Id') as string, type: record.get('te1Type') as string, label: record.get('te1Label') as string };
+    const to = { id: record.get('te3Id') as string, type: record.get('te3Type') as string, label: record.get('te3Label') as string };
+    const kind = 'sets_up';
+    const reason = `Transitività causale inferita: l'evento '${record.get('te1Label')}' prepara ('sets_up') l'evento '${record.get('te3Label')}' tramite un passaggio intermedio.`;
+    inferredEdges.push({ from, to, kind, reason });
+    if (!dryRun) {
+      await runQuery(
+        `MATCH (from:Entity {id: $fromId}), (to:Entity {id: $toId})
+         MERGE (from)-[r:Relationship {kind: $kind}]->(to)
+         ON CREATE SET r.id = $id, r.weight = 0.6, r.metadata = $metadata, r.provenance = $provenance, r.createdAt = $createdAt`,
+        {
+          fromId: from.id,
+          toId: to.id,
+          kind,
+          id: crypto.randomUUID(),
+          metadata: JSON.stringify({ inferred: true, rule: 'causes_transitive' }),
+          provenance: JSON.stringify({ source: 'consolidation_engine' }),
+          createdAt: new Date().toISOString(),
+        }
+      );
+    }
+  }
+
+  // Regola 6: character --does_not_know--> secret --revealed_in--> scene
+  // Inferire: character --learns--> secret (con metadata {scene, weight: 0.7})
+  const inf6Res = await runQuery(
+    `MATCH (c:Entity {type: 'character'})-[:does_not_know]->(s:Entity {type: 'secret'})-[:revealed_in]->(sc:Entity {type: 'scene'})
+     WHERE NOT (c)-[:learns]-(s)
+     RETURN c.id as charId, c.label as charLabel, c.type as charType,
+            s.id as secId, s.label as secLabel, s.type as secType,
+            sc.id as scId, sc.label as scLabel`,
+    {}
+  );
+  for (const record of inf6Res) {
+    const from = { id: record.get('charId') as string, type: record.get('charType') as string, label: record.get('charLabel') as string };
+    const to = { id: record.get('secId') as string, type: record.get('secType') as string, label: record.get('secLabel') as string };
+    const kind = 'learns';
+    const reason = `Apprendimento inferito: il personaggio '${record.get('charLabel')}' impara il segreto '${record.get('secLabel')}' perché viene rivelato nella scena '${record.get('scLabel')}'.`;
+    inferredEdges.push({ from, to, kind, reason });
+    if (!dryRun) {
+      await runQuery(
+        `MATCH (from:Entity {id: $fromId}), (to:Entity {id: $toId})
+         MERGE (from)-[r:Relationship {kind: $kind}]->(to)
+         ON CREATE SET r.id = $id, r.weight = 0.7, r.metadata = $metadata, r.provenance = $provenance, r.createdAt = $createdAt`,
+        {
+          fromId: from.id,
+          toId: to.id,
+          kind,
+          id: crypto.randomUUID(),
+          metadata: JSON.stringify({ inferred: true, rule: 'does_not_know_revealed_in_scene', sceneId: record.get('scId'), sceneLabel: record.get('scLabel') }),
+          provenance: JSON.stringify({ source: 'consolidation_engine' }),
+          createdAt: new Date().toISOString(),
+        }
+      );
+    }
+  }
+
+  // Regola 7: foreshadowing --part_of--> chapter1 AND revelation --part_of--> chapter2
+  // Se foreshadowing.label ≈ revelation.label, inferire: foreshadowing --pays_off--> revelation
+  const inf7Res = await runQuery(
+    `MATCH (f:Entity {type: 'foreshadowing'})-[:derived_from|part_of|about]-(ch1:Entity {type: 'chapter'})
+     MATCH (r:Entity {type: 'revelation'})-[:derived_from|part_of|about]-(ch2:Entity {type: 'chapter'})
+     WHERE NOT (f)-[:pays_off]-(r)
+     RETURN f.id as fId, f.label as fLabel, f.type as fType,
+            r.id as rId, r.label as rLabel, r.type as rType,
+            ch1.label as ch1Label, ch2.label as ch2Label`,
+    {}
+  );
+  const getWords = (str: string) => {
+    return new Set(str.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 3));
+  };
+  for (const record of inf7Res) {
+    const fLabel = record.get('fLabel') as string;
+    const rLabel = record.get('rLabel') as string;
+    const fWords = getWords(fLabel);
+    const rWords = getWords(rLabel);
+    let intersection = 0;
+    for (const w of fWords) {
+      if (rWords.has(w)) intersection++;
+    }
+    if (intersection >= 2) {
+      const from = { id: record.get('fId') as string, type: record.get('fType') as string, label: fLabel };
+      const to = { id: record.get('rId') as string, type: record.get('rType') as string, label: rLabel };
+      const kind = 'pays_off';
+      const reason = `Payoff narrativo inferito per similarità semantica delle label: '${fLabel}' si compie in '${rLabel}' (Capitolo ${record.get('ch1Label')} -> ${record.get('ch2Label')}).`;
+      inferredEdges.push({ from, to, kind, reason });
+      if (!dryRun) {
+        await runQuery(
+          `MATCH (from:Entity {id: $fromId}), (to:Entity {id: $toId})
+           MERGE (from)-[r:Relationship {kind: $kind}]->(to)
+           ON CREATE SET r.id = $id, r.weight = 0.8, r.metadata = $metadata, r.provenance = $provenance, r.createdAt = $createdAt`,
+          {
+            fromId: from.id,
+            toId: to.id,
+            kind,
+            id: crypto.randomUUID(),
+            metadata: JSON.stringify({ inferred: true, rule: 'foreshadowing_revelation_label_similarity' }),
+            provenance: JSON.stringify({ source: 'consolidation_engine' }),
+            createdAt: new Date().toISOString(),
+          }
+        );
+      }
+    }
+  }
+
+  // Regola 8: character --member_of--> faction AND character2 --member_of--> faction
+  // Inferire: character --ally_of--> character2 (peso 0.3, inferred)
+  const inf8Res = await runQuery(
+    `MATCH (c1:Entity {type: 'character'})-[:member_of]->(f:Entity {type: 'faction'})<-[:member_of]-(c2:Entity {type: 'character'})
+     WHERE c1.id < c2.id AND NOT (c1)-[:ally_of]-(c2)
+     RETURN c1.id as c1Id, c1.label as c1Label, c1.type as c1Type,
+            c2.id as c2Id, c2.label as c2Label, c2.type as c2Type,
+            f.label as facLabel`,
+    {}
+  );
+  for (const record of inf8Res) {
+    const from = { id: record.get('c1Id') as string, type: record.get('c1Type') as string, label: record.get('c1Label') as string };
+    const to = { id: record.get('c2Id') as string, type: record.get('c2Type') as string, label: record.get('c2Label') as string };
+    const kind = 'ally_of';
+    const reason = `Alleanza inferita dall'appartenenza comune alla fazione '${record.get('facLabel')}': ${record.get('c1Label')} e ${record.get('c2Label')}`;
+    inferredEdges.push({ from, to, kind, reason });
+    if (!dryRun) {
+      await runQuery(
+        `MATCH (from:Entity {id: $fromId}), (to:Entity {id: $toId})
+         MERGE (from)-[r:Relationship {kind: $kind}]->(to)
+         ON CREATE SET r.id = $id, r.weight = 0.3, r.metadata = $metadata, r.provenance = $provenance, r.createdAt = $createdAt`,
+        {
+          fromId: from.id,
+          toId: to.id,
+          kind,
+          id: crypto.randomUUID(),
+          metadata: JSON.stringify({ inferred: true, rule: 'common_faction_member_ally' }),
+          provenance: JSON.stringify({ source: 'consolidation_engine' }),
+          createdAt: new Date().toISOString(),
+        }
+      );
+    }
+  }
+
   // 4. Recupero statistiche finali
   const finalNodesRes = await runQuery('MATCH (n:Entity) RETURN count(n) as count', {});
   const finalEdgesRes = await runQuery('MATCH ()-[r]->() RETURN count(r) as count', {});

@@ -26,7 +26,7 @@ Usa tipi dominio quando applicabili:
 - `theme`, `location`, `world_rule`, `narrative_constraint`
 - `timeline_event`, `chapter`, `scene`, `conflict`, `mystery`, `revelation`
 - `plot_thread`, `foreshadowing`, `prophecy`, `precognitive_data`
-- `artifact`, `power`, `faction`, `entity_class`
+- `artifact`, `power`, `faction`, `entity_class`, `manuscript`
 - `knowledge_state`, `secret`
 - `style_rule`, `glossary_term`, `motif`, `symbol`
 - `chapter_draft`, `chapter_block`, `continuity_finding`

@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import crypto from 'node:crypto';
 import { z } from 'zod';
+import { config } from '../config.js';
 import { KG_KINDS_LIST } from '../graph/ontology.js';
 import * as kg from '../graph/neo4jStore.js';
 import {
@@ -14,6 +15,7 @@ import {
   type BibleCandidateGranularity,
 } from '../novel/bibleCandidates.js';
 import { buildBibleCoverageReport, buildChapterContextPacket } from '../novel/bibleCoverage.js';
+import { buildBibleDiscrepancyReport, type BibleDiscrepancy } from '../novel/bibleDiscrepancy.js';
 import { buildBibleSectionsPlan, previewBibleSection, type BibleSectionsPlan } from '../novel/bibleSections.js';
 import { composeRecallQuery } from '../novel/context.js';
 import { normalizeChapterLabel, NOVEL_NODE_TYPES } from '../novel/domain.js';
@@ -131,6 +133,25 @@ const coverageFindingZ = z.object({
   severity: z.enum(['info', 'warning', 'error']),
   message: z.string(),
   evidence: jsonObj.optional(),
+});
+
+const bibleDiscrepancyZ = z.object({
+  candidateId: z.string().optional(),
+  relatedCandidateId: z.string().optional(),
+  code: z.string(),
+  severity: z.enum(['info', 'warning', 'error']),
+  message: z.string(),
+  blocking: z.boolean(),
+  authorized: z.boolean().optional(),
+  requiredResolution: z.string().optional(),
+  existingNodeId: z.string().optional(),
+  existingNodeType: z.string().optional(),
+  existingNodeLabel: z.string().optional(),
+  existingEdgeId: z.string().optional(),
+  existingRelationKind: z.string().optional(),
+  relationKind: z.string().optional(),
+  from: candidateEndpointZ.optional(),
+  to: candidateEndpointZ.optional(),
 });
 
 const coverageReportZ = z.object({
@@ -255,7 +276,7 @@ function toCandidate(value: unknown): BibleCandidate {
   return value as BibleCandidate;
 }
 
-async function listBibleSectionsForExtraction(input: { sourceId: string; sectionKeys?: string[]; limit?: number }): Promise<kg.GraphNode[]> {
+export async function listBibleSectionsForExtraction(input: { sourceId: string; sectionKeys?: string[]; limit?: number }): Promise<kg.GraphNode[]> {
   const keys = new Set((input.sectionKeys ?? []).map((key) => key.trim()).filter(Boolean));
   if (keys.size) {
     const sections = await Promise.all([...keys].map((key) => kg.getNodeByTypeLabel('bible_section', `${input.sourceId}::${key}`)));
@@ -266,12 +287,12 @@ async function listBibleSectionsForExtraction(input: { sourceId: string; section
   return kg.listNodesByTypeLabelPrefix('bible_section', `${input.sourceId}::`, { limit: input.limit });
 }
 
-async function listBibleCandidatesForSource(sourceId?: string, limit?: number): Promise<kg.GraphNode[]> {
+export async function listBibleCandidatesForSource(sourceId?: string, limit?: number): Promise<kg.GraphNode[]> {
   const candidates = await kg.listNodesByType('bible_candidate', { limit: limit ?? 500 });
   return sourceId ? candidates.filter((candidate) => candidate.metadata.sourceId === sourceId) : candidates;
 }
 
-function bibleOntologyPacket(): z.infer<typeof ontologyPacketZ> {
+export function bibleOntologyPacket(): z.infer<typeof ontologyPacketZ> {
   return {
     nodeTypes: [...NOVEL_NODE_TYPES],
     relationKinds: [...KG_KINDS_LIST],
@@ -306,20 +327,20 @@ function filterCandidateNodesBySectionKeys(candidates: kg.GraphNode[], sectionKe
   });
 }
 
-async function listCanonicalNarrativeNodes(limit?: number): Promise<kg.GraphNode[]> {
+export async function listCanonicalNarrativeNodes(limit?: number): Promise<kg.GraphNode[]> {
   const perTypeLimit = limit ?? 500;
   const groups = await Promise.all(COMMITTABLE_BIBLE_NODE_TYPES.map((type) => kg.listNodesByType(type, { limit: perTypeLimit })));
   return groups.flat().filter((node) => node.metadata.canonStatus === 'canonical');
 }
 
-async function listCoverageFindingsForSource(sourceId?: string, limit?: number): Promise<kg.GraphNode[]> {
+export async function listCoverageFindingsForSource(sourceId?: string, limit?: number): Promise<kg.GraphNode[]> {
   const findings = sourceId
     ? await kg.listNodesByTypeLabelPrefix('bible_coverage_finding', `${sourceId}::`, { limit })
     : await kg.listNodesByType('bible_coverage_finding', { limit: limit ?? 500 });
   return sourceId ? findings.filter((finding) => finding.metadata.sourceId === sourceId) : findings;
 }
 
-async function gatherCoverageEdges(nodes: kg.GraphNode[]): Promise<kg.GraphEdge[]> {
+export async function gatherCoverageEdges(nodes: kg.GraphNode[]): Promise<kg.GraphEdge[]> {
   const edgeById = new Map<string, kg.GraphEdge>();
   for (const node of nodes) {
     const graph = await kg.neighbors(node.id, { depth: 1 });
@@ -566,6 +587,89 @@ async function missingEvidenceSectionsForBatch(loaded: Array<{ candidate: BibleC
   return missing;
 }
 
+type QueryRecord = { get(key: string): unknown };
+
+function safeRecordJson(value: unknown): Record<string, unknown> {
+  if (value == null) return {};
+  try {
+    const parsed = JSON.parse(String(value));
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
+  } catch {
+    return {};
+  }
+}
+
+function toNumberValue(value: unknown, fallback = 1): number {
+  const maybeNeo4jInt = value as { toNumber?: () => number };
+  if (typeof maybeNeo4jInt?.toNumber === 'function') return maybeNeo4jInt.toNumber();
+  const parsed = Number(value ?? fallback);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function nodeFromQueryRecord(row: QueryRecord): kg.GraphNode {
+  return {
+    id: String(row.get('id') ?? ''),
+    type: String(row.get('type') ?? ''),
+    label: String(row.get('label') ?? ''),
+    content: String(row.get('content') ?? ''),
+    metadata: safeRecordJson(row.get('metadata')),
+    provenance: safeRecordJson(row.get('provenance')),
+    createdAt: String(row.get('createdAt') ?? ''),
+    updatedAt: String(row.get('updatedAt') ?? ''),
+  };
+}
+
+function edgeFromQueryRecord(row: QueryRecord): kg.GraphEdge {
+  return {
+    id: String(row.get('id') ?? ''),
+    fromId: String(row.get('fromId') ?? ''),
+    toId: String(row.get('toId') ?? ''),
+    kind: String(row.get('kind') ?? ''),
+    weight: toNumberValue(row.get('weight')),
+    metadata: safeRecordJson(row.get('metadata')),
+    provenance: safeRecordJson(row.get('provenance')),
+    createdAt: String(row.get('createdAt') ?? ''),
+  };
+}
+
+function isCanonicalNarrativeNode(node: kg.GraphNode): boolean {
+  const canonStatus = typeof node.metadata.canonStatus === 'string' ? node.metadata.canonStatus : '';
+  return canonStatus === 'canonical' || canonStatus === '';
+}
+
+async function loadGlobalCanonicalNarrativeGraph(): Promise<{ nodes: kg.GraphNode[]; edges: kg.GraphEdge[] }> {
+  const projectId = config.projectId;
+  const nodeRows = await kg.runQuery(`
+    MATCH (n:Entity {projectId: $projectId})
+    WHERE n.type IN $types
+    RETURN n.id AS id,
+           n.type AS type,
+           n.label AS label,
+           n.content AS content,
+           n.metadata AS metadata,
+           n.provenance AS provenance,
+           n.createdAt AS createdAt,
+           n.updatedAt AS updatedAt
+    ORDER BY n.type, n.label
+  `, { projectId, types: [...COMMITTABLE_BIBLE_NODE_TYPES] });
+
+  const nodes = nodeRows.map(nodeFromQueryRecord).filter(isCanonicalNarrativeNode);
+  const edgeRows = await kg.runQuery(`
+    MATCH (a:Entity {projectId: $projectId})-[r:REL]->(b:Entity {projectId: $projectId})
+    RETURN r.id AS id,
+           a.id AS fromId,
+           b.id AS toId,
+           r.kind AS kind,
+           r.weight AS weight,
+           r.metadata AS metadata,
+           r.provenance AS provenance,
+           r.createdAt AS createdAt
+    ORDER BY r.kind, id
+  `, { projectId });
+
+  return { nodes, edges: edgeRows.map(edgeFromQueryRecord) };
+}
+
 export function registerNovelBibleTools(server: McpServer): void {
   server.registerTool(
     'novel_ingest_bible_sections',
@@ -697,6 +801,7 @@ export function registerNovelBibleTools(server: McpServer): void {
         summary: candidateSummaryZ.optional(),
         committedNodes: z.array(nodeZ).optional(),
         committedEdges: z.array(z.unknown()).optional(),
+        discrepancies: z.array(bibleDiscrepancyZ).optional(),
         errors: z.array(z.object({ candidateId: z.string().optional(), errors: z.array(z.string()) })).optional(),
         error: errorObj,
       },

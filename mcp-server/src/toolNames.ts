@@ -34,6 +34,7 @@ export const MCP_TOOL_NAMES = {
   novel_ingest_chapter_draft: 'novel_ingest_chapter_draft',
   novel_recall_context: 'novel_recall_context',
   novel_audit_chapter: 'novel_audit_chapter',
+  novel_create_sandbox_brief: 'novel_create_sandbox_brief',
   novel_start_editing_session: 'novel_start_editing_session',
   novel_split_chapter_blocks: 'novel_split_chapter_blocks',
   novel_save_editorial_findings: 'novel_save_editorial_findings',

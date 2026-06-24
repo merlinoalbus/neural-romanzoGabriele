@@ -244,6 +244,23 @@ export function detectMentionedCharacters(content: string, characters: GraphNode
   return characters.filter((character) => candidateTerms(character).some((term) => haystack.includes(normalizeText(term))));
 }
 
+export type CharacterTraitInfo = {
+  id: string;
+  label: string;
+  content: string;
+  charId: string;
+  charLabel: string;
+};
+
+export type CharacterSecretInfo = {
+  id: string;
+  label: string;
+  content: string;
+  charId: string;
+  charLabel: string;
+  relKind: string;
+};
+
 export function auditChapterContent(input: {
   chapterNumber: number;
   content: string;
@@ -254,6 +271,8 @@ export function auditChapterContent(input: {
   worldRules: GraphNode[];
   themes: GraphNode[];
   timelineEvents: GraphNode[];
+  characterTraits?: CharacterTraitInfo[];
+  characterSecrets?: CharacterSecretInfo[];
 }): { findings: ContinuityFinding[]; detectedCharacters: GraphNode[] } {
   const checks = new Set(input.checks?.length ? input.checks : DEFAULT_AUDIT_CHECKS);
   const findings: ContinuityFinding[] = [];
@@ -323,6 +342,101 @@ export function auditChapterContent(input: {
       severity: 'warning',
       message: 'Il grafo non contiene ancora eventi timeline strutturati per controllare ordine e causalita.',
     });
+  }
+
+  // --- CONTROLLI SEMANTICI AVANZATI ---
+  if (text) {
+    const sentences = text.split(/[.!?]+/).map((s) => s.trim()).filter(Boolean);
+
+    // 1. Controllo dei Tratti Psicologici dei Personaggi
+    if (checks.has('characters') && input.characterTraits?.length) {
+      const traitContradictions: Record<string, string[]> = {
+        timido: ['grida', 'urla', 'sfrontato', 'sfacciato', 'spavaldo', 'provoca'],
+        insicuro: ['spavaldo', 'sicurissimo', 'orgoglioso', 'sfrontato'],
+        introverso: ['sfrontato', 'spavaldo', 'provoca', 'chiacchiera'],
+        calmo: ['furia', 'rabbia', 'aggressivo', 'colpisce', 'schiaffo', 'pugno', 'urla'],
+        mite: ['colpisce', 'schiaffo', 'pugno', 'aggressivo', 'violento'],
+        paziente: ['perde le staffe', 'furia', 'rabbia'],
+        silenzioso: ['parla a lungo', 'spiega dettagliatamente', 'chiacchiera', 'urla'],
+        taciturno: ['parla a lungo', 'chiacchiera'],
+      };
+
+      for (const char of detectedCharacters) {
+        const charTraits = input.characterTraits.filter((t) => t.charId === char.id || t.charLabel === char.label);
+        const charTerms = candidateTerms(char);
+
+        for (const trait of charTraits) {
+          const traitKey = normalizeText(trait.label);
+          const contradictions = Object.keys(traitContradictions).find((k) => traitKey.includes(k));
+          if (contradictions) {
+            const forbiddenWords = traitContradictions[contradictions];
+            for (const sentence of sentences) {
+              const sentenceNorm = normalizeText(sentence);
+              if (charTerms.some((term) => sentenceNorm.includes(normalizeText(term)))) {
+                const matchedWord = forbiddenWords.find((w) => sentenceNorm.includes(w));
+                if (matchedWord) {
+                  findings.push({
+                    code: 'character_trait_contradiction',
+                    severity: 'warning',
+                    message: `Possibile deviazione psicologica: il personaggio '${char.label}' (tratto: '${trait.label}') compie un'azione descritta come '${matchedWord}' nella frase: "${sentence}"`,
+                    evidence: { characterId: char.id, traitId: trait.id, matchedWord, sentence },
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 2. Controllo delle Fughe di Segreti (Secret Leaks)
+    if (checks.has('characters') && input.characterSecrets?.length) {
+      for (const char of detectedCharacters) {
+        const charSecrets = input.characterSecrets.filter((s) => s.charId === char.id && s.relKind === 'does_not_know');
+        const charTerms = candidateTerms(char);
+
+        for (const secret of charSecrets) {
+          const secretKeywords = secret.label.split(/\s+/).map((w) => normalizeText(w.replace(/[^\w]/g, ''))).filter((w) => w.length > 4);
+          if (secretKeywords.length > 0) {
+            for (const sentence of sentences) {
+              const sentenceNorm = normalizeText(sentence);
+              if (charTerms.some((term) => sentenceNorm.includes(normalizeText(term)))) {
+                const leakedWord = secretKeywords.find((kw) => sentenceNorm.includes(kw));
+                if (leakedWord) {
+                  findings.push({
+                    code: 'secret_leak_detected',
+                    severity: 'warning',
+                    message: `Possibile fuga di segreti: il personaggio '${char.label}' menziona o si riferisce a elementi del segreto '${secret.label}' ('${secret.content}') che non dovrebbe conoscere (relazione: 'does_not_know'). Frase: "${sentence}"`,
+                    evidence: { characterId: char.id, secretId: secret.id, leakedWord, sentence },
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 3. Verifiche di Worldbuilding e Vincoli del Mondo
+    if (checks.has('worldbuilding') && input.worldRules.length) {
+      for (const rule of input.worldRules) {
+        const ruleKeywords = rule.label.split(/\s+/).map((w) => normalizeText(w.replace(/[^\w]/g, ''))).filter((w) => w.length > 4);
+        if (ruleKeywords.length > 0) {
+          for (const sentence of sentences) {
+            const sentenceNorm = normalizeText(sentence);
+            const matchedKeyword = ruleKeywords.find((kw) => sentenceNorm.includes(kw));
+            if (matchedKeyword) {
+              findings.push({
+                code: 'world_rule_reference',
+                severity: 'info',
+                message: `Nota di worldbuilding: l'uso del termine '${matchedKeyword}' richiama la regola '${rule.label}'. Assicurati della coerenza rispetto a: "${rule.content}"`,
+                evidence: { ruleId: rule.id, matchedKeyword, sentence },
+              });
+            }
+          }
+        }
+      }
+    }
   }
 
   return { findings, detectedCharacters };

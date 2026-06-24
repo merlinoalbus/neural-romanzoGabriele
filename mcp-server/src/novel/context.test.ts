@@ -83,3 +83,81 @@ test('auditChapterContent reports missing context without mutating state', () =>
   assert.ok(audit.findings.some((finding) => finding.code === 'missing_style_rules'));
   assert.deepEqual(audit.detectedCharacters.map((entry) => entry.label), ['Lisa Martini']);
 });
+
+test('auditChapterContent detects psychological trait contradictions', () => {
+  const audit = auditChapterContent({
+    chapterNumber: 2,
+    content: 'Gabriele Rinaldi si alza e urla con rabbia.',
+    chapter: node('chapter', 'Capitolo 2'),
+    characters: [node('character', 'Gabriele Rinaldi')],
+    styleRules: [node('style_rule', 'Regola Stile')],
+    worldRules: [],
+    themes: [],
+    timelineEvents: [],
+    characterTraits: [
+      {
+        id: 't-1',
+        label: 'timido',
+        content: 'Gabriele è molto timido.',
+        charId: 'character:Gabriele Rinaldi',
+        charLabel: 'Gabriele Rinaldi',
+      }
+    ],
+  });
+
+  const traitContr = audit.findings.find((f) => f.code === 'character_trait_contradiction');
+  assert.ok(traitContr);
+  assert.equal(traitContr.severity, 'warning');
+  assert.ok(traitContr.message.includes('timido'));
+  assert.ok(traitContr.message.includes('urla'));
+});
+
+test('auditChapterContent detects secret leaks', () => {
+  const audit = auditChapterContent({
+    chapterNumber: 2,
+    content: 'Trevor Rossi parla della metamorfosi di Gabriele.',
+    chapter: node('chapter', 'Capitolo 2'),
+    characters: [node('character', 'Trevor Rossi')],
+    styleRules: [node('style_rule', 'Regola Stile')],
+    worldRules: [],
+    themes: [],
+    timelineEvents: [],
+    characterSecrets: [
+      {
+        id: 's-1',
+        label: 'metamorfosi segreta',
+        content: 'La metamorfosi angelica di Gabriele.',
+        charId: 'character:Trevor Rossi',
+        charLabel: 'Trevor Rossi',
+        relKind: 'does_not_know',
+      }
+    ],
+  });
+
+  const secretLeak = audit.findings.find((f) => f.code === 'secret_leak_detected');
+  assert.ok(secretLeak);
+  assert.equal(secretLeak.severity, 'warning');
+  assert.ok(secretLeak.message.includes('Trevor Rossi'));
+  assert.ok(secretLeak.message.includes('metamorfosi segreta'));
+});
+
+test('auditChapterContent references world rules in info findings', () => {
+  const audit = auditChapterContent({
+    chapterNumber: 2,
+    content: 'Le piume magiche brillano nella stanza.',
+    chapter: node('chapter', 'Capitolo 2'),
+    characters: [],
+    styleRules: [node('style_rule', 'Regola Stile')],
+    worldRules: [
+      node('world_rule', 'piume magiche', { content: 'Le piume degli angeli brillano al buio.' })
+    ],
+    themes: [],
+    timelineEvents: [],
+  });
+
+  const ruleRef = audit.findings.find((f) => f.code === 'world_rule_reference');
+  assert.ok(ruleRef);
+  assert.equal(ruleRef.severity, 'info');
+  assert.ok(ruleRef.message.includes('piume magiche'));
+});
+

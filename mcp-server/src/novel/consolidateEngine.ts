@@ -47,12 +47,19 @@ function mergeMetadata(target: Record<string, any>, source: Record<string, any>)
   return merged;
 }
 
+function toInt(value: unknown): number {
+  if (value && typeof value === 'object' && 'toNumber' in value && typeof (value as any).toNumber === 'function') {
+    return (value as any).toNumber();
+  }
+  return Number(value);
+}
+
 export async function runConsolidation(dryRun = true, runQuery = runQueryRaw): Promise<ConsolidationReport> {
   // 1. Recupero statistiche iniziali
   const initialNodesRes = await runQuery('MATCH (n:Entity) RETURN count(n) as count', {});
   const initialEdgesRes = await runQuery('MATCH ()-[r]->() RETURN count(r) as count', {});
-  const nodesBefore = (initialNodesRes[0]?.get('count') as number | undefined) ?? 0;
-  const edgesBefore = (initialEdgesRes[0]?.get('count') as number | undefined) ?? 0;
+  const nodesBefore = toInt(initialNodesRes[0]?.get('count') ?? 0);
+  const edgesBefore = toInt(initialEdgesRes[0]?.get('count') ?? 0);
 
   // 2. Recupero di tutti i nodi
   const allNodesRes = await runQuery(
@@ -334,8 +341,8 @@ export async function runConsolidation(dryRun = true, runQuery = runQueryRaw): P
   // 4. Recupero statistiche finali
   const finalNodesRes = await runQuery('MATCH (n:Entity) RETURN count(n) as count', {});
   const finalEdgesRes = await runQuery('MATCH ()-[r]->() RETURN count(r) as count', {});
-  const nodesAfter = (finalNodesRes[0]?.get('count') as number | undefined) ?? 0;
-  const edgesAfter = (finalEdgesRes[0]?.get('count') as number | undefined) ?? 0;
+  const nodesAfter = toInt(finalNodesRes[0]?.get('count') ?? 0);
+  const edgesAfter = toInt(finalEdgesRes[0]?.get('count') ?? 0);
 
   return {
     ok: true,

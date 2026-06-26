@@ -1,7 +1,8 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
-const mcpUrl = 'http://127.0.0.1:13004/mcp';
+const DEFAULT_MCP_URL = 'https://devrn-romanzo-mcp.nasmerlinoalbus.cloud/mcp';
+const mcpUrl = process.env.MCP_URL || DEFAULT_MCP_URL;
 
 async function main() {
   const client = new Client({ name: 'call-ingest-print', version: '0.1.0' });

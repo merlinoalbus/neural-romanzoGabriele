@@ -25,8 +25,8 @@ const pid = process.env.PROJECT_ID || 'romanzo-gabriele';
 const neo4jUri = 'bolt://localhost:7687'; // Exposed to host
 const neo4jUser = process.env.NEO4J_USER || 'neo4j';
 const neo4jPassword = process.env.NEO4J_PASSWORD;
-// Connect directly to local port 13004 to bypass Cloudflare auth when running locally
-const mcpUrl = 'http://127.0.0.1:13004/mcp';
+const DEFAULT_MCP_URL = 'https://devrn-romanzo-mcp.nasmerlinoalbus.cloud/mcp';
+const mcpUrl = process.env.MCP_URL || DEFAULT_MCP_URL;
 
 function payloadOf(result) {
   if (result?.structuredContent) return result.structuredContent;

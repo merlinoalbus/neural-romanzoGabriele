@@ -25,7 +25,8 @@ Portainer esegue:
 - `romanzo_gabriele_neo4j`
 - `romanzo_gabriele_watchtower`
 
-Il server MCP puo essere esposto separatamente tramite `MCP_HOST_PORT` per i connector IA.
+Il server MCP canonico per i connector IA e `https://devrn-romanzo-mcp.nasmerlinoalbus.cloud/mcp`.
+In locale puo essere esposto separatamente tramite `MCP_HOST_PORT`, usando `MCP_URL` come override esplicito negli script.
 
 ## Flusso Narrativo
 

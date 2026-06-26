@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import * as kg from '../graph/neo4jStore.js';
 import { KG_KINDS_LIST } from '../graph/ontology.js';
+import { embedText, embeddingRuntimeStatus, embeddingText, getEmbeddingSettings } from '../services/embeddingService.js';
 import { errorObj, toolError, toolStructured } from './responseHelpers.js';
 
 const jsonObj = z.record(z.string(), z.unknown());
@@ -86,6 +87,61 @@ const statsShape = {
   nodeTypes: z.record(z.string(), z.number()),
   edgeKinds: z.record(z.string(), z.number()),
 };
+
+const embeddingRuntimeStatusZ = z.object({
+  configured: z.boolean(),
+  provider: z.string(),
+  model: z.string(),
+  baseUrl: z.string(),
+  dimensions: z.number().nullable(),
+  missing: z.array(z.string()),
+});
+
+const graphEmbeddingStatusZ = z.object({
+  vectorIndexName: z.string(),
+  vectorIndexExists: z.boolean(),
+  nodes: z.number(),
+  embeddedNodes: z.number(),
+  pendingNodes: z.number(),
+  lastEmbeddedAt: z.string().nullable(),
+});
+
+const embeddingCandidateZ = z.object({
+  id: z.string(),
+  type: z.string(),
+  label: z.string(),
+  textHash: z.string(),
+  status: z.enum(['planned', 'embedded', 'failed']),
+  reason: z.string().optional(),
+});
+
+const semanticResultZ = z.object({
+  node: nodeZ,
+  score: z.number(),
+});
+
+const nonRelPhysicalEdgePlanZ = z.object({
+  total: z.number(),
+  converted: z.number(),
+  removed: z.number(),
+  unresolved: z.number(),
+  convertedByKind: z.record(z.string(), z.number()),
+  removedByReason: z.record(z.string(), z.number()),
+  unresolvedBySignature: z.record(z.string(), z.number()),
+  samples: z.array(z.object({
+    action: z.enum(['convert', 'remove', 'unresolved']),
+    kind: z.string().optional(),
+    reason: z.string(),
+    physicalType: z.string(),
+    rawKind: z.string(),
+    fromId: z.string(),
+    toId: z.string(),
+    fromType: z.string(),
+    toType: z.string(),
+    fromLabel: z.string().optional(),
+    toLabel: z.string().optional(),
+  })),
+});
 
 export function registerKnowledgeGraphTools(server: McpServer): void {
   server.registerTool(
@@ -332,6 +388,148 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
   );
 
   server.registerTool(
+    'kg_embedding_status',
+    {
+      title: 'KG embedding status',
+      description: 'Reports embeddings provider configuration, vector index status, and graph embedding coverage. Read-only.',
+      inputSchema: {},
+      outputSchema: { ok: z.boolean(), runtime: embeddingRuntimeStatusZ, graph: graphEmbeddingStatusZ.optional(), error: errorObj },
+      annotations: { title: 'KG embedding status', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async () => {
+      try {
+        return toolStructured({ ok: true, runtime: embeddingRuntimeStatus(), graph: await kg.embeddingStatus() });
+      } catch (err) {
+        return toolError('KG_EMBEDDING_STATUS_FAILED', `kg_embedding_status failed: ${String(err)}`);
+      }
+    },
+  );
+
+  server.registerTool(
+    'kg_backfill_embeddings',
+    {
+      title: 'KG backfill embeddings',
+      description: 'Generates real vector embeddings for graph nodes. Dry-run by default; pass dryRun=false to write vectors and ensure the Neo4j vector index.',
+      inputSchema: {
+        dryRun: z.boolean().optional(),
+        limit: z.number().int().positive().optional(),
+        type: z.string().optional(),
+        missingOnly: z.boolean().optional(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        dryRun: z.boolean().optional(),
+        runtime: embeddingRuntimeStatusZ.optional(),
+        graph: graphEmbeddingStatusZ.optional(),
+        candidates: z.array(embeddingCandidateZ).optional(),
+        summary: z.object({
+          selected: z.number(),
+          embedded: z.number(),
+          failed: z.number(),
+        }).optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'KG backfill embeddings', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ dryRun, limit, type, missingOnly }) => {
+      const isDryRun = dryRun !== false;
+      const settings = getEmbeddingSettings();
+      const runtime = embeddingRuntimeStatus(settings);
+      if (!runtime.configured) {
+        return toolError('KG_EMBEDDINGS_NOT_CONFIGURED', 'Embeddings provider is not configured; no fake vectors were generated.', { missing: runtime.missing });
+      }
+      try {
+        const candidates = await kg.listEmbeddingCandidates({ limit, type, missingOnly });
+        const planned = candidates.map((node) => {
+          const text = embeddingText(node);
+          return { id: node.id, type: node.type, label: node.label, textHash: kg.embeddingTextHash(text), status: 'planned' as const };
+        });
+        if (isDryRun) {
+          return toolStructured({
+            ok: true,
+            dryRun: true,
+            runtime,
+            graph: await kg.embeddingStatus(),
+            candidates: planned,
+            summary: { selected: planned.length, embedded: 0, failed: 0 },
+          });
+        }
+
+        const results: Array<z.infer<typeof embeddingCandidateZ>> = [];
+        let embedded = 0;
+        let failed = 0;
+        let indexReady = false;
+        for (const node of candidates) {
+          const text = embeddingText(node);
+          const textHash = kg.embeddingTextHash(text);
+          try {
+            const vector = await embedText(text, settings);
+            if (!indexReady) {
+              await kg.createEmbeddingIndex(vector.length);
+              indexReady = true;
+            }
+            const written = await kg.writeNodeEmbedding(node.id, vector, {
+              provider: settings.provider,
+              model: settings.model,
+              dimensions: vector.length,
+              textHash,
+            });
+            if (!written) throw new Error('node_not_found');
+            embedded++;
+            results.push({ id: node.id, type: node.type, label: node.label, textHash, status: 'embedded' });
+          } catch (err) {
+            failed++;
+            results.push({ id: node.id, type: node.type, label: node.label, textHash, status: 'failed', reason: String(err) });
+          }
+        }
+        return toolStructured({
+          ok: failed === 0,
+          dryRun: false,
+          runtime,
+          graph: await kg.embeddingStatus(),
+          candidates: results,
+          summary: { selected: candidates.length, embedded, failed },
+        });
+      } catch (err) {
+        return toolError('KG_BACKFILL_EMBEDDINGS_FAILED', `kg_backfill_embeddings failed: ${String(err)}`, { type, limit, missingOnly });
+      }
+    },
+  );
+
+  server.registerTool(
+    'kg_semantic_search',
+    {
+      title: 'KG semantic search',
+      description: 'Searches graph nodes by deep semantic vector affinity. Requires configured real embeddings and a populated vector index.',
+      inputSchema: { query: z.string(), type: z.string().optional(), limit: z.number().int().positive().optional() },
+      outputSchema: { ok: z.boolean(), runtime: embeddingRuntimeStatusZ.optional(), results: z.array(semanticResultZ).optional(), error: errorObj },
+      annotations: { title: 'KG semantic search', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ query, type, limit }) => {
+      const settings = getEmbeddingSettings();
+      const runtime = embeddingRuntimeStatus(settings);
+      if (!runtime.configured) {
+        return toolError('KG_EMBEDDINGS_NOT_CONFIGURED', 'Embeddings provider is not configured; semantic search cannot run without real vectors.', { missing: runtime.missing });
+      }
+      try {
+        const graph = await kg.embeddingStatus();
+        if (!graph.vectorIndexExists || graph.embeddedNodes === 0) {
+          return toolError('KG_EMBEDDINGS_NOT_READY', 'Semantic search requires a populated Neo4j vector index. Run kg_backfill_embeddings with dryRun=false first.', {
+            vectorIndexName: graph.vectorIndexName,
+            vectorIndexExists: graph.vectorIndexExists,
+            embeddedNodes: graph.embeddedNodes,
+            pendingNodes: graph.pendingNodes,
+          });
+        }
+        const vector = await embedText(query, settings);
+        return toolStructured({ ok: true, runtime, results: await kg.semanticSearch(vector, { type, limit }) });
+      } catch (err) {
+        return toolError('KG_SEMANTIC_SEARCH_FAILED', `kg_semantic_search failed: ${String(err)}`, { type, limit });
+      }
+    },
+  );
+
+  server.registerTool(
     'kg_stats',
     {
       title: 'KG stats',
@@ -354,6 +552,8 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
         audit: z.object({
           nodes: z.number(),
           edges: z.number(),
+          physicalEdges: z.number(),
+          nonRelPhysicalEdges: z.number(),
           documents: z.number(),
           chunks: z.number(),
           assets: z.number(),
@@ -388,6 +588,17 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
         redundantRelatedToRetired: z.number().optional(),
         junkEdgesRemoved: z.number().optional(),
         orphanAssetsRemoved: z.number().optional(),
+        nonRelPhysicalEdgesConverted: z.number().optional(),
+        nonRelPhysicalEdgesRemoved: z.number().optional(),
+        unresolvedNonRelPhysicalEdges: z.number().optional(),
+        nonRelPhysicalEdgePlan: nonRelPhysicalEdgePlanZ.optional(),
+        nonRelPhysicalEdgeApply: z.object({
+          createdNew: z.number(),
+          mergedExisting: z.number(),
+          deletedOriginal: z.number(),
+          removedSelfLoop: z.number(),
+          removedLegacy: z.number(),
+        }).optional(),
         error: errorObj,
       },
       annotations: { title: 'KG repair', readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },

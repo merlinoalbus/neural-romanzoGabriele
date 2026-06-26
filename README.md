@@ -73,8 +73,35 @@ Tool generici mantenuti:
 - Archi: `kg_link`, `kg_link_bulk`, `kg_unlink`
 - Asset: `kg_attach_asset`
 - Retrieval: `kg_get_node`, `kg_search`, `kg_neighbors`, `kg_recall`, `kg_stats`
+- Retrieval vettoriale: `kg_embedding_status`, `kg_backfill_embeddings`, `kg_semantic_search`
 - Manutenzione: `kg_audit_global`, `kg_repair`
 - Documenti: `kg_ingest_document`, `kg_get_document_chunks`, `kg_list_documents`
+
+### Embeddings vettoriali
+
+Il server MCP supporta embeddings reali OpenAI-compatible per ricerca semantica profonda sul grafo. Non genera vettori fittizi: se il provider non e configurato, `kg_backfill_embeddings` e `kg_semantic_search` restituiscono errore operativo.
+
+Variabili supportate:
+
+- `EMBEDDINGS_PROVIDER=openai-compatible`
+- `EMBEDDINGS_API_KEY`
+- `EMBEDDINGS_BASE_URL`, default `https://api.openai.com/v1`
+- `EMBEDDINGS_MODEL`
+- `EMBEDDINGS_DIMENSIONS`, opzionale
+- `EMBEDDINGS_TIMEOUT_MS`, default `30000`
+
+Fallback compatibili:
+
+- `OPENAI_API_KEY`
+- `OPENAI_BASE_URL`
+- `OPENAI_EMBEDDING_MODEL`
+
+Flusso operativo:
+
+1. Verificare configurazione e copertura con `kg_embedding_status`.
+2. Eseguire `kg_backfill_embeddings` con `dryRun=true` per vedere i nodi selezionati.
+3. Eseguire `kg_backfill_embeddings` con `dryRun=false` per scrivere `Entity.embedding` e creare l'indice Neo4j `entity_embedding`.
+4. Usare `kg_semantic_search` per recupero per affinita semantica profonda.
 
 Tool narrativi disponibili:
 

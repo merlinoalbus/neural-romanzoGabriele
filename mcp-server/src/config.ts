@@ -31,6 +31,12 @@ export const config = {
   buildSha: process.env.BUILD_SHA || 'unknown',
   deployedAt: process.env.DEPLOYED_AT || 'unknown',
   logLevel: (process.env.LOG_LEVEL || 'info').toLowerCase() as 'silent' | 'error' | 'warn' | 'info' | 'debug',
+  embeddingsProvider: process.env.EMBEDDINGS_PROVIDER || ((process.env.EMBEDDINGS_API_KEY || process.env.OPENAI_API_KEY) && (process.env.EMBEDDINGS_MODEL || process.env.OPENAI_EMBEDDING_MODEL) ? 'openai-compatible' : ''),
+  embeddingsApiKey: process.env.EMBEDDINGS_API_KEY || process.env.OPENAI_API_KEY || '',
+  embeddingsBaseUrl: (process.env.EMBEDDINGS_BASE_URL || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/+$/, ''),
+  embeddingsModel: process.env.EMBEDDINGS_MODEL || process.env.OPENAI_EMBEDDING_MODEL || '',
+  embeddingsDimensions: intFromEnv('EMBEDDINGS_DIMENSIONS', 0),
+  embeddingsTimeoutMs: intFromEnv('EMBEDDINGS_TIMEOUT_MS', 30_000),
 } as const;
 
 export type AppEnv = typeof config.appEnv;
@@ -42,6 +48,15 @@ export function validateConfig(): string[] {
   if (!config.neo4jUser.trim()) errors.push('NEO4J_USER must not be empty');
   if (config.appEnv === 'production' && !config.neo4jPassword.trim()) {
     errors.push('NEO4J_PASSWORD is required in production');
+  }
+  if (config.embeddingsProvider && config.embeddingsProvider !== 'openai-compatible') {
+    errors.push("EMBEDDINGS_PROVIDER must be 'openai-compatible' when set");
+  }
+  if (config.embeddingsProvider === 'openai-compatible' && !config.embeddingsModel.trim()) {
+    errors.push('EMBEDDINGS_MODEL is required when embeddings are enabled');
+  }
+  if (config.embeddingsProvider === 'openai-compatible' && !config.embeddingsApiKey.trim()) {
+    errors.push('EMBEDDINGS_API_KEY or OPENAI_API_KEY is required when embeddings are enabled');
   }
   return errors;
 }

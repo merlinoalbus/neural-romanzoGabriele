@@ -10,7 +10,11 @@ RUN npm ci
 
 COPY mcp-server/tsconfig.json ./
 COPY mcp-server/src/ ./src/
-RUN npm run build
+RUN test -f ./src/services/embeddingService.ts \
+  && grep -q "kg_embedding_status" ./src/toolNames.ts \
+  && rm -f ./node_modules/.tmp/tsconfig.mcp.tsbuildinfo \
+  && npm run build \
+  && grep -q "kg_embedding_status" ./dist/toolNames.js
 
 FROM node:22-alpine AS deps
 

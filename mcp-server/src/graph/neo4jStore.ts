@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import neo4j, { Driver, Node, Record as Neo4jRecord, Relationship } from 'neo4j-driver';
 import { config } from '../config.js';
 import { saveDocumentSource, type SavedDocumentSource } from '../services/backendClient.js';
+import { embeddingText } from '../services/embeddingService.js';
 import { assertCanonicalKind, isCanonicalKind, KG_KINDS_LIST } from './ontology.js';
 
 export interface GraphNode {
@@ -111,12 +112,79 @@ export interface IngestDocumentResult {
   nas?: SavedDocumentSource;
 }
 
+export interface EmbeddingCandidate extends GraphNode {
+  embeddingTextHash: string;
+  embeddingModel: string;
+  embeddingProvider: string;
+  embeddingDimensions: number | null;
+}
+
+export interface SemanticSearchResult {
+  node: GraphNode;
+  score: number;
+}
+
+export interface GraphEmbeddingStatus {
+  vectorIndexName: string;
+  vectorIndexExists: boolean;
+  nodes: number;
+  embeddedNodes: number;
+  pendingNodes: number;
+  lastEmbeddedAt: string | null;
+}
+
+export interface NonRelPhysicalEdgeCandidate {
+  relElementId?: string;
+  physicalType: string;
+  rawKind: string;
+  fromId: string;
+  toId: string;
+  fromType: string;
+  toType: string;
+  fromLabel?: string;
+  toLabel?: string;
+  metadata: string;
+  provenance: string;
+  edgeId?: string;
+  weight?: number;
+  createdAt?: string;
+}
+
+export type NonRelPhysicalEdgeClassification =
+  | { action: 'convert'; kind: string; reason: string }
+  | { action: 'remove'; reason: 'self_loop_redundant' | 'legacy_overgenerated_ally_of' }
+  | { action: 'unresolved'; reason: string };
+
+export interface NonRelPhysicalEdgeRepairPlan {
+  total: number;
+  converted: number;
+  removed: number;
+  unresolved: number;
+  convertedByKind: Record<string, number>;
+  removedByReason: Record<string, number>;
+  unresolvedBySignature: Record<string, number>;
+  samples: Array<{
+    action: NonRelPhysicalEdgeClassification['action'];
+    kind?: string;
+    reason: string;
+    physicalType: string;
+    rawKind: string;
+    fromId: string;
+    toId: string;
+    fromType: string;
+    toType: string;
+    fromLabel?: string;
+    toLabel?: string;
+  }>;
+}
+
 let driver: Driver | null = null;
 let ready: Promise<void> | null = null;
 
 const nowIso = (): string => new Date().toISOString();
 const uuid = (): string => crypto.randomUUID();
 const pid = (): string => config.projectId;
+export const ENTITY_EMBEDDING_INDEX = 'entity_embedding';
 
 function getDriver(): Driver {
   if (!driver) {
@@ -272,6 +340,118 @@ function clampInt(value: unknown, fallback: number, min: number, max: number): n
   const numberValue = Math.trunc(Number(value));
   if (!Number.isFinite(numberValue)) return fallback;
   return Math.max(min, Math.min(numberValue, max));
+}
+
+export function embeddingTextHash(text: string): string {
+  return crypto.createHash('sha256').update(text).digest('hex');
+}
+
+function addCount(target: Record<string, number>, key: string): void {
+  target[key] = (target[key] ?? 0) + 1;
+}
+
+const SECTION_EVIDENCE_FROM_TYPES = new Set([
+  'artifact',
+  'bible_candidate',
+  'bible_coverage_finding',
+  'character',
+  'character_voice',
+  'motif',
+  'narrative_constraint',
+  'plot_thread',
+  'power',
+  'relationship_dynamic',
+  'secret',
+  'theme',
+  'world_rule',
+]);
+
+const COVERAGE_TARGET_TYPES = new Set(['artifact', 'plot_thread', 'relationship_dynamic', 'secret', 'theme', 'world_rule']);
+
+export function classifyNonRelPhysicalEdge(edge: NonRelPhysicalEdgeCandidate): NonRelPhysicalEdgeClassification {
+  const physicalType = edge.physicalType.trim();
+  const rawKind = edge.rawKind.trim();
+  const metadata = edge.metadata ?? '';
+  const provenance = edge.provenance ?? '';
+  const fromType = edge.fromType.trim();
+  const toType = edge.toType.trim();
+
+  if (edge.fromId.trim() === edge.toId.trim()) return { action: 'remove', reason: 'self_loop_redundant' };
+  if (
+    physicalType === 'Relationship' &&
+    rawKind === 'ally_of' &&
+    provenance.includes('consolidation_engine') &&
+    metadata.includes('inferred') &&
+    metadata.includes('char_faction_intermediate') &&
+    !metadata.includes('evidence') &&
+    !metadata.includes('sourceId')
+  ) {
+    return { action: 'remove', reason: 'legacy_overgenerated_ally_of' };
+  }
+  if (rawKind !== 'REL' && rawKind !== 'Relationship' && isCanonicalKind(rawKind)) {
+    return { action: 'convert', kind: rawKind, reason: 'canonical_raw_kind' };
+  }
+  if (isCanonicalKind(physicalType)) {
+    return { action: 'convert', kind: physicalType, reason: 'canonical_physical_type' };
+  }
+  if (metadata.includes('parentSectionKey')) return { action: 'convert', kind: 'part_of', reason: 'section_parent_metadata' };
+  if (metadata.includes('orderScope')) return { action: 'convert', kind: 'precedes', reason: 'section_order_metadata' };
+  if (fromType === 'bible_section' && toType === 'bible_outline') return { action: 'convert', kind: 'part_of', reason: 'section_outline_parent' };
+  if (fromType === 'bible_candidate' && toType === 'bible_section') return { action: 'convert', kind: 'derived_from', reason: 'candidate_section_evidence' };
+  if (fromType === 'bible_coverage_finding' && toType === 'bible_section') return { action: 'convert', kind: 'derived_from', reason: 'coverage_section_evidence' };
+  if (fromType === 'bible_coverage_finding' && COVERAGE_TARGET_TYPES.has(toType)) return { action: 'convert', kind: 'applies_to', reason: 'coverage_target' };
+  if (toType === 'bible_section' && SECTION_EVIDENCE_FROM_TYPES.has(fromType)) return { action: 'convert', kind: 'derived_from', reason: 'source_section_evidence' };
+  if (fromType === 'character' && toType === 'relationship_dynamic') return { action: 'convert', kind: 'about', reason: 'character_relationship_dynamic' };
+  if (fromType === 'relationship_dynamic' && toType === 'character') return { action: 'convert', kind: 'about', reason: 'relationship_dynamic_character' };
+  if (fromType === 'character' && toType === 'artifact' && metadata.includes('creates')) return { action: 'convert', kind: 'creates', reason: 'candidate_creates_artifact' };
+  if (fromType === 'symbol' && toType === 'artifact') return { action: 'convert', kind: 'symbolizes', reason: 'symbol_artifact' };
+  if (fromType === 'secret' && toType === 'timeline_event') return { action: 'convert', kind: 'revealed_in', reason: 'secret_event_revelation' };
+  if (fromType === 'world_rule' && toType === 'world_rule' && metadata.toLowerCase().includes('exception')) {
+    return { action: 'convert', kind: 'is_exception_to', reason: 'world_rule_exception' };
+  }
+  return { action: 'unresolved', reason: 'no_specific_mapping' };
+}
+
+export function summarizeNonRelPhysicalEdgeRepair(edges: NonRelPhysicalEdgeCandidate[], sampleLimit = 25): NonRelPhysicalEdgeRepairPlan {
+  const plan: NonRelPhysicalEdgeRepairPlan = {
+    total: edges.length,
+    converted: 0,
+    removed: 0,
+    unresolved: 0,
+    convertedByKind: {},
+    removedByReason: {},
+    unresolvedBySignature: {},
+    samples: [],
+  };
+  for (const edge of edges) {
+    const classification = classifyNonRelPhysicalEdge(edge);
+    if (classification.action === 'convert') {
+      plan.converted++;
+      addCount(plan.convertedByKind, classification.kind);
+    } else if (classification.action === 'remove') {
+      plan.removed++;
+      addCount(plan.removedByReason, classification.reason);
+    } else {
+      plan.unresolved++;
+      addCount(plan.unresolvedBySignature, `${edge.physicalType}/${edge.rawKind}/${edge.fromType}->${edge.toType}`);
+    }
+    if (plan.samples.length < sampleLimit) {
+      plan.samples.push({
+        action: classification.action,
+        kind: classification.action === 'convert' ? classification.kind : undefined,
+        reason: classification.reason,
+        physicalType: edge.physicalType,
+        rawKind: edge.rawKind,
+        fromId: edge.fromId,
+        toId: edge.toId,
+        fromType: edge.fromType,
+        toType: edge.toType,
+        fromLabel: edge.fromLabel,
+        toLabel: edge.toLabel,
+      });
+    }
+  }
+  return plan;
 }
 
 export async function getNodeById(id: string): Promise<GraphNode | null> {
@@ -648,6 +828,122 @@ export async function recall(query: string, opts: { depth?: number; limit?: numb
   return { matched, nodes: [...nodeMap.values()], edges: [...edgeMap.values()] };
 }
 
+async function embeddingIndexExists(): Promise<boolean> {
+  try {
+    const records = await run(`SHOW INDEXES YIELD name WHERE name = '${ENTITY_EMBEDDING_INDEX}' RETURN count(*) AS c`, {});
+    return records.length ? toInt(records[0].get('c')) > 0 : false;
+  } catch {
+    return false;
+  }
+}
+
+export async function createEmbeddingIndex(dimensions: number): Promise<void> {
+  const dim = Math.trunc(dimensions);
+  if (!Number.isFinite(dim) || dim <= 0 || dim > 8192) throw new Error('invalid_embedding_dimensions: dimensions must be between 1 and 8192');
+  await run(
+    `CREATE VECTOR INDEX ${ENTITY_EMBEDDING_INDEX} IF NOT EXISTS FOR (n:Entity) ON (n.embedding)
+     OPTIONS { indexConfig: { \`vector.dimensions\`: ${dim}, \`vector.similarity_function\`: 'cosine' } }`,
+    {},
+  );
+}
+
+export async function embeddingStatus(): Promise<GraphEmbeddingStatus> {
+  const records = await run(
+    `MATCH (n:Entity {projectId:$pid})
+     RETURN count(n) AS nodes,
+       count(n.embedding) AS embeddedNodes,
+       sum(CASE WHEN n.embedding IS NULL THEN 1 ELSE 0 END) AS pendingNodes,
+       max(n.embeddingUpdatedAt) AS lastEmbeddedAt`,
+    { pid: pid() },
+  );
+  const record = records[0];
+  return {
+    vectorIndexName: ENTITY_EMBEDDING_INDEX,
+    vectorIndexExists: await embeddingIndexExists(),
+    nodes: record ? toInt(record.get('nodes')) : 0,
+    embeddedNodes: record ? toInt(record.get('embeddedNodes')) : 0,
+    pendingNodes: record ? toInt(record.get('pendingNodes')) : 0,
+    lastEmbeddedAt: record?.get('lastEmbeddedAt') ? String(record.get('lastEmbeddedAt')) : null,
+  };
+}
+
+function embeddingCandidateFrom(node: Node): EmbeddingCandidate {
+  const graphNode = nodeFrom(node);
+  const props = node.properties as Record<string, unknown>;
+  const text = embeddingText(graphNode);
+  return {
+    ...graphNode,
+    embeddingTextHash: String(props.embeddingTextHash ?? embeddingTextHash(text)),
+    embeddingModel: String(props.embeddingModel ?? ''),
+    embeddingProvider: String(props.embeddingProvider ?? ''),
+    embeddingDimensions: props.embeddingDimensions == null ? null : Number(props.embeddingDimensions),
+  };
+}
+
+export async function listEmbeddingCandidates(opts: { type?: string; limit?: number; missingOnly?: boolean } = {}): Promise<EmbeddingCandidate[]> {
+  const limit = clampInt(opts.limit, 100, 1, 1000);
+  const type = opts.type?.trim() || null;
+  const missingOnly = opts.missingOnly ?? true;
+  const records = await run(
+    `MATCH (n:Entity {projectId:$pid})
+     WHERE ($type IS NULL OR n.type = $type)
+       AND ($missingOnly = false OR n.embedding IS NULL)
+     RETURN n
+     ORDER BY coalesce(n.updatedAt, n.createdAt, '') DESC, n.label
+     LIMIT $limit`,
+    { pid: pid(), type, missingOnly, limit: neo4j.int(limit) },
+  );
+  return records.map((record) => embeddingCandidateFrom(record.get('n')));
+}
+
+export async function writeNodeEmbedding(
+  nodeId: string,
+  vector: number[],
+  metadata: { provider: string; model: string; dimensions: number; textHash: string },
+): Promise<boolean> {
+  if (!vector.length || vector.some((value) => !Number.isFinite(value))) throw new Error('invalid_embedding: vector must contain finite numbers');
+  const records = await run(
+    `MATCH (n:Entity {id:$id, projectId:$pid})
+     SET n.embedding=$embedding,
+       n.embeddingProvider=$provider,
+       n.embeddingModel=$model,
+       n.embeddingDimensions=$dimensions,
+       n.embeddingTextHash=$textHash,
+       n.embeddingUpdatedAt=$updatedAt
+     RETURN count(n) AS c`,
+    {
+      id: nodeId,
+      pid: pid(),
+      embedding: vector,
+      provider: metadata.provider,
+      model: metadata.model,
+      dimensions: neo4j.int(metadata.dimensions),
+      textHash: metadata.textHash,
+      updatedAt: nowIso(),
+    },
+  );
+  return records.length ? toInt(records[0].get('c')) > 0 : false;
+}
+
+export async function semanticSearch(vector: number[], opts: { type?: string; limit?: number } = {}): Promise<SemanticSearchResult[]> {
+  if (!vector.length || vector.some((value) => !Number.isFinite(value))) throw new Error('invalid_embedding: vector must contain finite numbers');
+  const limit = clampInt(opts.limit, 10, 1, 100);
+  const requestLimit = Math.min(Math.max(limit * 4, limit), 400);
+  const type = opts.type?.trim() || null;
+  const records = await run(
+    `CALL db.index.vector.queryNodes('${ENTITY_EMBEDDING_INDEX}', $requestLimit, $embedding) YIELD node, score
+     WHERE node.projectId = $pid AND ($type IS NULL OR node.type = $type)
+     RETURN node, score
+     ORDER BY score DESC
+     LIMIT $limit`,
+    { pid: pid(), type, embedding: vector, requestLimit: neo4j.int(requestLimit), limit: neo4j.int(limit) },
+  );
+  return records.map((record) => ({
+    node: nodeFrom(record.get('node')),
+    score: Number(record.get('score')),
+  }));
+}
+
 export async function stats(): Promise<{ nodes: number; edges: number; nodeTypes: Record<string, number>; edgeKinds: Record<string, number> }> {
   const nodeCount = toInt((await run('MATCH (n:Entity {projectId:$pid}) RETURN count(n) AS c', { pid: pid() }))[0]?.get('c') ?? 0);
   const edgeCount = toInt((await run('MATCH (:Entity {projectId:$pid})-[r:REL]->(:Entity {projectId:$pid}) RETURN count(r) AS c', { pid: pid() }))[0]?.get('c') ?? 0);
@@ -665,6 +961,8 @@ export async function stats(): Promise<{ nodes: number; edges: number; nodeTypes
 export interface GlobalAudit {
   nodes: number;
   edges: number;
+  physicalEdges: number;
+  nonRelPhysicalEdges: number;
   documents: number;
   chunks: number;
   assets: number;
@@ -682,6 +980,8 @@ export async function auditGlobal(): Promise<GlobalAudit> {
   };
   const nodes = await one('MATCH (n:Entity {projectId:$pid}) RETURN count(n) AS c');
   const edges = await one('MATCH (:Entity {projectId:$pid})-[r:REL]->(:Entity {projectId:$pid}) RETURN count(r) AS c');
+  const physicalEdges = await one('MATCH (:Entity {projectId:$pid})-[r]->(:Entity {projectId:$pid}) RETURN count(r) AS c');
+  const nonRelPhysicalEdges = await one("MATCH (:Entity {projectId:$pid})-[r]->(:Entity {projectId:$pid}) WHERE type(r) <> 'REL' RETURN count(r) AS c");
   const documents = await one("MATCH (n:Entity {projectId:$pid, type:'document'}) RETURN count(n) AS c");
   const chunks = await one("MATCH (n:Entity {projectId:$pid, type:'chunk'}) RETURN count(n) AS c");
   const assets = await one('MATCH (a:Asset {projectId:$pid}) RETURN count(a) AS c');
@@ -698,7 +998,20 @@ export async function auditGlobal(): Promise<GlobalAudit> {
     .map((record) => ({ kind: String(record.get('kind')), count: toInt(record.get('c')) }))
     .filter((row) => !isCanonicalKind(row.kind))
     .sort((a, b) => b.count - a.count);
-  return { nodes, edges, documents, chunks, assets, orphanNodes, orphanAssets, relatedToTotal, redundantRelatedTo, nonCanonicalKinds };
+  return {
+    nodes,
+    edges,
+    physicalEdges,
+    nonRelPhysicalEdges,
+    documents,
+    chunks,
+    assets,
+    orphanNodes,
+    orphanAssets,
+    relatedToTotal,
+    redundantRelatedTo,
+    nonCanonicalKinds,
+  };
 }
 
 export interface RepairResult {
@@ -706,18 +1019,38 @@ export interface RepairResult {
   redundantRelatedToRetired: number;
   junkEdgesRemoved: number;
   orphanAssetsRemoved: number;
+  nonRelPhysicalEdgesConverted: number;
+  nonRelPhysicalEdgesRemoved: number;
+  unresolvedNonRelPhysicalEdges: number;
+  nonRelPhysicalEdgePlan: NonRelPhysicalEdgeRepairPlan;
+  nonRelPhysicalEdgeApply?: {
+    createdNew: number;
+    mergedExisting: number;
+    deletedOriginal: number;
+    removedSelfLoop: number;
+    removedLegacy: number;
+  };
 }
 
 export async function repair(opts: { dryRun?: boolean } = {}): Promise<RepairResult> {
   const dryRun = opts.dryRun ?? true;
   const audit = await auditGlobal();
+  const nonRelPhysicalEdges = await listNonRelPhysicalEdges();
+  const nonRelPhysicalEdgePlan = summarizeNonRelPhysicalEdgeRepair(nonRelPhysicalEdges);
   const result: RepairResult = {
     dryRun,
     redundantRelatedToRetired: audit.redundantRelatedTo,
     junkEdgesRemoved: audit.nonCanonicalKinds.reduce((sum, row) => sum + row.count, 0),
     orphanAssetsRemoved: audit.orphanAssets,
+    nonRelPhysicalEdgesConverted: nonRelPhysicalEdgePlan.converted,
+    nonRelPhysicalEdgesRemoved: nonRelPhysicalEdgePlan.removed,
+    unresolvedNonRelPhysicalEdges: nonRelPhysicalEdgePlan.unresolved,
+    nonRelPhysicalEdgePlan,
   };
   if (!dryRun) {
+    if (nonRelPhysicalEdgePlan.unresolved > 0) {
+      throw new Error(`repair_blocked: ${nonRelPhysicalEdgePlan.unresolved} unresolved non-REL physical edges`);
+    }
     await run(
       `MATCH (a:Entity {projectId:$pid})-[r:REL {kind:'related_to'}]->(b:Entity {projectId:$pid})
        WHERE EXISTS { (a)-[typed:REL]-(b) WHERE typed.kind <> 'related_to' }
@@ -726,8 +1059,148 @@ export async function repair(opts: { dryRun?: boolean } = {}): Promise<RepairRes
     );
     await run('MATCH (:Entity {projectId:$pid})-[r:REL]->(:Entity {projectId:$pid}) WHERE NOT r.kind IN $allowed DELETE r', { pid: pid(), allowed: KG_KINDS_LIST });
     await run('MATCH (a:Asset {projectId:$pid}) WHERE NOT (:Entity {projectId:$pid})-[:HAS_ASSET]->(a) DETACH DELETE a', { pid: pid() });
+    result.nonRelPhysicalEdgeApply = await applyNonRelPhysicalEdgeRepair(nonRelPhysicalEdges);
   }
   return result;
+}
+
+async function listNonRelPhysicalEdges(): Promise<NonRelPhysicalEdgeCandidate[]> {
+  const records = await run(
+    `MATCH (a:Entity {projectId:$pid})-[r]->(b:Entity {projectId:$pid})
+     WHERE type(r) <> 'REL'
+     RETURN elementId(r) AS relElementId,
+       type(r) AS physicalType,
+       coalesce(r.kind, '') AS rawKind,
+       a.id AS fromId,
+       b.id AS toId,
+       a.type AS fromType,
+       b.type AS toType,
+       a.label AS fromLabel,
+       b.label AS toLabel,
+       coalesce(r.metadata, '') AS metadata,
+       coalesce(r.provenance, '') AS provenance,
+       r.id AS edgeId,
+       r.weight AS weight,
+       r.createdAt AS createdAt`,
+    { pid: pid() },
+  );
+  return records.map((record) => ({
+    relElementId: String(record.get('relElementId')),
+    physicalType: String(record.get('physicalType')),
+    rawKind: String(record.get('rawKind') ?? ''),
+    fromId: String(record.get('fromId')),
+    toId: String(record.get('toId')),
+    fromType: String(record.get('fromType')),
+    toType: String(record.get('toType')),
+    fromLabel: String(record.get('fromLabel') ?? ''),
+    toLabel: String(record.get('toLabel') ?? ''),
+    metadata: String(record.get('metadata') ?? ''),
+    provenance: String(record.get('provenance') ?? ''),
+    edgeId: record.get('edgeId') == null ? undefined : String(record.get('edgeId')),
+    weight: record.get('weight') == null ? undefined : Number(record.get('weight')),
+    createdAt: record.get('createdAt') == null ? undefined : String(record.get('createdAt')),
+  }));
+}
+
+async function relExists(fromId: string, toId: string, kind: string): Promise<boolean> {
+  const records = await run(
+    `MATCH (:Entity {projectId:$pid, id:$fromId})-[r:REL {kind:$kind}]->(:Entity {projectId:$pid, id:$toId})
+     RETURN count(r) AS c`,
+    { pid: pid(), fromId, toId, kind },
+  );
+  return records.length ? toInt(records[0].get('c')) > 0 : false;
+}
+
+async function applyNonRelPhysicalEdgeRepair(edges: NonRelPhysicalEdgeCandidate[]): Promise<NonRelPhysicalEdgeRepairResultApply> {
+  const apply: NonRelPhysicalEdgeRepairResultApply = {
+    createdNew: 0,
+    mergedExisting: 0,
+    deletedOriginal: 0,
+    removedSelfLoop: 0,
+    removedLegacy: 0,
+  };
+  for (const edge of edges) {
+    const classification = classifyNonRelPhysicalEdge(edge);
+    if (!edge.relElementId) continue;
+    if (classification.action === 'unresolved') {
+      throw new Error(`repair_blocked: unresolved non-REL physical edge ${edge.physicalType}/${edge.rawKind}/${edge.fromType}->${edge.toType}`);
+    }
+    if (classification.action === 'remove') {
+      const deleted = await deleteNonRelPhysicalEdge(edge.relElementId);
+      apply.deletedOriginal += deleted;
+      if (classification.reason === 'self_loop_redundant') apply.removedSelfLoop += deleted;
+      if (classification.reason === 'legacy_overgenerated_ally_of') apply.removedLegacy += deleted;
+      continue;
+    }
+    const existed = await relExists(edge.fromId.trim(), edge.toId.trim(), classification.kind);
+    const converted = await convertNonRelPhysicalEdge(edge, classification.kind);
+    apply.deletedOriginal += converted.deletedOriginal;
+    if (converted.deletedOriginal > 0) {
+      if (existed) apply.mergedExisting++;
+      else apply.createdNew++;
+    }
+  }
+  return apply;
+}
+
+interface NonRelPhysicalEdgeRepairResultApply {
+  createdNew: number;
+  mergedExisting: number;
+  deletedOriginal: number;
+  removedSelfLoop: number;
+  removedLegacy: number;
+}
+
+async function deleteNonRelPhysicalEdge(relElementId: string): Promise<number> {
+  const records = await run(
+    `MATCH ()-[r]->()
+     WHERE elementId(r) = $relElementId AND type(r) <> 'REL'
+     WITH r LIMIT 1
+     DELETE r
+     RETURN 1 AS c`,
+    { relElementId },
+  );
+  return records.length ? 1 : 0;
+}
+
+async function convertNonRelPhysicalEdge(edge: NonRelPhysicalEdgeCandidate, kind: string): Promise<{ deletedOriginal: number }> {
+  const records = await run(
+    `MATCH (from:Entity {projectId:$pid, id:$fromId})-[old]->(to:Entity {projectId:$pid, id:$toId})
+     WHERE elementId(old) = $relElementId AND type(old) <> 'REL'
+     MERGE (from)-[rel:REL {kind:$kind}]->(to)
+     ON CREATE SET rel.id = coalesce(old.id, $id),
+       rel.weight = coalesce(old.weight, 1),
+       rel.metadata = coalesce(old.metadata, '{}'),
+       rel.provenance = coalesce(old.provenance, '{}'),
+       rel.createdAt = coalesce(old.createdAt, $createdAt)
+     ON MATCH SET rel.weight = CASE WHEN coalesce(rel.weight, 0) < coalesce(old.weight, 1) THEN coalesce(old.weight, 1) ELSE rel.weight END,
+       rel.metadata = CASE
+         WHEN old.metadata IS NULL OR old.metadata = '' OR old.metadata = '{}' THEN rel.metadata
+         WHEN rel.metadata IS NULL OR rel.metadata = '' OR rel.metadata = '{}' THEN old.metadata
+         WHEN rel.metadata = old.metadata THEN rel.metadata
+         ELSE '{"existing":' + rel.metadata + ',"merged":' + old.metadata + '}'
+       END,
+       rel.provenance = CASE
+         WHEN old.provenance IS NULL OR old.provenance = '' OR old.provenance = '{}' THEN rel.provenance
+         WHEN rel.provenance IS NULL OR rel.provenance = '' OR rel.provenance = '{}' THEN old.provenance
+         WHEN rel.provenance = old.provenance THEN rel.provenance
+         ELSE '{"existing":' + rel.provenance + ',"merged":' + old.provenance + '}'
+       END,
+       rel.createdAt = coalesce(rel.createdAt, old.createdAt, $createdAt)
+     WITH old
+     DELETE old
+     RETURN 1 AS c`,
+    {
+      pid: pid(),
+      relElementId: edge.relElementId,
+      fromId: edge.fromId.trim(),
+      toId: edge.toId.trim(),
+      kind,
+      id: edge.edgeId || uuid(),
+      createdAt: edge.createdAt || nowIso(),
+    },
+  );
+  return { deletedOriginal: records.length ? 1 : 0 };
 }
 
 export function chunkText(text: string, chunkSize = 4000): string[] {

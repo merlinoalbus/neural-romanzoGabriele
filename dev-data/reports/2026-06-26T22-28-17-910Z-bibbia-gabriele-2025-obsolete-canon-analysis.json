@@ -1,0 +1,275 @@
+{
+  "summary": {
+    "sourceId": "bibbia-gabriele-2025",
+    "generatedAt": "2026-06-26T22:28:17.909Z",
+    "readOnly": true,
+    "backupPath": "C:\\Users\\rober\\Desktop\\Tales Project\\tools\\neural-romanzoGabriele\\dev-data\\backups\\2026-06-26T21-36-06-936Z-bibbia-gabriele-2025-technical-corpus-backup.json",
+    "oldSectionCount": 485,
+    "newSectionCount": 866,
+    "pendingCandidateCount": 10295,
+    "canonicalNodesWithObsoleteRefs": 11,
+    "obsoleteRefRows": 13,
+    "byStatus": {
+      "ambiguo": 11,
+      "non_sostenuto": 2
+    },
+    "byTypeStatus": {
+      "character:ambiguo": 3,
+      "character:non_sostenuto": 2,
+      "character_state:ambiguo": 1,
+      "character_trait:ambiguo": 1,
+      "narrative_constraint:ambiguo": 1,
+      "plot_thread:ambiguo": 1,
+      "precognitive_data:ambiguo": 1,
+      "relationship_dynamic:ambiguo": 3
+    }
+  },
+  "rows": [
+    {
+      "nodeId": "006acfe1-e978-448e-9e2f-043b402438af",
+      "type": "character",
+      "label": "Asia",
+      "oldSectionKey": "3.2.9",
+      "oldHeading": "FUTURO (POST-ROMANZO)",
+      "candidateNewSectionKey": "2.1.2.19",
+      "candidateNewHeading": "Futuro (Post-Romanzo)",
+      "candidateId": null,
+      "criterion": "semantic_section_high_ambiguous",
+      "score": 0.7603,
+      "status": "ambiguo",
+      "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+      "evidencePaths": [
+        "$.evidence[0].sectionKey"
+      ],
+      "nodeContentSample": "Nipote più piccola del Nonno/Gabriele anziano: curiosa, emotiva, diretta e ingenua, capace con le sue domande di toccare il cuore emotivo della storia."
+    },
+    {
+      "nodeId": "006acfe1-e978-448e-9e2f-043b402438af",
+      "type": "character",
+      "label": "Asia",
+      "oldSectionKey": "3.8.2",
+      "oldHeading": "ASIA",
+      "candidateNewSectionKey": null,
+      "candidateNewHeading": null,
+      "candidateId": null,
+      "criterion": "no_new_evidence",
+      "score": 0,
+      "status": "non_sostenuto",
+      "reason": "Nessuna evidenza nuova sufficientemente forte.",
+      "evidencePaths": [
+        "$.evidence[1].sectionKey",
+        "$.sectionKey"
+      ],
+      "nodeContentSample": "Nipote più piccola del Nonno/Gabriele anziano: curiosa, emotiva, diretta e ingenua, capace con le sue domande di toccare il cuore emotivo della storia."
+    },
+    {
+      "nodeId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "type": "character",
+      "label": "Elea",
+      "oldSectionKey": "3.2.9",
+      "oldHeading": "FUTURO (POST-ROMANZO)",
+      "candidateNewSectionKey": "2.1.2.19",
+      "candidateNewHeading": "Futuro (Post-Romanzo)",
+      "candidateId": null,
+      "criterion": "semantic_section_high_ambiguous",
+      "score": 0.7603,
+      "status": "ambiguo",
+      "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+      "evidencePaths": [
+        "$.evidence[0].sectionKey"
+      ],
+      "nodeContentSample": "Nipote maggiore del Nonno/Gabriele anziano: più analitica e razionale di Asia, cerca spiegazioni logiche ma resta affascinata dal racconto e spinge il Nonno a riflessioni più profonde."
+    },
+    {
+      "nodeId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "type": "character",
+      "label": "Elea",
+      "oldSectionKey": "3.8.3",
+      "oldHeading": "ELEA",
+      "candidateNewSectionKey": null,
+      "candidateNewHeading": null,
+      "candidateId": null,
+      "criterion": "no_new_evidence",
+      "score": 0,
+      "status": "non_sostenuto",
+      "reason": "Nessuna evidenza nuova sufficientemente forte.",
+      "evidencePaths": [
+        "$.evidence[1].sectionKey",
+        "$.sectionKey"
+      ],
+      "nodeContentSample": "Nipote maggiore del Nonno/Gabriele anziano: più analitica e razionale di Asia, cerca spiegazioni logiche ma resta affascinata dal racconto e spinge il Nonno a riflessioni più profonde."
+    },
+    {
+      "nodeId": "527720a3-10cf-4ad9-bc25-c93292760050",
+      "type": "character",
+      "label": "Marta",
+      "oldSectionKey": "3.2.9",
+      "oldHeading": "FUTURO (POST-ROMANZO)",
+      "candidateNewSectionKey": "2.1.2.19",
+      "candidateNewHeading": "Futuro (Post-Romanzo)",
+      "candidateId": null,
+      "criterion": "semantic_section_high_ambiguous",
+      "score": 0.7603,
+      "status": "ambiguo",
+      "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+      "evidencePaths": [
+        "$.evidence[0].sectionKey",
+        "$.sectionKey"
+      ],
+      "nodeContentSample": "Figlia futura di Lisa e Gabriele."
+    },
+    {
+      "nodeId": "496aa500-8970-42b7-8e89-71593853f11f",
+      "type": "character_state",
+      "label": "Personalità iniziale di Gabriele",
+      "oldSectionKey": "3.1.5",
+      "oldHeading": "Personalità Iniziale",
+      "candidateNewSectionKey": "2.1.1.3",
+      "candidateNewHeading": "Personalità Iniziale",
+      "candidateId": null,
+      "criterion": "semantic_section_high_ambiguous",
+      "score": 0.9333,
+      "status": "ambiguo",
+      "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+      "evidencePaths": [
+        "$.evidence[0].sectionKey",
+        "$.sectionKey"
+      ],
+      "nodeContentSample": "Gabriele inizialmente è timido, introverso, insicuro, sensibile, goffo, vittima di bullismo, con bassa autostima; è sognatore, leale verso Trevor, innamorato idealmente di Lisa e rifugiato nell'arte."
+    },
+    {
+      "nodeId": "8e62a765-8370-41c9-880f-8615d8a0a209",
+      "type": "character_trait",
+      "label": "Valori non negoziabili di Gabriele",
+      "oldSectionKey": "3.1.9.1",
+      "oldHeading": "Valori",
+      "candidateNewSectionKey": "2.1.1.7.1",
+      "candidateNewHeading": "Valori",
+      "candidateId": null,
+      "criterion": "semantic_section_high_ambiguous",
+      "score": 0.89,
+      "status": "ambiguo",
+      "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+      "evidencePaths": [
+        "$.evidence[0].sectionKey",
+        "$.sectionKey"
+      ],
+      "nodeContentSample": "Valori di Gabriele: lealtà, giustizia, protezione degli innocenti e amore autentico; tali valori orientano la richiesta di rettifica a Trevor e gli interventi per Lisa, il cucciolo di leone e gli studenti."
+    },
+    {
+      "nodeId": "bb3c391a-9359-4d88-aade-075cc929e3de",
+      "type": "narrative_constraint",
+      "label": "Punti di rottura operativi di Gabriele",
+      "oldSectionKey": "3.1.9.2",
+      "oldHeading": "Punti di Rottura",
+      "candidateNewSectionKey": "2.1.1.7.2",
+      "candidateNewHeading": "Punti di Rottura",
+      "candidateId": null,
+      "criterion": "semantic_section_high_ambiguous",
+      "score": 0.9,
+      "status": "ambiguo",
+      "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+      "evidencePaths": [
+        "$.evidence[0].sectionKey",
+        "$.sectionKey"
+      ],
+      "nodeContentSample": "Gabriele rompe il proprio freno quando Lisa è minacciata, quando subisce o vede ingiustizia e sofferenza altrui, o quando rischia di perdere Lisa o causarle un danno irreparabile."
+    },
+    {
+      "nodeId": "f8ba15dd-6ebd-474c-a68e-ddbf2499b903",
+      "type": "plot_thread",
+      "label": "Lisa futura comunicazione etica e giustizia",
+      "oldSectionKey": "3.2.9",
+      "oldHeading": "FUTURO (POST-ROMANZO)",
+      "candidateNewSectionKey": "2.1.2.19",
+      "candidateNewHeading": "Futuro (Post-Romanzo)",
+      "candidateId": null,
+      "criterion": "semantic_section_high_ambiguous",
+      "score": 0.7603,
+      "status": "ambiguo",
+      "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+      "evidencePaths": [
+        "$.evidence[0].sectionKey",
+        "$.evidence[1].sectionKey",
+        "$.sectionKey"
+      ],
+      "nodeContentSample": "Nel futuro Lisa orienta comunicazione, giornalismo/radio/editoria o cause sociali verso verità, giustizia e impatto positivo."
+    },
+    {
+      "nodeId": "738aa4a2-203c-4e28-afec-462058d24295",
+      "type": "precognitive_data",
+      "label": "Futuro post-romanzo di Gabriele",
+      "oldSectionKey": "3.1.20",
+      "oldHeading": "Futuro (Post-Romanzo)",
+      "candidateNewSectionKey": "2.1.1.19",
+      "candidateNewHeading": "Futuro (Post-Romanzo)",
+      "candidateId": null,
+      "criterion": "semantic_section_high_ambiguous",
+      "score": 0.94,
+      "status": "ambiguo",
+      "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+      "evidencePaths": [
+        "$.evidence[0].sectionKey",
+        "$.sectionKey"
+      ],
+      "nodeContentSample": "Dopo il romanzo, Gabriele vive una vita umana piena accanto a Lisa, ha una famiglia con Marta, Asia ed Elea, mantiene un legame profondo con Trevor e conserva sensibilità, vena artistica ed empatia come eredità spirit..."
+    },
+    {
+      "nodeId": "b392a47f-e618-48e5-adb3-6fd7531376d4",
+      "type": "relationship_dynamic",
+      "label": "Elena Costa - Relazioni Chiave",
+      "oldSectionKey": "3.7.6.7",
+      "oldHeading": "Relazioni Chiave",
+      "candidateNewSectionKey": "2.4.1.8",
+      "candidateNewHeading": "Relazioni Chiave",
+      "candidateId": null,
+      "criterion": "semantic_section_high_ambiguous",
+      "score": 0.8571,
+      "status": "ambiguo",
+      "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+      "evidencePaths": [
+        "$.evidence[0].sectionKey",
+        "$.sectionKey"
+      ],
+      "nodeContentSample": "Relazioni Chiave"
+    },
+    {
+      "nodeId": "daa3a754-5c95-4631-8b03-a50598aef708",
+      "type": "relationship_dynamic",
+      "label": "Lisa-Trevor amicizia adulta duratura",
+      "oldSectionKey": "3.2.9",
+      "oldHeading": "FUTURO (POST-ROMANZO)",
+      "candidateNewSectionKey": "2.1.2.19",
+      "candidateNewHeading": "Futuro (Post-Romanzo)",
+      "candidateId": null,
+      "criterion": "semantic_section_high_ambiguous",
+      "score": 0.7603,
+      "status": "ambiguo",
+      "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+      "evidencePaths": [
+        "$.evidence[0].sectionKey",
+        "$.sectionKey"
+      ],
+      "nodeContentSample": "Nel post-romanzo il rapporto Lisa-Trevor si placa e diventa una solida amicizia familiare fondata sull affetto comune per Gabriele e sul segreto condiviso."
+    },
+    {
+      "nodeId": "7280d9c3-960d-44e0-a8a9-9d7245ec71af",
+      "type": "relationship_dynamic",
+      "label": "Relazioni chiave di Gabriele",
+      "oldSectionKey": "3.1.17",
+      "oldHeading": "Relazioni Chiave",
+      "candidateNewSectionKey": "2.1.1.15",
+      "candidateNewHeading": "Relazioni Chiave",
+      "candidateId": null,
+      "criterion": "semantic_section_high_ambiguous",
+      "score": 0.9333,
+      "status": "ambiguo",
+      "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+      "evidencePaths": [
+        "$.evidence[0].sectionKey",
+        "$.sectionKey"
+      ],
+      "nodeContentSample": "Sistema relazionale del personaggio: Lisa come amore millenario, Trevor come migliore amico e custode del segreto, Cristiano come bullo/rivale, Raphael come fratello angelico e i genitori umani come figure affettuose..."
+    }
+  ]
+}

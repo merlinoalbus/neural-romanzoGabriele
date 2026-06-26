@@ -1,0 +1,430 @@
+{
+  "generatedAt": "2026-06-26T22:23:25.635Z",
+  "dryRun": true,
+  "summary": {
+    "deleteNodes": 55,
+    "relinkNodes": 3,
+    "relinkEdges": 6
+  },
+  "deleteNodes": [
+    {
+      "nodeId": "claim-inizio-scuola-1-settembre",
+      "type": "bible_claim",
+      "label": "Inizio dell'anno scolastico il 1 Settembre",
+      "reason": "orphan_noncanonical_claim_without_updated_bible_support"
+    },
+    {
+      "nodeId": "finding-inactive-thread-2.3.10.2-Sviluppo[GELOSIA]",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:2.3.10.2 - Sviluppo [GELOSIA]",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-2.3.11.2-Sviluppo[DESTINOVS.LIBEROARBITRIO]",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:2.3.11.2 - Sviluppo [DESTINO VS. LIBERO ARBITRIO]",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-2.3.13.2-Sviluppo[LARICERCADINORMALITÀEAPPARTENENZA]",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:2.3.13.2 - Sviluppo [LA RICERCA DI NORMALITÀ E APPARTENENZA]",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-2.3.15.2-Sviluppo[ILCONFLITTOTRALEGGE(DIVINA/UMANA)EAMORE/COMPASSIONE]",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:2.3.15.2 - Sviluppo [IL CONFLITTO TRA LEGGE (DIVINA/UMANA) E AMORE/COMPASSIONE]",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-2.3.16.2-Sviluppo[LADUALITÀDELL'ESSEREELEMASCHERESOCIALI]",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:2.3.16.2 - Sviluppo [LA DUALITÀ DELL'ESSERE E LE MASCHERE SOCIALI]",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-2.3.8.2-Sviluppo[PERDONOEREDENZIONE]",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:2.3.8.2 - Sviluppo [PERDONO E REDENZIONE]",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-BertoniricordaGabrielecomegiocatorestranoetalentuoso",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Bertoni ricorda Gabriele come giocatore strano e talentuoso",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-CornicenarrativadelNonnoedellenipotine",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Cornice narrativa del Nonno e delle nipotine",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Cristianoincattivimentopost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Cristiano incattivimento post-romanzo",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-EleaspingeilNonnoariflessionipiùprofonde",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Elea spinge il Nonno a riflessioni più profonde",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-ElenaCosta-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Elena Costa - Evoluzione",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-ElenaCosta-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Elena Costa - Futuro post-romanzo",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-ElenaCosta-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Elena Costa - Passato",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-FedericaVilla-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Federica Villa - Evoluzione",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-FedericaVilla-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Federica Villa - Futuro post-romanzo",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-FedericaVilla-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Federica Villa - Passato",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Ferretticontinuailruolodipreside",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Ferretti continua il ruolo di preside",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Futuropost-romanzodiCristiano",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Futuro post-romanzo di Cristiano",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-GenitoridiGabriele-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Genitori di Gabriele - Evoluzione",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-GenitoridiGabriele-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Genitori di Gabriele - Futuro post-romanzo",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-GenitoridiGabriele-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Genitori di Gabriele - Passato",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-GenitoridiLisa-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Genitori di Lisa - Evoluzione",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-GenitoridiLisa-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Genitori di Lisa - Futuro post-romanzo",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-GenitoridiLisa-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Genitori di Lisa - Passato",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Giulianitornaallepropriemansioni",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Giuliani torna alle proprie mansioni",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Grimaldicontinuaainsegnareconrigore",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Grimaldi continua a insegnare con rigore",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-LauraMancini-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Laura Mancini - Evoluzione",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-LauraMancini-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Laura Mancini - Futuro post-romanzo",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-LauraMancini-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Laura Mancini - Passato",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-LisaMartini-EVOLUZIONE",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Lisa Martini - EVOLUZIONE",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Lisasiliberadapressionisocialierelazionitossiche",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Lisa si libera da pressioni sociali e relazioni tossiche",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-MarcoBarbieri-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Marco Barbieri - Evoluzione",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-MarcoBarbieri-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Marco Barbieri - Futuro post-romanzo",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-MarcoBarbieri-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Marco Barbieri - Passato",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-MarcoBellinifunzionalealmomentodelconcorso",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Marco Bellini funzionale al momento del concorso",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-MarcoBellinisegueilpercorsoartisticodiGabriele",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Marco Bellini segue il percorso artistico di Gabriele",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Michael-FUTURO(POST-ROMANZO)",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Michael - FUTURO (POST-ROMANZO)",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Michael-PASSATOCELESTE",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Michael - PASSATO CELESTE",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-OculistaricordailcasodiGabrielecomeinspiegabile",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Oculista ricorda il caso di Gabriele come inspiegabile",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Prof.Moretticontinuaainsegnareeispirare",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Prof. Moretti continua a insegnare e ispirare",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Prof.MorettivalidailtalentodiGabriele",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Prof. Moretti valida il talento di Gabriele",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Raphael-FUTURO(POST-ROMANZO)",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Raphael - FUTURO (POST-ROMANZO)",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Raphael-PASSATOCELESTE(RELAZIONECONGABRIEL)",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Raphael - PASSATO CELESTE (RELAZIONE CON GABRIEL)",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Sig.raConticontinuaainsegnare",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Sig.ra Conti continua a insegnare",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-Sig.raContiriconosceiltalentodiGabriele",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Sig.ra Conti riconosce il talento di Gabriele",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-SignoraChenricordaconstuporel'episodioinmandarino",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Signora Chen ricorda con stupore l'episodio in mandarino",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-StefanoFerrari-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Stefano Ferrari - Evoluzione",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-StefanoFerrari-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Stefano Ferrari - Futuro post-romanzo",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-StefanoFerrari-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Stefano Ferrari - Passato",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-TrevorRossi(SpeedyGonzy)-FaseDistruttiva(RitorsioneeAuto-sabotaggio)",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Trevor Rossi (SpeedyGonzy) - Fase Distruttiva (Ritorsione e Auto-sabotaggio)",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-TrevorRossi(SpeedyGonzy)-FasedellaMaturazioneedelSupporto",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Trevor Rossi (SpeedyGonzy) - Fase della Maturazione e del Supporto",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-TrevorRossi(SpeedyGonzy)-FasedellaPerdita,dellaVulnerabilitàedellaPresadiCoscienza",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Trevor Rossi (SpeedyGonzy) - Fase della Perdita, della Vulnerabilità e della Presa di Coscienza",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-TrevorRossi(SpeedyGonzy)-FasedellaRivelazione,delSensodiColpaedellaRiconciliazione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Trevor Rossi (SpeedyGonzy) - Fase della Rivelazione, del Senso di Colpa e della Riconciliazione",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    },
+    {
+      "nodeId": "finding-inactive-thread-TrevorRossi(SpeedyGonzy)-FasediAlienazione,DoloreeRancore(CRCap.14)",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Trevor Rossi (SpeedyGonzy) - Fase di Alienazione, Dolore e Rancore (CR Cap. 14)",
+      "reason": "orphan_diagnostic_after_obsolete_canon_delete"
+    }
+  ],
+  "relinkNodes": [
+    {
+      "nodeId": "f6022904-c621-4c06-97dc-675455c4957f",
+      "type": "narrative_constraint",
+      "label": "Cristiano ha divieto assoluto di redenzione",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "2.2.2",
+          "sectionLabel": "bibbia-gabriele-2025::2.2.2",
+          "textSnippet": "DIVIETO ASSOLUTO REDENZIONE: Cristiano rappresenta l'immaturità e incapacità di crescita. VIETATO qualsiasi percorso di redenzione o evoluzione positiva."
+        }
+      ],
+      "edgeTargets": [
+        {
+          "sectionKey": "2.2.2",
+          "sectionId": "79055a47-ea75-4f7d-95d6-d66d72b9c3ff"
+        }
+      ]
+    },
+    {
+      "nodeId": "d0382a88-1314-477a-9998-c8c04ba5634a",
+      "type": "narrative_constraint",
+      "label": "Personaggi secondari funzionali hanno ruolo limitato",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "2.5",
+          "sectionLabel": "bibbia-gabriele-2025::2.5",
+          "textSnippet": "PERSONAGGI SECONDARI FUNZIONALI"
+        },
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "2.5.3.3.2",
+          "sectionLabel": "bibbia-gabriele-2025::2.5.3.3.2",
+          "textSnippet": "MAI svilupparli oltre il loro momento specifico; MAI trasformarli in personaggi ricorrenti."
+        },
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "2.5.3.3.3",
+          "sectionLabel": "bibbia-gabriele-2025::2.5.3.3.3",
+          "textSnippet": "Limitare apparizione al singolo evento funzionale; mantenere reazioni nell'ambito umano normale."
+        }
+      ],
+      "edgeTargets": [
+        {
+          "sectionKey": "2.5",
+          "sectionId": "5d5fb0f9-4317-47a8-a994-ce7d78d78dc7"
+        },
+        {
+          "sectionKey": "2.5.3.3.2",
+          "sectionId": "07c8b6c8-d94b-456d-ba74-47a274b8b1b4"
+        },
+        {
+          "sectionKey": "2.5.3.3.3",
+          "sectionId": "45371a71-f31f-4715-a309-5f16c804fe70"
+        }
+      ]
+    },
+    {
+      "nodeId": "f3068dd0-6255-488c-93d6-4f4f9106ff5a",
+      "type": "timeline_event",
+      "label": "Scoperta pubblica dell identità SpeedyGonzy",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "2.2.1.2",
+          "sectionLabel": "bibbia-gabriele-2025::2.2.1.2",
+          "textSnippet": "La scoperta della sua identità da parte di Cristiano (17/12/2020) e la conseguente distruzione del laptop rappresentano la perdita dell'anonimato."
+        },
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "4.3.10",
+          "sectionLabel": "bibbia-gabriele-2025::4.3.10",
+          "textSnippet": "Indagine di Cristiano: Utilizza la sua rete di \"informatori\" a scuola"
+        }
+      ],
+      "edgeTargets": [
+        {
+          "sectionKey": "2.2.1.2",
+          "sectionId": "4a8ccd90-9491-48b1-be08-d0b9d13300a5"
+        },
+        {
+          "sectionKey": "4.3.10",
+          "sectionId": "c54225a3-eaa9-44a7-b83e-c8ad1bd82c12"
+        }
+      ]
+    }
+  ]
+}

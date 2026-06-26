@@ -1,0 +1,1660 @@
+{
+  "generatedAt": "2026-06-26T22:55:52.834Z",
+  "sourceId": "bibbia-gabriele-2025",
+  "dryRun": true,
+  "summary": {
+    "nodesCreated": 41,
+    "candidatesCommitted": 41,
+    "edgesCreated": 292,
+    "edgeCounts": {
+      "derived_from": 41,
+      "occurs_in": 36,
+      "appears_in": 175,
+      "precedes": 40
+    },
+    "chapterLinks": 36,
+    "skippedChapterLinks": [
+      {
+        "sectionKey": "4.1.4",
+        "heading": "CAP. 3: IL CORAGGIO DEL LEGNO (02-03/09/2020)"
+      },
+      {
+        "sectionKey": "4.1.5",
+        "heading": "CAP. 4: LA NASCITA DEI CIGNI (DAL 04/09/2020 AL 25/09/2020 - FLASH FORWARD)"
+      },
+      {
+        "sectionKey": "4.4.5",
+        "heading": "CAP. 34: L’ARRIVO DI MICHAEL"
+      },
+      {
+        "sectionKey": "4.4.7",
+        "heading": "CAP. 36: LACRIME E STELLE CADENTI"
+      },
+      {
+        "sectionKey": "4.4.10",
+        "heading": "EPILOGO"
+      }
+    ],
+    "characterLinks": 175
+  },
+  "nodes": [
+    {
+      "candidateId": "bible-candidate-0000000041d688bf",
+      "label": "Cronologia aggiornata - PROLOGO: LA PROMESSA DELLA CIOCCOLATA CALDA",
+      "sectionKey": "4.1.1",
+      "heading": "PROLOGO: LA PROMESSA DELLA CIOCCOLATA CALDA",
+      "chapterLink": {
+        "chapterId": "b4d6ec04-305e-4162-94da-688dfe1d5085",
+        "chapterLabel": "Prologo - La promessa della cioccolata calda",
+        "score": 36
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele rinaldi",
+            "gabriele",
+            "rinaldi"
+          ]
+        },
+        {
+          "characterLabel": "Asia",
+          "matchedTerms": [
+            "asia"
+          ]
+        },
+        {
+          "characterLabel": "Elea",
+          "matchedTerms": [
+            "elea"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-00000000332e49f3",
+      "label": "Cronologia aggiornata - CAP. 1: VIGILIA DI SCUOLA (31/08/2020)",
+      "sectionKey": "4.1.2",
+      "heading": "CAP. 1: VIGILIA DI SCUOLA (31/08/2020)",
+      "chapterLink": {
+        "chapterId": "bc735dc4-f29c-4fce-8f8d-de09aed02e9f",
+        "chapterLabel": "Capitolo 1 - Vigilia di scuola",
+        "score": 24
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor",
+            "speedygonzy"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Marco Bellini",
+          "matchedTerms": [
+            "marco"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000004afe9b48",
+      "label": "Cronologia aggiornata - CAP. 2: LA LEGGE DEL CORRIDOIO (01/09/2020)",
+      "sectionKey": "4.1.3",
+      "heading": "CAP. 2: LA LEGGE DEL CORRIDOIO (01/09/2020)",
+      "chapterLink": {
+        "chapterId": "3d3fed65-e7b4-4af3-a6d0-c770daac822a",
+        "chapterLabel": "Capitolo 2 - La legge del corridoio",
+        "score": 27
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor",
+            "speedygonzy"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Prof. Moretti",
+          "matchedTerms": [
+            "prof",
+            "moretti"
+          ]
+        },
+        {
+          "characterLabel": "Sig.ra Conti",
+          "matchedTerms": [
+            "conti"
+          ]
+        },
+        {
+          "characterLabel": "Marco Bellini",
+          "matchedTerms": [
+            "marco"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000072ef4eed",
+      "label": "Cronologia aggiornata - CAP. 3: IL CORAGGIO DEL LEGNO (02-03/09/2020)",
+      "sectionKey": "4.1.4",
+      "heading": "CAP. 3: IL CORAGGIO DEL LEGNO (02-03/09/2020)",
+      "chapterLink": null,
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Marco Bellini",
+          "matchedTerms": [
+            "marco bellini",
+            "marco",
+            "bellini"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-00000000199293a5",
+      "label": "Cronologia aggiornata - CAP. 4: LA NASCITA DEI CIGNI (DAL 04/09/2020 AL 25/09/2020 - FLASH FORWARD)",
+      "sectionKey": "4.1.5",
+      "heading": "CAP. 4: LA NASCITA DEI CIGNI (DAL 04/09/2020 AL 25/09/2020 - FLASH FORWARD)",
+      "chapterLink": null,
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000000d46b47",
+      "label": "Cronologia aggiornata - CAP. 5: IL GIORNO DEL CONCORSO",
+      "sectionKey": "4.1.6",
+      "heading": "CAP. 5: IL GIORNO DEL CONCORSO",
+      "chapterLink": {
+        "chapterId": "050ceced-3ce1-40c4-832f-40defde166c1",
+        "chapterLabel": "Capitolo 5 - Il giorno del concorso",
+        "score": 38
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele rinaldi",
+            "gabriele",
+            "rinaldi"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Prof. Moretti",
+          "matchedTerms": [
+            "moretti"
+          ]
+        },
+        {
+          "characterLabel": "Sig.ra Conti",
+          "matchedTerms": [
+            "conti"
+          ]
+        },
+        {
+          "characterLabel": "Marco Bellini",
+          "matchedTerms": [
+            "bellini"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000040e818b4",
+      "label": "Cronologia aggiornata - CAP. 6: UN COMPLEANNO AMARO",
+      "sectionKey": "4.1.7",
+      "heading": "CAP. 6: UN COMPLEANNO AMARO",
+      "chapterLink": {
+        "chapterId": "7d4cda9c-a57a-4389-adfa-a8f16cded424",
+        "chapterLabel": "Capitolo 6 - Un compleanno amaro",
+        "score": 28
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-00000000218e9159",
+      "label": "Cronologia aggiornata - CAP. 7: UNA NOTTE MISTERIOSA",
+      "sectionKey": "4.1.8",
+      "heading": "CAP. 7: UNA NOTTE MISTERIOSA",
+      "chapterLink": {
+        "chapterId": "34383074-29e3-4227-874f-7f9dad647204",
+        "chapterLabel": "Capitolo 7 - Una notte misteriosa",
+        "score": 44
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000002f028af4",
+      "label": "Cronologia aggiornata - CAP. 8: È DIVENTATO MAGICO?",
+      "sectionKey": "4.1.9",
+      "heading": "CAP. 8: È DIVENTATO MAGICO?",
+      "chapterLink": {
+        "chapterId": "61cf426c-dcf6-42a6-bc98-cd600960fa0d",
+        "chapterLabel": "Capitolo 8 - È diventato magico?",
+        "score": 30
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000000ec6a009",
+      "label": "Cronologia aggiornata - CAP. 9: I PRIMI CAMBIAMENTI",
+      "sectionKey": "4.2.1",
+      "heading": "CAP. 9: I PRIMI CAMBIAMENTI",
+      "chapterLink": {
+        "chapterId": "13161299-b9c3-4ad1-9ac8-3c7d83130319",
+        "chapterLabel": "Capitolo 9 - I primi cambiamenti",
+        "score": 32
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor",
+            "speedygonzy"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000004ea0356",
+      "label": "Cronologia aggiornata - CAP. 10: RINUNCIA E RITORSIONE",
+      "sectionKey": "4.2.2",
+      "heading": "CAP. 10: RINUNCIA E RITORSIONE",
+      "chapterLink": {
+        "chapterId": "97769001-bbc8-4a43-bad5-344444d791b7",
+        "chapterLabel": "Capitolo 10 - Rinuncia e ritorsione",
+        "score": 30
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor",
+            "speedygonzy"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000002bf5495c",
+      "label": "Cronologia aggiornata - CAP. 11: CONSEGUENZE E COSCIENZE SPORCHE",
+      "sectionKey": "4.2.3",
+      "heading": "CAP. 11: CONSEGUENZE E COSCIENZE SPORCHE",
+      "chapterLink": {
+        "chapterId": "6af6cf02-9b62-4de8-a23c-aa9fd41bba59",
+        "chapterLabel": "Capitolo 11 - Conseguenze e coscienze sporche",
+        "score": 32
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa martini",
+            "lisa",
+            "martini"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Elena Costa",
+          "matchedTerms": [
+            "elena costa",
+            "elena",
+            "costa"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Prof. Moretti",
+          "matchedTerms": [
+            "prof"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000065d2e238",
+      "label": "Cronologia aggiornata - CAP. 12: LA RETTIFICA RILUTTANTE",
+      "sectionKey": "4.2.4",
+      "heading": "CAP. 12: LA RETTIFICA RILUTTANTE",
+      "chapterLink": {
+        "chapterId": "759adf93-af17-4fa7-a32a-10856d009c49",
+        "chapterLabel": "Capitolo 12 - La rettifica riluttante",
+        "score": 40
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa",
+            "martini"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor",
+            "speedygonzy"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000067c8d438",
+      "label": "Cronologia aggiornata - CAP. 13: LA SECONDA OCCASIONE",
+      "sectionKey": "4.2.5",
+      "heading": "CAP. 13: LA SECONDA OCCASIONE",
+      "chapterLink": {
+        "chapterId": "9e81c629-f16a-4a41-81eb-b3539f591f82",
+        "chapterLabel": "Capitolo 13 - La seconda occasione",
+        "score": 42
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor",
+            "speedygonzy"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000028652601",
+      "label": "Cronologia aggiornata - CAP. 14: LEGAMI SPEZZATI",
+      "sectionKey": "4.2.6",
+      "heading": "CAP. 14: LEGAMI SPEZZATI",
+      "chapterLink": {
+        "chapterId": "eebe07ff-39fd-43f4-89e2-84b6ff4a848c",
+        "chapterLabel": "Capitolo 14 - Legami spezzati",
+        "score": 29
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000001ade4f62",
+      "label": "Cronologia aggiornata - CAP. 15: IL PREZZO DELL'AMICIZIA",
+      "sectionKey": "4.2.7",
+      "heading": "CAP. 15: IL PREZZO DELL'AMICIZIA",
+      "chapterLink": {
+        "chapterId": "15b9e213-b3cb-4568-b797-3191c5ab609d",
+        "chapterLabel": "Capitolo 15 - Il prezzo dell'amicizia",
+        "score": 30
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-00000000737b602a",
+      "label": "Cronologia aggiornata - CAP. 16: UNA GIORNATA TRA LE STELLE",
+      "sectionKey": "4.2.8",
+      "heading": "CAP. 16: UNA GIORNATA TRA LE STELLE",
+      "chapterLink": {
+        "chapterId": "d3d036d8-26dc-4b78-bf8a-ba83b176e98c",
+        "chapterLabel": "Capitolo 16 - Una giornata tra le stelle",
+        "score": 43
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000062340821",
+      "label": "Cronologia aggiornata - CAP. 17: RIFLESSI IRRICONOSCIBILI",
+      "sectionKey": "4.2.9",
+      "heading": "CAP. 17: RIFLESSI IRRICONOSCIBILI",
+      "chapterLink": {
+        "chapterId": "fca594a4-c659-4d7e-be0a-a25f76fa5e1a",
+        "chapterLabel": "Capitolo 17 - Riflessi irriconoscibili",
+        "score": 59
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000007bbccd75",
+      "label": "Cronologia aggiornata - CAP. 18: LAVORI D'ASTA E INTIMITÀ CRESCENTE",
+      "sectionKey": "4.2.10",
+      "heading": "CAP. 18: LAVORI D'ASTA E INTIMITÀ CRESCENTE",
+      "chapterLink": {
+        "chapterId": "0a8d8d0f-1b6b-4574-8d01-4e8e5f4c3e56",
+        "chapterLabel": "Capitolo 18 - Lavori d'asta e intimità crescente",
+        "score": 50
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000004195d13",
+      "label": "Cronologia aggiornata - CAP. 19: AMICI... E FORSE QUALCOSA DI PIÙ?",
+      "sectionKey": "4.2.11",
+      "heading": "CAP. 19: AMICI... E FORSE QUALCOSA DI PIÙ?",
+      "chapterLink": {
+        "chapterId": "f4391a64-6c40-4f5e-b717-32dd4f7fc1a0",
+        "chapterLabel": "Capitolo 19 - Amici... e forse qualcosa di più?",
+        "score": 34
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000004d0b3325",
+      "label": "Cronologia aggiornata - CAP. 20: ACQUAZZONE E GELOSIA",
+      "sectionKey": "4.3.1",
+      "heading": "CAP. 20: ACQUAZZONE E GELOSIA",
+      "chapterLink": {
+        "chapterId": "995b203f-14e8-4750-a76d-3810af173809",
+        "chapterLabel": "Capitolo 20 - Acquazzone e gelosia",
+        "score": 51
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa",
+            "martini"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "madre di lisa",
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000072161ff2",
+      "label": "Cronologia aggiornata - CAP. 21: PAUSE E NUOVI INIZI",
+      "sectionKey": "4.3.2",
+      "heading": "CAP. 21: PAUSE E NUOVI INIZI",
+      "chapterLink": {
+        "chapterId": "12ad063a-3cfd-4754-9831-4636aba68506",
+        "chapterLabel": "Capitolo 21 - Pause e nuovi inizi",
+        "score": 36
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000004b240ded",
+      "label": "Cronologia aggiornata - CAP. 22: IRRICONOSCIBILE",
+      "sectionKey": "4.3.3",
+      "heading": "CAP. 22: IRRICONOSCIBILE",
+      "chapterLink": {
+        "chapterId": "2ab870e4-e354-4489-bab7-2f375da92102",
+        "chapterLabel": "Capitolo 22 - Irriconoscibile",
+        "score": 37
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor",
+            "speedygonzy"
+          ]
+        },
+        {
+          "characterLabel": "Elena Costa",
+          "matchedTerms": [
+            "elena costa",
+            "elena",
+            "costa"
+          ]
+        },
+        {
+          "characterLabel": "Federica Villa",
+          "matchedTerms": [
+            "federica villa",
+            "federica",
+            "villa"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Marco Bellini",
+          "matchedTerms": [
+            "marco"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000078c2e667",
+      "label": "Cronologia aggiornata - CAP. 22.5: L'INVITO INGANNEVOLE E LA GELOSIA DI LISA",
+      "sectionKey": "4.3.4",
+      "heading": "CAP. 22.5: L'INVITO INGANNEVOLE E LA GELOSIA DI LISA",
+      "chapterLink": {
+        "chapterId": "702dc2db-ef60-4b13-abbf-63f3aa45f2bd",
+        "chapterLabel": "Capitolo 23 - L'invito ingannevole e la gelosia di Lisa",
+        "score": 29
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Federica Villa",
+          "matchedTerms": [
+            "federica villa",
+            "federica",
+            "villa"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000063e34bfd",
+      "label": "Cronologia aggiornata - CAP. 23: SPEEDYGONZY COLPISCE ANCORA",
+      "sectionKey": "4.3.5",
+      "heading": "CAP. 23: SPEEDYGONZY COLPISCE ANCORA",
+      "chapterLink": {
+        "chapterId": "649207a4-3dde-425e-8c24-2d336853e245",
+        "chapterLabel": "Capitolo 24 - SpeedyGonzy colpisce ancora",
+        "score": 39
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor",
+            "speedygonzy"
+          ]
+        },
+        {
+          "characterLabel": "Laura Mancini",
+          "matchedTerms": [
+            "laura mancini",
+            "laura",
+            "mancini"
+          ]
+        },
+        {
+          "characterLabel": "Elena Costa",
+          "matchedTerms": [
+            "elena"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-00000000183ba702",
+      "label": "Cronologia aggiornata - CAP. 24: ALI INVISIBILI",
+      "sectionKey": "4.3.6",
+      "heading": "CAP. 24: ALI INVISIBILI",
+      "chapterLink": {
+        "chapterId": "c77de6b2-2096-47d2-8b96-929fd87a81dc",
+        "chapterLabel": "Capitolo 25 - Ali invisibili",
+        "score": 36
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor",
+            "speedygonzy"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000007d8f69c8",
+      "label": "Cronologia aggiornata - CAP. 25: IL RUGGITO DEL LEONE",
+      "sectionKey": "4.3.7",
+      "heading": "CAP. 25: IL RUGGITO DEL LEONE",
+      "chapterLink": {
+        "chapterId": "f0cef498-0339-477c-968a-742ddeac15fa",
+        "chapterLabel": "Capitolo 26 - Il ruggito del leone",
+        "score": 19
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000037b85cf1",
+      "label": "Cronologia aggiornata - CAP. 26: STRANI POTERI?",
+      "sectionKey": "4.3.8",
+      "heading": "CAP. 26: STRANI POTERI?",
+      "chapterLink": {
+        "chapterId": "2bd90c1e-88db-44fa-b30b-fa4ac46293b1",
+        "chapterLabel": "Capitolo 27 - Strani poteri?",
+        "score": 18
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-00000000515b3113",
+      "label": "Cronologia aggiornata - CAP. 27: QUANDO IL NERD ENTRA IN CAMPO",
+      "sectionKey": "4.3.9",
+      "heading": "CAP. 27: QUANDO IL NERD ENTRA IN CAMPO",
+      "chapterLink": {
+        "chapterId": "41054301-671a-47f9-bf63-e1b2d309424d",
+        "chapterLabel": "Capitolo 28 - Quando il nerd entra in campo",
+        "score": 21
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000005c866f5",
+      "label": "Cronologia aggiornata - CAP. 28: LA VERA IDENTITÀ DI SPEEDYGONZY",
+      "sectionKey": "4.3.10",
+      "heading": "CAP. 28: LA VERA IDENTITÀ DI SPEEDYGONZY",
+      "chapterLink": {
+        "chapterId": "c40e163c-3488-4d7c-8620-d441a1d37b0d",
+        "chapterLabel": "Capitolo 29 - La vera identità di SpeedyGonzy",
+        "score": 17
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor rossi",
+            "trevor",
+            "rossi",
+            "speedygonzy"
+          ]
+        },
+        {
+          "characterLabel": "Marco Bellini",
+          "matchedTerms": [
+            "marco"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000006d35e6bc",
+      "label": "Cronologia aggiornata - CAP. 29: FRATELLO DI LUCE",
+      "sectionKey": "4.3.11",
+      "heading": "CAP. 29: FRATELLO DI LUCE",
+      "chapterLink": {
+        "chapterId": "e0f5f111-c99e-4d2b-b79b-7653c491ff69",
+        "chapterLabel": "Capitolo 30 - Fratello di luce",
+        "score": 23
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele",
+            "gabriel"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Michael",
+          "matchedTerms": [
+            "michael"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000004aded95b",
+      "label": "Cronologia aggiornata - CAP. 30: UN ANGELO? DAVVERO?",
+      "sectionKey": "4.4.1",
+      "heading": "CAP. 30: UN ANGELO? DAVVERO?",
+      "chapterLink": {
+        "chapterId": "746febd9-38fd-4ddf-9be7-39fbc08bcaf3",
+        "chapterLabel": "Capitolo 31 - Un angelo? Davvero?",
+        "score": 20
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Michael",
+          "matchedTerms": [
+            "michael"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000001e976d5b",
+      "label": "Cronologia aggiornata - CAP. 31: ECHI DAL PASSATO CELESTE",
+      "sectionKey": "4.4.2",
+      "heading": "CAP. 31: ECHI DAL PASSATO CELESTE",
+      "chapterLink": {
+        "chapterId": "9764b24f-33ac-41e1-882e-907b032e869d",
+        "chapterLabel": "Capitolo 32 - Echi dal passato celeste",
+        "score": 18
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor",
+            "speedygonzy"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000006163502f",
+      "label": "Cronologia aggiornata - CAP. 32: L’ULTIMATUM CELESTE",
+      "sectionKey": "4.4.3",
+      "heading": "CAP. 32: L’ULTIMATUM CELESTE",
+      "chapterLink": {
+        "chapterId": "6c171a65-0f29-4505-a9d3-dd0e5393720b",
+        "chapterLabel": "Capitolo 33 - L’ultimatum celeste",
+        "score": 21
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele",
+            "gabriel"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Michael",
+          "matchedTerms": [
+            "michael"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000003dc507ad",
+      "label": "Cronologia aggiornata - CAP. 33: IL PALAZZO DI GHIACCIO",
+      "sectionKey": "4.4.4",
+      "heading": "CAP. 33: IL PALAZZO DI GHIACCIO",
+      "chapterLink": {
+        "chapterId": "be46c260-aaa1-45f4-90c4-4e345b1eaac5",
+        "chapterLabel": "Capitolo 34 - Il palazzo di ghiaccio",
+        "score": 21
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Michael",
+          "matchedTerms": [
+            "michael"
+          ]
+        },
+        {
+          "characterLabel": "Elena Costa",
+          "matchedTerms": [
+            "elena"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000000a3e133f",
+      "label": "Cronologia aggiornata - CAP. 34: L’ARRIVO DI MICHAEL",
+      "sectionKey": "4.4.5",
+      "heading": "CAP. 34: L’ARRIVO DI MICHAEL",
+      "chapterLink": null,
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele",
+            "gabriel"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Michael",
+          "matchedTerms": [
+            "michael"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000007b818292",
+      "label": "Cronologia aggiornata - CAP. 35: UN ISTANTE LUNGO MILLE VITE",
+      "sectionKey": "4.4.6",
+      "heading": "CAP. 35: UN ISTANTE LUNGO MILLE VITE",
+      "chapterLink": {
+        "chapterId": "edcbda1c-99b5-4784-add7-0487046790fb",
+        "chapterLabel": "Capitolo 36 - Un istante lungo mille vite",
+        "score": 21
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriel"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Michael",
+          "matchedTerms": [
+            "michael"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-00000000233dc9d0",
+      "label": "Cronologia aggiornata - CAP. 36: LACRIME E STELLE CADENTI",
+      "sectionKey": "4.4.7",
+      "heading": "CAP. 36: LACRIME E STELLE CADENTI",
+      "chapterLink": null,
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele",
+            "gabriel"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Asia",
+          "matchedTerms": [
+            "asia"
+          ]
+        },
+        {
+          "characterLabel": "Elea",
+          "matchedTerms": [
+            "elea"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-000000002fd1ba02",
+      "label": "Cronologia aggiornata - CAP. 37: PREGHIERE NELLA NOTTE",
+      "sectionKey": "4.4.8",
+      "heading": "CAP. 37: PREGHIERE NELLA NOTTE",
+      "chapterLink": {
+        "chapterId": "c338069b-ba95-438b-989d-e3b83d815e6c",
+        "chapterLabel": "Capitolo 37 - Preghiere nella notte",
+        "score": 24
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele",
+            "rinaldi",
+            "gabriel"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Michael",
+          "matchedTerms": [
+            "michael"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-00000000008b1f44",
+      "label": "Cronologia aggiornata - CAP. 38: IL DONO DELLA VITA UMANA",
+      "sectionKey": "4.4.9",
+      "heading": "CAP. 38: IL DONO DELLA VITA UMANA",
+      "chapterLink": {
+        "chapterId": "f3ee6b07-736c-4860-b8a3-eb649ed6728d",
+        "chapterLabel": "Capitolo 38 - Il dono della vita umana",
+        "score": 49
+      },
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele",
+            "gabriel"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Michael",
+          "matchedTerms": [
+            "michael"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "bible-candidate-0000000029db622b",
+      "label": "Cronologia aggiornata - EPILOGO",
+      "sectionKey": "4.4.10",
+      "heading": "EPILOGO",
+      "chapterLink": null,
+      "characterLinks": [
+        {
+          "characterLabel": "Gabriele Rinaldi (Gabriel)",
+          "matchedTerms": [
+            "gabriele",
+            "gabriel"
+          ]
+        },
+        {
+          "characterLabel": "Lisa Martini",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Trevor Rossi (SpeedyGonzy)",
+          "matchedTerms": [
+            "trevor"
+          ]
+        },
+        {
+          "characterLabel": "Madre di Lisa",
+          "matchedTerms": [
+            "lisa"
+          ]
+        },
+        {
+          "characterLabel": "Marta",
+          "matchedTerms": [
+            "marta"
+          ]
+        },
+        {
+          "characterLabel": "Asia",
+          "matchedTerms": [
+            "asia"
+          ]
+        },
+        {
+          "characterLabel": "Elea",
+          "matchedTerms": [
+            "elea"
+          ]
+        }
+      ]
+    }
+  ],
+  "beforeAudit": {
+    "nodes": 11595,
+    "edges": 23544,
+    "orphanNodes": 0,
+    "relatedToTotal": 0,
+    "nonRelPhysicalEdges": 0
+  },
+  "beforePending": {
+    "pending": 10295,
+    "committed": 0,
+    "total": 10295
+  }
+}

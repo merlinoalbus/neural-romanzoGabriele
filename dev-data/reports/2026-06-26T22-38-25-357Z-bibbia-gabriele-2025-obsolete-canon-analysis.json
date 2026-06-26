@@ -1,0 +1,16 @@
+{
+  "summary": {
+    "sourceId": "bibbia-gabriele-2025",
+    "generatedAt": "2026-06-26T22:38:25.356Z",
+    "readOnly": true,
+    "backupPath": "C:\\Users\\rober\\Desktop\\Tales Project\\tools\\neural-romanzoGabriele\\dev-data\\backups\\2026-06-26T21-36-06-936Z-bibbia-gabriele-2025-technical-corpus-backup.json",
+    "oldSectionCount": 485,
+    "newSectionCount": 866,
+    "pendingCandidateCount": 10295,
+    "canonicalNodesWithObsoleteRefs": 0,
+    "obsoleteRefRows": 0,
+    "byStatus": {},
+    "byTypeStatus": {}
+  },
+  "rows": []
+}

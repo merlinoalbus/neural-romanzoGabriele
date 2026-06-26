@@ -1,0 +1,1224 @@
+{
+  "source": "resolve_ambiguous_bible_canon",
+  "sourceId": "bibbia-gabriele-2025",
+  "createdAt": "2026-06-26T22:38:07.879Z",
+  "nodes": [
+    {
+      "id": "006acfe1-e978-448e-9e2f-043b402438af",
+      "type": "character",
+      "label": "Asia",
+      "content": "Nipote più piccola del Nonno/Gabriele anziano: curiosa, emotiva, diretta e ingenua, capace con le sue domande di toccare il cuore emotivo della storia.",
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "characters",
+        "granularity": "section",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "canonStatus": "canonical",
+        "committedFromCandidateId": "b38-node-asia-character",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.2.9",
+            "textSnippet": "le nipoti Asia ed Elea"
+          },
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.8.2",
+            "sectionLabel": "ASIA",
+            "textSnippet": "Nipote più piccola del Nonno. Curiosa, emotiva, fa domande dirette e ingenue che spesso toccano il cuore emotivo della storia."
+          }
+        ],
+        "sourceId": "bibbia-gabriele-2025",
+        "batch": "sezione-3.8-cornice-narrativa-canonizzazione-v1",
+        "role": "nipote_piccola_cornice"
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.8.2",
+        "candidateId": "b38-node-asia-character"
+      },
+      "createdAt": "2026-06-22T19:57:37.542Z",
+      "updatedAt": "2026-06-23T07:21:26.761Z"
+    },
+    {
+      "id": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "type": "character",
+      "label": "Elea",
+      "content": "Nipote maggiore del Nonno/Gabriele anziano: più analitica e razionale di Asia, cerca spiegazioni logiche ma resta affascinata dal racconto e spinge il Nonno a riflessioni più profonde.",
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "characters",
+        "granularity": "section",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "canonStatus": "canonical",
+        "committedFromCandidateId": "b38-node-elea-character",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.2.9",
+            "textSnippet": "le nipoti Asia ed Elea"
+          },
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.8.3",
+            "sectionLabel": "ELEA",
+            "textSnippet": "Nipote maggiore del Nonno. Più analitica e razionale di Asia, cerca spiegazioni logiche agli eventi, ma è comunque affascinata dal racconto."
+          }
+        ],
+        "sourceId": "bibbia-gabriele-2025",
+        "batch": "sezione-3.8-cornice-narrativa-canonizzazione-v1",
+        "role": "nipote_maggiore_cornice"
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.8.3",
+        "candidateId": "b38-node-elea-character"
+      },
+      "createdAt": "2026-06-22T19:57:37.555Z",
+      "updatedAt": "2026-06-23T07:21:26.796Z"
+    },
+    {
+      "id": "527720a3-10cf-4ad9-bc25-c93292760050",
+      "type": "character",
+      "label": "Marta",
+      "content": "Figlia futura di Lisa e Gabriele.",
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "characters",
+        "granularity": "atomic",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "canonStatus": "canonical",
+        "committedFromCandidateId": "atom-s32-character-marta",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.2.9",
+            "textSnippet": "Avranno una figlia, Marta"
+          }
+        ],
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.2.9",
+        "candidateId": "atom-s32-character-marta"
+      },
+      "createdAt": "2026-06-22T19:57:37.515Z",
+      "updatedAt": "2026-06-22T19:57:37.515Z"
+    },
+    {
+      "id": "496aa500-8970-42b7-8e89-71593853f11f",
+      "type": "character_state",
+      "label": "Personalità iniziale di Gabriele",
+      "content": "Gabriele inizialmente è timido, introverso, insicuro, sensibile, goffo, vittima di bullismo, con bassa autostima; è sognatore, leale verso Trevor, innamorato idealmente di Lisa e rifugiato nell'arte.",
+      "metadata": {
+        "sourceBatch": "sezione-3.1-gabriele-rinaldi-gabriel",
+        "family": "characters",
+        "granularity": "section",
+        "curatedBy": "codex",
+        "requiresReview": false,
+        "canonStatus": "canonical",
+        "committedFromCandidateId": "s31-node-013-personalita-iniziale",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.1.5",
+            "textSnippet": "Timido, introverso, insicuro, profondamente sensibile e goffo."
+          }
+        ],
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.1.5",
+        "candidateId": "s31-node-013-personalita-iniziale"
+      },
+      "createdAt": "2026-06-22T19:05:33.253Z",
+      "updatedAt": "2026-06-22T19:05:33.253Z"
+    },
+    {
+      "id": "8e62a765-8370-41c9-880f-8615d8a0a209",
+      "type": "character_trait",
+      "label": "Valori non negoziabili di Gabriele",
+      "content": "Valori di Gabriele: lealtà, giustizia, protezione degli innocenti e amore autentico; tali valori orientano la richiesta di rettifica a Trevor e gli interventi per Lisa, il cucciolo di leone e gli studenti.",
+      "metadata": {
+        "sourceBatch": "sezione-3.1-gabriele-rinaldi-gabriel",
+        "family": "characters",
+        "granularity": "atomic",
+        "curatedBy": "codex",
+        "requiresReview": false,
+        "canonStatus": "canonical",
+        "committedFromCandidateId": "s31-node-024-valori",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.1.9.1",
+            "textSnippet": "Lealtà (inizialmente verso Trevor, poi verso la verità del suo amore per Lisa"
+          }
+        ],
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.1.9.1",
+        "candidateId": "s31-node-024-valori"
+      },
+      "createdAt": "2026-06-22T19:05:33.387Z",
+      "updatedAt": "2026-06-22T19:05:33.387Z"
+    },
+    {
+      "id": "bb3c391a-9359-4d88-aade-075cc929e3de",
+      "type": "narrative_constraint",
+      "label": "Punti di rottura operativi di Gabriele",
+      "content": "Gabriele rompe il proprio freno quando Lisa è minacciata, quando subisce o vede ingiustizia e sofferenza altrui, o quando rischia di perdere Lisa o causarle un danno irreparabile.",
+      "metadata": {
+        "sourceBatch": "sezione-3.1-gabriele-rinaldi-gabriel",
+        "family": "characters",
+        "granularity": "atomic",
+        "curatedBy": "codex",
+        "requiresReview": false,
+        "canonStatus": "canonical",
+        "committedFromCandidateId": "s31-node-025-punti-rottura",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.1.9.2",
+            "textSnippet": "La minaccia diretta alla vita o al benessere di Lisa"
+          }
+        ],
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.1.9.2",
+        "candidateId": "s31-node-025-punti-rottura"
+      },
+      "createdAt": "2026-06-22T19:05:33.398Z",
+      "updatedAt": "2026-06-22T19:05:33.398Z"
+    },
+    {
+      "id": "f8ba15dd-6ebd-474c-a68e-ddbf2499b903",
+      "type": "plot_thread",
+      "label": "Lisa futura comunicazione etica e giustizia",
+      "content": "Nel futuro Lisa orienta comunicazione, giornalismo/radio/editoria o cause sociali verso verità, giustizia e impatto positivo.",
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "plot",
+        "granularity": "atomic",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "canonStatus": "canonical",
+        "committedFromCandidateId": "atom-s32-lisa-carriera-comunicazione-etica",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.2.9",
+            "textSnippet": "carriera nella comunicazione ... con un rinnovato impegno verso la verità e la giustizia"
+          },
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.2.9",
+            "textSnippet": "carriera nella comunicazione ... con un rinnovato impegno verso la verità e la giustizia"
+          }
+        ],
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.2.9",
+        "candidateId": "atom-s32-lisa-carriera-comunicazione-etica"
+      },
+      "createdAt": "2026-06-22T19:57:37.502Z",
+      "updatedAt": "2026-06-22T20:45:33.024Z"
+    },
+    {
+      "id": "738aa4a2-203c-4e28-afec-462058d24295",
+      "type": "precognitive_data",
+      "label": "Futuro post-romanzo di Gabriele",
+      "content": "Dopo il romanzo, Gabriele vive una vita umana piena accanto a Lisa, ha una famiglia con Marta, Asia ed Elea, mantiene un legame profondo con Trevor e conserva sensibilità, vena artistica ed empatia come eredità spirituale.",
+      "metadata": {
+        "sourceBatch": "sezione-3.1-gabriele-rinaldi-gabriel",
+        "family": "timeline",
+        "granularity": "section",
+        "curatedBy": "codex",
+        "requiresReview": false,
+        "canonStatus": "canonical",
+        "committedFromCandidateId": "s31-node-060-futuro-post-romanzo",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.1.20",
+            "textSnippet": "Come umano, Gabriele vivrà una vita piena accanto a Lisa."
+          }
+        ],
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.1.20",
+        "candidateId": "s31-node-060-futuro-post-romanzo"
+      },
+      "createdAt": "2026-06-22T19:10:03.923Z",
+      "updatedAt": "2026-06-22T19:10:03.923Z"
+    },
+    {
+      "id": "daa3a754-5c95-4631-8b03-a50598aef708",
+      "type": "relationship_dynamic",
+      "label": "Lisa-Trevor amicizia adulta duratura",
+      "content": "Nel post-romanzo il rapporto Lisa-Trevor si placa e diventa una solida amicizia familiare fondata sull affetto comune per Gabriele e sul segreto condiviso.",
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "relationships",
+        "granularity": "atomic",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "canonStatus": "canonical",
+        "committedFromCandidateId": "atom-s32-lisa-trevor-amicizia-adulta",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.2.9",
+            "textSnippet": "trasformando il loro legame in una solida e duratura amicizia"
+          }
+        ],
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.2.9",
+        "candidateId": "atom-s32-lisa-trevor-amicizia-adulta"
+      },
+      "createdAt": "2026-06-22T19:57:37.568Z",
+      "updatedAt": "2026-06-22T19:57:37.568Z"
+    },
+    {
+      "id": "7280d9c3-960d-44e0-a8a9-9d7245ec71af",
+      "type": "relationship_dynamic",
+      "label": "Relazioni chiave di Gabriele",
+      "content": "Sistema relazionale del personaggio: Lisa come amore millenario, Trevor come migliore amico e custode del segreto, Cristiano come bullo/rivale, Raphael come fratello angelico e i genitori umani come figure affettuose ma ignare.",
+      "metadata": {
+        "sourceBatch": "sezione-3.1-gabriele-rinaldi-gabriel",
+        "family": "relationships",
+        "granularity": "section",
+        "curatedBy": "codex",
+        "requiresReview": false,
+        "canonStatus": "canonical",
+        "committedFromCandidateId": "s31-node-047-relazioni-chiave",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.1.17",
+            "textSnippet": "RELAZIONI CHIAVE"
+          }
+        ],
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.1.17",
+        "candidateId": "s31-node-047-relazioni-chiave"
+      },
+      "createdAt": "2026-06-22T19:10:03.739Z",
+      "updatedAt": "2026-06-22T19:10:03.739Z"
+    },
+    {
+      "id": "b392a47f-e618-48e5-adb3-6fd7531376d4",
+      "type": "relationship_dynamic",
+      "label": "Elena Costa - Relazioni Chiave",
+      "content": "Relazioni Chiave",
+      "metadata": {
+        "family": "relationships",
+        "granularity": "atomic",
+        "curatedBy": "codex",
+        "batch": "sezione-3-5-3-7-raphael-michael-secondari",
+        "sectionKeyMapped": "3.7.6.7",
+        "topEntity": "Elena Costa",
+        "structuralOnly": true,
+        "canonStatus": "canonical",
+        "committedFromCandidateId": "s35-node-38db66a760ab",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.7.6.7",
+            "textSnippet": "Relazioni Chiave"
+          }
+        ],
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.7.6.7",
+        "candidateId": "s35-node-38db66a760ab"
+      },
+      "createdAt": "2026-06-23T04:45:45.672Z",
+      "updatedAt": "2026-06-23T04:45:45.672Z"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "0619bc16-878e-45cc-ba46-baa165565408",
+      "kind": "constrains",
+      "weight": 1,
+      "metadata": {
+        "source": "neural-semantic-enrichment-2026-06-24-batch2",
+        "rationale": "Vincolo narrativo collegato al personaggio esplicitamente regolato."
+      },
+      "provenance": {
+        "source": "codex-semantic-enrichment",
+        "date": "2026-06-24",
+        "batch": "safe-thematic-batch-2"
+      },
+      "createdAt": "2026-06-24T11:27:00.455Z",
+      "fromId": "bb3c391a-9359-4d88-aade-075cc929e3de",
+      "toId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf"
+    },
+    {
+      "id": "14112837-75fa-4758-8dc1-27d1d565111a",
+      "kind": "precedes",
+      "weight": 1,
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "relationships",
+        "granularity": "atomic",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.2.9",
+        "candidateId": "atom-e-s32-lisa-trevor-nontraditional-precedes-adult",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "trasformando il loro legame in una solida e duratura amicizia"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "atom-e-s32-lisa-trevor-nontraditional-precedes-adult"
+      },
+      "createdAt": "2026-06-22T20:02:55.444Z",
+      "fromId": "a97f6bb1-883d-4352-87a0-ace580ca6bba",
+      "toId": "daa3a754-5c95-4631-8b03-a50598aef708"
+    },
+    {
+      "id": "145cbb6d-8335-474a-919c-09bb057164fe",
+      "kind": "about",
+      "weight": 1,
+      "metadata": {
+        "family": "relationships",
+        "granularity": "atomic",
+        "curatedBy": "codex",
+        "batch": "sezione-3-5-3-7-raphael-michael-secondari",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.7.6.7",
+        "candidateId": "s35-edge-94b43396c042",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.7.6.7",
+          "textSnippet": "Relazioni Chiave"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "s35-edge-94b43396c042"
+      },
+      "createdAt": "2026-06-23T04:45:48.849Z",
+      "fromId": "33de9b69-a7d6-41ba-a305-f01e4f1f2cdf",
+      "toId": "b392a47f-e618-48e5-adb3-6fd7531376d4"
+    },
+    {
+      "id": "28b54428-e32d-48b6-9622-44d663e18370",
+      "kind": "part_of",
+      "weight": 0.82,
+      "metadata": {
+        "source": "neural-semantic-audit-2026-06-24",
+        "rationale": "La fratellanza Gabriel-Raphael e' una componente del sistema relazionale di Gabriele/Gabriel."
+      },
+      "provenance": {
+        "source": "codex-semantic-enrichment",
+        "date": "2026-06-24"
+      },
+      "createdAt": "2026-06-24T09:42:51.974Z",
+      "fromId": "73e7e43b-847f-41de-9e50-72288502daf8",
+      "toId": "7280d9c3-960d-44e0-a8a9-9d7245ec71af"
+    },
+    {
+      "id": "2aca04a1-69a9-49af-ab9f-c06b612f99dd",
+      "kind": "has_status",
+      "weight": 1,
+      "metadata": {
+        "sourceBatch": "sezione-3.1-gabriele-rinaldi-gabriel",
+        "family": "characters",
+        "granularity": "section",
+        "curatedBy": "codex",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.1.5",
+        "candidateId": "s31-edge-015-gabriele-has-personalita",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.1.5",
+          "textSnippet": "Timido, introverso, insicuro"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "s31-edge-015-gabriele-has-personalita"
+      },
+      "createdAt": "2026-06-22T19:17:15.643Z",
+      "fromId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf",
+      "toId": "496aa500-8970-42b7-8e89-71593853f11f"
+    },
+    {
+      "id": "2d7faadb-7f4e-48fc-a041-a25dfbcce798",
+      "kind": "mentions",
+      "weight": 0.75,
+      "metadata": {
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3",
+        "batch": "pending-zero-dossier-protocols-v1"
+      },
+      "provenance": {
+        "source": "codex_curated_pending_zero",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3"
+      },
+      "createdAt": "2026-06-26T21:02:25.855Z",
+      "fromId": "2c5eef16-0ff3-4bac-afb5-9db51a56d426",
+      "toId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9"
+    },
+    {
+      "id": "32eb8f6e-5da1-4a57-bba4-fb21609ce207",
+      "kind": "about",
+      "weight": 1,
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "relationships",
+        "granularity": "atomic",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.2.9",
+        "candidateId": "atom-e-s32-lisa-trevor-adult-about-trevor",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "solida e duratura amicizia"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "atom-e-s32-lisa-trevor-adult-about-trevor"
+      },
+      "createdAt": "2026-06-22T20:02:55.081Z",
+      "fromId": "daa3a754-5c95-4631-8b03-a50598aef708",
+      "toId": "a562ec43-bdd3-4574-899c-e8541aed7e66"
+    },
+    {
+      "id": "3425c0fa-dce4-4fd2-abea-80f86456e6fe",
+      "kind": "family_of",
+      "weight": 1,
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "relationships",
+        "granularity": "atomic",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.2.9",
+        "candidateId": "atom-e-s32-asia-family-lisa",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "le nipoti Asia ed Elea"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "atom-e-s32-asia-family-lisa"
+      },
+      "createdAt": "2026-06-22T20:02:55.001Z",
+      "fromId": "006acfe1-e978-448e-9e2f-043b402438af",
+      "toId": "2535b915-f630-4ebf-9329-3addec688c6a"
+    },
+    {
+      "id": "35a57985-1b7e-441f-bee7-110a4c1cea78",
+      "kind": "about",
+      "weight": 1,
+      "metadata": {
+        "batch": "cap5-8-assoc-v1",
+        "sectionKey": "5.1.9"
+      },
+      "provenance": {
+        "source": "codex_semantic_optimization",
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "createdAt": "2026-06-24T18:19:02.733Z",
+      "fromId": "35d558a4-1c1d-46cf-ad9a-56fb21da2747",
+      "toId": "006acfe1-e978-448e-9e2f-043b402438af"
+    },
+    {
+      "id": "3e0f3f24-0b2d-4b8f-aeb8-6f41d7d2553c",
+      "kind": "appears_in",
+      "weight": 1,
+      "metadata": {
+        "batch": "cap5-8-assoc-v1",
+        "sectionKey": "5.1.9"
+      },
+      "provenance": {
+        "source": "codex_semantic_optimization",
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "createdAt": "2026-06-24T18:19:02.695Z",
+      "fromId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "toId": "61cf426c-dcf6-42a6-bc98-cd600960fa0d"
+    },
+    {
+      "id": "42b4e8af-419c-4862-ad72-33eca2ba9df6",
+      "kind": "family_of",
+      "weight": 1,
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "relationships",
+        "granularity": "atomic",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.2.9",
+        "candidateId": "atom-e-s32-lisa-family-marta",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "Avranno una figlia, Marta"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "atom-e-s32-lisa-family-marta"
+      },
+      "createdAt": "2026-06-22T20:02:54.932Z",
+      "fromId": "527720a3-10cf-4ad9-bc25-c93292760050",
+      "toId": "2535b915-f630-4ebf-9329-3addec688c6a"
+    },
+    {
+      "id": "53040486-0923-44c8-8609-6f36634b40b9",
+      "kind": "about",
+      "weight": 1,
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "relationships",
+        "granularity": "atomic",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.2.9",
+        "candidateId": "atom-e-s32-lisa-trevor-adult-about-lisa",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "solida e duratura amicizia"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "atom-e-s32-lisa-trevor-adult-about-lisa"
+      },
+      "createdAt": "2026-06-22T20:02:55.054Z",
+      "fromId": "daa3a754-5c95-4631-8b03-a50598aef708",
+      "toId": "2535b915-f630-4ebf-9329-3addec688c6a"
+    },
+    {
+      "id": "62921b2e-2f72-47de-8a73-a157d5c286b0",
+      "kind": "contrasts",
+      "weight": 1,
+      "metadata": {
+        "family": "relationships",
+        "granularity": "atomic",
+        "curatedBy": "codex",
+        "batch": "sezione-3.8-cornice-narrativa-canonizzazione-v1",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.8.3",
+        "candidateId": "b38-edge-elea-contrasts-asia",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.8.3",
+          "sectionLabel": "ELEA",
+          "textSnippet": "Più analitica e razionale di Asia"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "b38-edge-elea-contrasts-asia"
+      },
+      "createdAt": "2026-06-23T07:21:27.120Z",
+      "fromId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "toId": "006acfe1-e978-448e-9e2f-043b402438af"
+    },
+    {
+      "id": "67decc12-d9a1-416b-b336-09bef1b6651e",
+      "kind": "appears_in",
+      "weight": 1,
+      "metadata": {
+        "sourceBatch": "sezione-5-cronologia-prologo-cap1-v1",
+        "curatedBy": "codex",
+        "canonStatus": "canonical",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "5.1.1",
+        "candidateId": "p5-108-edge-elea-appears-prologo",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "5.1.1",
+          "sectionLabel": "PROLOGO: LA PROMESSA DELLA CIOCCOLATA CALDA",
+          "contentHash": "da4d511d2d5bbb5b70d3ed9a7135f88ae023c0b03405fd830572b7703d7ba964",
+          "textSnippet": "le nipotine Asia ed Elea"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "p5-108-edge-elea-appears-prologo"
+      },
+      "createdAt": "2026-06-23T21:28:07.718Z",
+      "fromId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "toId": "b4d6ec04-305e-4162-94da-688dfe1d5085"
+    },
+    {
+      "id": "6d728a8a-b869-4c91-821c-fdc71f8ad2c5",
+      "kind": "mentions",
+      "weight": 0.75,
+      "metadata": {
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3",
+        "batch": "pending-zero-dossier-protocols-v1"
+      },
+      "provenance": {
+        "source": "codex_curated_pending_zero",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3"
+      },
+      "createdAt": "2026-06-26T21:02:25.847Z",
+      "fromId": "2c5eef16-0ff3-4bac-afb5-9db51a56d426",
+      "toId": "006acfe1-e978-448e-9e2f-043b402438af"
+    },
+    {
+      "id": "6f223730-7946-48b3-bea6-377ef2d75642",
+      "kind": "family_of",
+      "weight": 1,
+      "metadata": {
+        "family": "relationships",
+        "granularity": "atomic",
+        "curatedBy": "codex",
+        "batch": "sezione-3.8-cornice-narrativa-canonizzazione-v1",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.8.3",
+        "candidateId": "b38-edge-elea-family-gabriele",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.8.3",
+          "sectionLabel": "ELEA",
+          "textSnippet": "Nipote maggiore del Nonno."
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "b38-edge-elea-family-gabriele"
+      },
+      "createdAt": "2026-06-23T07:21:27.041Z",
+      "fromId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "toId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf"
+    },
+    {
+      "id": "742a128c-a260-4b0e-bc7f-e7c323eb9fe6",
+      "kind": "about",
+      "weight": 0.92,
+      "metadata": {
+        "source": "neural-semantic-audit-2026-06-24",
+        "sourceId": "bibbia-gabriele-2025",
+        "rationale": "Il nodo sintetizza il sistema relazionale del personaggio Gabriele/Gabriel."
+      },
+      "provenance": {
+        "source": "codex-semantic-enrichment",
+        "date": "2026-06-24"
+      },
+      "createdAt": "2026-06-24T09:42:51.946Z",
+      "fromId": "7280d9c3-960d-44e0-a8a9-9d7245ec71af",
+      "toId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf"
+    },
+    {
+      "id": "75b1caf1-9753-446f-81ee-42d5e4e42dcd",
+      "kind": "has_arc",
+      "weight": 1,
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "plot",
+        "granularity": "atomic",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.2.9",
+        "candidateId": "atom-e-s32-lisa-future-career",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "rinnovato impegno verso la verit� e la giustizia"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "atom-e-s32-lisa-future-career"
+      },
+      "createdAt": "2026-06-22T20:02:54.896Z",
+      "fromId": "2535b915-f630-4ebf-9329-3addec688c6a",
+      "toId": "f8ba15dd-6ebd-474c-a68e-ddbf2499b903"
+    },
+    {
+      "id": "7a048d60-4f6a-466a-948e-ca60d2b557ea",
+      "kind": "part_of",
+      "weight": 0.86,
+      "metadata": {
+        "source": "neural-semantic-audit-2026-06-24",
+        "rationale": "La relazione Gabriele-Trevor e' una componente del sistema relazionale di Gabriele."
+      },
+      "provenance": {
+        "source": "codex-semantic-enrichment",
+        "date": "2026-06-24"
+      },
+      "createdAt": "2026-06-24T09:42:51.961Z",
+      "fromId": "91685e6c-1e33-482a-a0dc-ed44683d68a2",
+      "toId": "7280d9c3-960d-44e0-a8a9-9d7245ec71af"
+    },
+    {
+      "id": "81d13301-0c6e-4625-b791-87d84b0be1cf",
+      "kind": "pays_off",
+      "weight": 1,
+      "metadata": {
+        "sourceBatch": "sezione-3.1-gabriele-rinaldi-gabriel",
+        "family": "timeline",
+        "granularity": "section",
+        "curatedBy": "codex",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.1.20",
+        "candidateId": "s31-edge-066-arco-paysoff-futuro",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.1.20",
+          "textSnippet": "Come umano, Gabriele vivrà una vita piena accanto a Lisa"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "s31-edge-066-arco-paysoff-futuro"
+      },
+      "createdAt": "2026-06-22T19:17:17.069Z",
+      "fromId": "878d9101-7e98-4e61-bdbc-866307c1e2af",
+      "toId": "738aa4a2-203c-4e28-afec-462058d24295"
+    },
+    {
+      "id": "888e65b8-80ab-4bc5-a3f3-233521f99811",
+      "kind": "part_of",
+      "weight": 0.86,
+      "metadata": {
+        "source": "neural-semantic-audit-2026-06-24",
+        "rationale": "La relazione Gabriele-Lisa e' una componente del sistema relazionale di Gabriele."
+      },
+      "provenance": {
+        "source": "codex-semantic-enrichment",
+        "date": "2026-06-24"
+      },
+      "createdAt": "2026-06-24T09:42:51.954Z",
+      "fromId": "2cda3a82-ef1a-429f-8ee6-4fccf6f44bc8",
+      "toId": "7280d9c3-960d-44e0-a8a9-9d7245ec71af"
+    },
+    {
+      "id": "8a0d027d-fedb-42df-bb51-65574d029f72",
+      "kind": "has_status",
+      "weight": 1,
+      "metadata": {
+        "batch": "neural-association-pass-2026-06-23-v2",
+        "family": "characters",
+        "granularity": "atomic",
+        "curatedBy": "codex",
+        "associationKind": "character_value_attachment",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.1.9.1",
+        "candidateId": "neural-assoc-20260623-003",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.1.9.1",
+          "textSnippet": "Lealta, giustizia, protezione degli innocenti e amore autentico"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "neural-assoc-20260623-003"
+      },
+      "createdAt": "2026-06-23T15:14:16.034Z",
+      "fromId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf",
+      "toId": "8e62a765-8370-41c9-880f-8615d8a0a209"
+    },
+    {
+      "id": "8aaf813a-98bd-4c84-b25e-1b7878516f27",
+      "kind": "appears_in",
+      "weight": 1,
+      "metadata": {
+        "sourceBatch": "sezione-5-cronologia-prologo-cap1-v1",
+        "curatedBy": "codex",
+        "canonStatus": "canonical",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "5.1.1",
+        "candidateId": "p5-107-edge-asia-appears-prologo",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "5.1.1",
+          "sectionLabel": "PROLOGO: LA PROMESSA DELLA CIOCCOLATA CALDA",
+          "contentHash": "da4d511d2d5bbb5b70d3ed9a7135f88ae023c0b03405fd830572b7703d7ba964",
+          "textSnippet": "le nipotine Asia ed Elea"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "p5-107-edge-asia-appears-prologo"
+      },
+      "createdAt": "2026-06-23T21:28:07.688Z",
+      "fromId": "006acfe1-e978-448e-9e2f-043b402438af",
+      "toId": "b4d6ec04-305e-4162-94da-688dfe1d5085"
+    },
+    {
+      "id": "9c50d973-d4b1-481a-8142-7c79175603a3",
+      "kind": "family_of",
+      "weight": 1,
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "relationships",
+        "granularity": "atomic",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.2.9",
+        "candidateId": "atom-e-s32-gabriele-family-marta",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "Avranno una figlia, Marta"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "atom-e-s32-gabriele-family-marta"
+      },
+      "createdAt": "2026-06-22T20:02:54.970Z",
+      "fromId": "527720a3-10cf-4ad9-bc25-c93292760050",
+      "toId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf"
+    },
+    {
+      "id": "abcf2f17-593d-483e-8b13-2f34b6c595ba",
+      "kind": "family_of",
+      "weight": 1,
+      "metadata": {
+        "family": "relationships",
+        "granularity": "atomic",
+        "curatedBy": "codex",
+        "batch": "sezione-3.8-cornice-narrativa-canonizzazione-v1",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.8.2",
+        "candidateId": "b38-edge-asia-family-gabriele",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.8.2",
+          "sectionLabel": "ASIA",
+          "textSnippet": "Nipote più piccola del Nonno."
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "b38-edge-asia-family-gabriele"
+      },
+      "createdAt": "2026-06-23T07:21:27.013Z",
+      "fromId": "006acfe1-e978-448e-9e2f-043b402438af",
+      "toId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf"
+    },
+    {
+      "id": "afb61e6a-a6b6-4c81-9a12-2e4c9b215c8c",
+      "kind": "part_of",
+      "weight": 0.86,
+      "metadata": {
+        "source": "neural-semantic-audit-2026-06-24",
+        "rationale": "La rivalita' Gabriele-Cristiano e' una componente del sistema relazionale di Gabriele."
+      },
+      "provenance": {
+        "source": "codex-semantic-enrichment",
+        "date": "2026-06-24"
+      },
+      "createdAt": "2026-06-24T09:42:51.968Z",
+      "fromId": "4c344e0e-f2bd-431c-856e-5a9888478530",
+      "toId": "7280d9c3-960d-44e0-a8a9-9d7245ec71af"
+    },
+    {
+      "id": "b06311d5-8718-4950-805c-c699e1ccb737",
+      "kind": "family_of",
+      "weight": 1,
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "relationships",
+        "granularity": "atomic",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.2.9",
+        "candidateId": "atom-e-s32-elea-family-lisa",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "le nipoti Asia ed Elea"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "atom-e-s32-elea-family-lisa"
+      },
+      "createdAt": "2026-06-22T20:02:55.030Z",
+      "fromId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "toId": "2535b915-f630-4ebf-9329-3addec688c6a"
+    },
+    {
+      "id": "c79f9980-db8c-44b7-bf61-de0c1c521f6f",
+      "kind": "changes_state",
+      "weight": 1,
+      "metadata": {
+        "sourceBatch": "sezione-3.1-gabriele-rinaldi-gabriel",
+        "family": "characters",
+        "granularity": "section",
+        "curatedBy": "codex",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.1.6",
+        "candidateId": "s31-edge-016-personalita-precedes-evoluzione",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.1.6",
+          "textSnippet": "Con la trasformazione fisica e la scoperta dei poteri"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "s31-edge-016-personalita-precedes-evoluzione"
+      },
+      "createdAt": "2026-06-22T19:17:15.672Z",
+      "fromId": "496aa500-8970-42b7-8e89-71593853f11f",
+      "toId": "211cea76-7fb5-4a60-b791-f825e497bdd3"
+    },
+    {
+      "id": "cdb94f43-7330-40cd-b2f5-aab0621f7861",
+      "kind": "appears_in",
+      "weight": 1,
+      "metadata": {
+        "curatedBy": "codex",
+        "sourceBatch": "sezione-5.3.7-6-appears-in-v1",
+        "weight": 0.75,
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "5.3.8",
+        "candidateId": "appears-elea-27",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "5.3.8",
+          "sectionLabel": "CAPITOLO 27: STRANI POTERI?",
+          "textSnippet": "Il Nonno commenta gli eventi sconvolgenti dello zoo"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "appears-elea-27"
+      },
+      "createdAt": "2026-06-26T15:37:38.325Z",
+      "fromId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "toId": "2bd90c1e-88db-44fa-b30b-fa4ac46293b1"
+    },
+    {
+      "id": "e1be48ab-9908-4ea2-bafb-d5cb1212f8e8",
+      "kind": "constrains",
+      "weight": 1,
+      "metadata": {
+        "batch": "neural-association-pass-2026-06-23-v2",
+        "family": "worldbuilding",
+        "granularity": "atomic",
+        "curatedBy": "codex",
+        "associationKind": "value_constraint",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.1.10",
+        "candidateId": "neural-assoc-20260623-004",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.1.10",
+          "textSnippet": "lo costringe a riflettere sull'uso responsabile della sua forza"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "neural-assoc-20260623-004"
+      },
+      "createdAt": "2026-06-23T15:14:16.062Z",
+      "fromId": "8e62a765-8370-41c9-880f-8615d8a0a209",
+      "toId": "58233842-56dc-4bd2-9409-a74be71d950f"
+    },
+    {
+      "id": "ed95f946-b477-4ef5-943d-3d8e4e80b256",
+      "kind": "about",
+      "weight": 1,
+      "metadata": {
+        "batch": "cap5-8-assoc-v1",
+        "sectionKey": "5.1.9"
+      },
+      "provenance": {
+        "source": "codex_semantic_optimization",
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "createdAt": "2026-06-24T18:19:02.741Z",
+      "fromId": "35d558a4-1c1d-46cf-ad9a-56fb21da2747",
+      "toId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9"
+    },
+    {
+      "id": "f3265706-7a8d-407c-9ec7-5ec011076a00",
+      "kind": "appears_in",
+      "weight": 1,
+      "metadata": {
+        "batch": "cap5-8-assoc-v1",
+        "sectionKey": "5.1.9"
+      },
+      "provenance": {
+        "source": "codex_semantic_optimization",
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "createdAt": "2026-06-24T18:19:02.687Z",
+      "fromId": "006acfe1-e978-448e-9e2f-043b402438af",
+      "toId": "61cf426c-dcf6-42a6-bc98-cd600960fa0d"
+    },
+    {
+      "id": "f4dd6986-7a71-4993-b38a-155ded19797d",
+      "kind": "appears_in",
+      "weight": 1,
+      "metadata": {
+        "curatedBy": "codex",
+        "sourceBatch": "sezione-5.3.7-6-appears-in-v1",
+        "weight": 0.75,
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "5.4.1",
+        "candidateId": "appears-elea-31",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "5.4.1",
+          "sectionLabel": "CAPITOLO 31: UN ANGELO? DAVVERO?",
+          "textSnippet": "Le nipoti sono sbalordite"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "appears-elea-31"
+      },
+      "createdAt": "2026-06-26T15:37:38.354Z",
+      "fromId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "toId": "746febd9-38fd-4ddf-9be7-39fbc08bcaf3"
+    },
+    {
+      "id": "f8839aba-342a-4e63-96a0-f0f3239a19f3",
+      "kind": "appears_in",
+      "weight": 1,
+      "metadata": {
+        "curatedBy": "codex",
+        "sourceBatch": "sezione-5.3.7-6-appears-in-v1",
+        "weight": 0.75,
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "5.4.1",
+        "candidateId": "appears-asia-31",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "5.4.1",
+          "sectionLabel": "CAPITOLO 31: UN ANGELO? DAVVERO?",
+          "textSnippet": "Le nipoti sono sbalordite"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "appears-asia-31"
+      },
+      "createdAt": "2026-06-26T15:37:38.237Z",
+      "fromId": "006acfe1-e978-448e-9e2f-043b402438af",
+      "toId": "746febd9-38fd-4ddf-9be7-39fbc08bcaf3"
+    },
+    {
+      "id": "fea47dcc-0ca6-40ae-b983-4f97dd5f0ce8",
+      "kind": "appears_in",
+      "weight": 1,
+      "metadata": {
+        "curatedBy": "codex",
+        "sourceBatch": "sezione-5.3.7-6-appears-in-v1",
+        "weight": 0.75,
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "5.3.8",
+        "candidateId": "appears-asia-27",
+        "evidence": {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "5.3.8",
+          "sectionLabel": "CAPITOLO 27: STRANI POTERI?",
+          "textSnippet": "Il Nonno commenta gli eventi sconvolgenti dello zoo"
+        }
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "candidateId": "appears-asia-27"
+      },
+      "createdAt": "2026-06-26T15:37:38.206Z",
+      "fromId": "006acfe1-e978-448e-9e2f-043b402438af",
+      "toId": "2bd90c1e-88db-44fa-b30b-fa4ac46293b1"
+    },
+    {
+      "id": "rel-ai-hwwku21c",
+      "kind": "applies_to",
+      "weight": 1,
+      "metadata": {},
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      },
+      "createdAt": "2026-06-23T23:06:58.983Z",
+      "fromId": "finding-inactive-thread-Lisafuturacomunicazioneeticaegiustizia",
+      "toId": "f8ba15dd-6ebd-474c-a68e-ddbf2499b903"
+    }
+  ],
+  "counts": {
+    "nodes": 11,
+    "relationships": 36
+  }
+}

@@ -1,0 +1,1060 @@
+[
+  {
+    "id": "006acfe1-e978-448e-9e2f-043b402438af",
+    "type": "character",
+    "label": "Asia",
+    "content": "Nipote più piccola del Nonno/Gabriele anziano: curiosa, emotiva, diretta e ingenua, capace con le sue domande di toccare il cuore emotivo della storia.",
+    "metadata": {
+      "curatedBy": "codex",
+      "family": "characters",
+      "granularity": "section",
+      "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+      "requiresReview": false,
+      "canonStatus": "canonical",
+      "committedFromCandidateId": "b38-node-asia-character",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "le nipoti Asia ed Elea"
+        },
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.8.2",
+          "sectionLabel": "ASIA",
+          "textSnippet": "Nipote più piccola del Nonno. Curiosa, emotiva, fa domande dirette e ingenue che spesso toccano il cuore emotivo della storia."
+        }
+      ],
+      "sourceId": "bibbia-gabriele-2025",
+      "batch": "sezione-3.8-cornice-narrativa-canonizzazione-v1",
+      "role": "nipote_piccola_cornice"
+    },
+    "provenance": {
+      "source": "novel_commit_bible_candidates",
+      "sourceId": "bibbia-gabriele-2025",
+      "sectionKey": "3.8.2",
+      "candidateId": "b38-node-asia-character"
+    },
+    "rows": [
+      {
+        "nodeId": "006acfe1-e978-448e-9e2f-043b402438af",
+        "type": "character",
+        "label": "Asia",
+        "oldSectionKey": "3.2.9",
+        "oldHeading": "FUTURO (POST-ROMANZO)",
+        "candidateNewSectionKey": "2.1.2.19",
+        "candidateNewHeading": "Futuro (Post-Romanzo)",
+        "candidateId": null,
+        "criterion": "semantic_section_high_ambiguous",
+        "score": 0.7603,
+        "status": "ambiguo",
+        "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+        "evidencePaths": [
+          "$.evidence[0].sectionKey"
+        ],
+        "nodeContentSample": "Nipote più piccola del Nonno/Gabriele anziano: curiosa, emotiva, diretta e ingenua, capace con le sue domande di toccare il cuore emotivo della storia."
+      },
+      {
+        "nodeId": "006acfe1-e978-448e-9e2f-043b402438af",
+        "type": "character",
+        "label": "Asia",
+        "oldSectionKey": "3.8.2",
+        "oldHeading": "ASIA",
+        "candidateNewSectionKey": null,
+        "candidateNewHeading": null,
+        "candidateId": null,
+        "criterion": "no_new_evidence",
+        "score": 0,
+        "status": "non_sostenuto",
+        "reason": "Nessuna evidenza nuova sufficientemente forte.",
+        "evidencePaths": [
+          "$.evidence[1].sectionKey",
+          "$.sectionKey"
+        ],
+        "nodeContentSample": "Nipote più piccola del Nonno/Gabriele anziano: curiosa, emotiva, diretta e ingenua, capace con le sue domande di toccare il cuore emotivo della storia."
+      }
+    ],
+    "sections": [
+      {
+        "key": "2.1.2.19",
+        "id": "43947a3c-5f37-4b5c-9421-2f00c87cdd9a",
+        "label": "bibbia-gabriele-2025::2.1.2.19",
+        "heading": "Futuro (Post-Romanzo)",
+        "path": [
+          "2",
+          "2.1 PROTAGONISTI",
+          "2.1.2 LISA MARTINI",
+          "2.1.2.19 Futuro (Post-Romanzo)"
+        ],
+        "content": "2.1.2.19\tFuturo (Post-Romanzo)\nLisa costruirà vita felice e appagante con Gabriele, basata su amore profondo e comprensione reciproca che trascende l'ordinario. FAMIGLIA: Avranno figlia Marta e successivamente nipoti Asia ed Elea.\nEVOLUZIONE RELAZIONE TREVOR: Rapporto inizialmente complesso si placherà gradualmente. Affetto comune per Gabriele e condivisione segreto sulla sua vera natura li porteranno a superare divergenze, trasformando legame in solida amicizia duratura. Trevor rimarrà parte importante e costante della loro vita familiare.\nCARRIERA: Forte della sua esperienza e sensibilità maturata, intraprenderà carriera nella comunicazione (giornalismo, radio, editoria) con rinnovato impegno verso verità e giustizia, o si dedicherà a cause sociali.\nEREDITÀ SPIRITUALE: Conoscenza della vera natura di Gabriele e del loro passato condiviso, unita alle memorie delle sue stesse vite passate, le conferirà saggezza e profondità interiore uniche, che guideranno le sue scelte e il suo impatto positivo sul mondo."
+      }
+    ],
+    "edges": [
+      {
+        "otherId": "2c5eef16-0ff3-4bac-afb5-9db51a56d426",
+        "kind": "mentions",
+        "otherLabel": "Cornice narrativa preserva mistero del Nonno",
+        "dir": "in",
+        "otherType": "narrative_constraint"
+      },
+      {
+        "otherId": "746febd9-38fd-4ddf-9be7-39fbc08bcaf3",
+        "kind": "appears_in",
+        "otherLabel": "Capitolo 31 - Un angelo? Davvero?",
+        "dir": "out",
+        "otherType": "chapter"
+      },
+      {
+        "otherId": "2bd90c1e-88db-44fa-b30b-fa4ac46293b1",
+        "kind": "appears_in",
+        "otherLabel": "Capitolo 27 - Strani poteri?",
+        "dir": "out",
+        "otherType": "chapter"
+      },
+      {
+        "otherId": "35d558a4-1c1d-46cf-ad9a-56fb21da2747",
+        "kind": "about",
+        "otherLabel": "Interludio del Nonno sulla notte misteriosa",
+        "dir": "in",
+        "otherType": "scene"
+      },
+      {
+        "otherId": "61cf426c-dcf6-42a6-bc98-cd600960fa0d",
+        "kind": "appears_in",
+        "otherLabel": "Capitolo 8 - È diventato magico?",
+        "dir": "out",
+        "otherType": "chapter"
+      },
+      {
+        "otherId": "b4d6ec04-305e-4162-94da-688dfe1d5085",
+        "kind": "appears_in",
+        "otherLabel": "Prologo - La promessa della cioccolata calda",
+        "dir": "out",
+        "otherType": "chapter"
+      },
+      {
+        "otherId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+        "kind": "contrasts",
+        "otherLabel": "Elea",
+        "dir": "in",
+        "otherType": "character"
+      },
+      {
+        "otherId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf",
+        "kind": "family_of",
+        "otherLabel": "Gabriele Rinaldi (Gabriel)",
+        "dir": "out",
+        "otherType": "character"
+      },
+      {
+        "otherId": "2535b915-f630-4ebf-9329-3addec688c6a",
+        "kind": "family_of",
+        "otherLabel": "Lisa Martini",
+        "dir": "out",
+        "otherType": "character"
+      }
+    ]
+  },
+  {
+    "id": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+    "type": "character",
+    "label": "Elea",
+    "content": "Nipote maggiore del Nonno/Gabriele anziano: più analitica e razionale di Asia, cerca spiegazioni logiche ma resta affascinata dal racconto e spinge il Nonno a riflessioni più profonde.",
+    "metadata": {
+      "curatedBy": "codex",
+      "family": "characters",
+      "granularity": "section",
+      "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+      "requiresReview": false,
+      "canonStatus": "canonical",
+      "committedFromCandidateId": "b38-node-elea-character",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "le nipoti Asia ed Elea"
+        },
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.8.3",
+          "sectionLabel": "ELEA",
+          "textSnippet": "Nipote maggiore del Nonno. Più analitica e razionale di Asia, cerca spiegazioni logiche agli eventi, ma è comunque affascinata dal racconto."
+        }
+      ],
+      "sourceId": "bibbia-gabriele-2025",
+      "batch": "sezione-3.8-cornice-narrativa-canonizzazione-v1",
+      "role": "nipote_maggiore_cornice"
+    },
+    "provenance": {
+      "source": "novel_commit_bible_candidates",
+      "sourceId": "bibbia-gabriele-2025",
+      "sectionKey": "3.8.3",
+      "candidateId": "b38-node-elea-character"
+    },
+    "rows": [
+      {
+        "nodeId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+        "type": "character",
+        "label": "Elea",
+        "oldSectionKey": "3.2.9",
+        "oldHeading": "FUTURO (POST-ROMANZO)",
+        "candidateNewSectionKey": "2.1.2.19",
+        "candidateNewHeading": "Futuro (Post-Romanzo)",
+        "candidateId": null,
+        "criterion": "semantic_section_high_ambiguous",
+        "score": 0.7603,
+        "status": "ambiguo",
+        "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+        "evidencePaths": [
+          "$.evidence[0].sectionKey"
+        ],
+        "nodeContentSample": "Nipote maggiore del Nonno/Gabriele anziano: più analitica e razionale di Asia, cerca spiegazioni logiche ma resta affascinata dal racconto e spinge il Nonno a riflessioni più profonde."
+      },
+      {
+        "nodeId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+        "type": "character",
+        "label": "Elea",
+        "oldSectionKey": "3.8.3",
+        "oldHeading": "ELEA",
+        "candidateNewSectionKey": null,
+        "candidateNewHeading": null,
+        "candidateId": null,
+        "criterion": "no_new_evidence",
+        "score": 0,
+        "status": "non_sostenuto",
+        "reason": "Nessuna evidenza nuova sufficientemente forte.",
+        "evidencePaths": [
+          "$.evidence[1].sectionKey",
+          "$.sectionKey"
+        ],
+        "nodeContentSample": "Nipote maggiore del Nonno/Gabriele anziano: più analitica e razionale di Asia, cerca spiegazioni logiche ma resta affascinata dal racconto e spinge il Nonno a riflessioni più profonde."
+      }
+    ],
+    "sections": [
+      {
+        "key": "2.1.2.19",
+        "id": "43947a3c-5f37-4b5c-9421-2f00c87cdd9a",
+        "label": "bibbia-gabriele-2025::2.1.2.19",
+        "heading": "Futuro (Post-Romanzo)",
+        "path": [
+          "2",
+          "2.1 PROTAGONISTI",
+          "2.1.2 LISA MARTINI",
+          "2.1.2.19 Futuro (Post-Romanzo)"
+        ],
+        "content": "2.1.2.19\tFuturo (Post-Romanzo)\nLisa costruirà vita felice e appagante con Gabriele, basata su amore profondo e comprensione reciproca che trascende l'ordinario. FAMIGLIA: Avranno figlia Marta e successivamente nipoti Asia ed Elea.\nEVOLUZIONE RELAZIONE TREVOR: Rapporto inizialmente complesso si placherà gradualmente. Affetto comune per Gabriele e condivisione segreto sulla sua vera natura li porteranno a superare divergenze, trasformando legame in solida amicizia duratura. Trevor rimarrà parte importante e costante della loro vita familiare.\nCARRIERA: Forte della sua esperienza e sensibilità maturata, intraprenderà carriera nella comunicazione (giornalismo, radio, editoria) con rinnovato impegno verso verità e giustizia, o si dedicherà a cause sociali.\nEREDITÀ SPIRITUALE: Conoscenza della vera natura di Gabriele e del loro passato condiviso, unita alle memorie delle sue stesse vite passate, le conferirà saggezza e profondità interiore uniche, che guideranno le sue scelte e il suo impatto positivo sul mondo."
+      }
+    ],
+    "edges": [
+      {
+        "otherId": "2c5eef16-0ff3-4bac-afb5-9db51a56d426",
+        "kind": "mentions",
+        "otherLabel": "Cornice narrativa preserva mistero del Nonno",
+        "dir": "in",
+        "otherType": "narrative_constraint"
+      },
+      {
+        "otherId": "746febd9-38fd-4ddf-9be7-39fbc08bcaf3",
+        "kind": "appears_in",
+        "otherLabel": "Capitolo 31 - Un angelo? Davvero?",
+        "dir": "out",
+        "otherType": "chapter"
+      },
+      {
+        "otherId": "2bd90c1e-88db-44fa-b30b-fa4ac46293b1",
+        "kind": "appears_in",
+        "otherLabel": "Capitolo 27 - Strani poteri?",
+        "dir": "out",
+        "otherType": "chapter"
+      },
+      {
+        "otherId": "35d558a4-1c1d-46cf-ad9a-56fb21da2747",
+        "kind": "about",
+        "otherLabel": "Interludio del Nonno sulla notte misteriosa",
+        "dir": "in",
+        "otherType": "scene"
+      },
+      {
+        "otherId": "61cf426c-dcf6-42a6-bc98-cd600960fa0d",
+        "kind": "appears_in",
+        "otherLabel": "Capitolo 8 - È diventato magico?",
+        "dir": "out",
+        "otherType": "chapter"
+      },
+      {
+        "otherId": "b4d6ec04-305e-4162-94da-688dfe1d5085",
+        "kind": "appears_in",
+        "otherLabel": "Prologo - La promessa della cioccolata calda",
+        "dir": "out",
+        "otherType": "chapter"
+      },
+      {
+        "otherId": "006acfe1-e978-448e-9e2f-043b402438af",
+        "kind": "contrasts",
+        "otherLabel": "Asia",
+        "dir": "out",
+        "otherType": "character"
+      },
+      {
+        "otherId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf",
+        "kind": "family_of",
+        "otherLabel": "Gabriele Rinaldi (Gabriel)",
+        "dir": "out",
+        "otherType": "character"
+      },
+      {
+        "otherId": "2535b915-f630-4ebf-9329-3addec688c6a",
+        "kind": "family_of",
+        "otherLabel": "Lisa Martini",
+        "dir": "out",
+        "otherType": "character"
+      }
+    ]
+  },
+  {
+    "id": "527720a3-10cf-4ad9-bc25-c93292760050",
+    "type": "character",
+    "label": "Marta",
+    "content": "Figlia futura di Lisa e Gabriele.",
+    "metadata": {
+      "curatedBy": "codex",
+      "family": "characters",
+      "granularity": "atomic",
+      "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+      "requiresReview": false,
+      "canonStatus": "canonical",
+      "committedFromCandidateId": "atom-s32-character-marta",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "Avranno una figlia, Marta"
+        }
+      ],
+      "sourceId": "bibbia-gabriele-2025"
+    },
+    "provenance": {
+      "source": "novel_commit_bible_candidates",
+      "sourceId": "bibbia-gabriele-2025",
+      "sectionKey": "3.2.9",
+      "candidateId": "atom-s32-character-marta"
+    },
+    "rows": [
+      {
+        "nodeId": "527720a3-10cf-4ad9-bc25-c93292760050",
+        "type": "character",
+        "label": "Marta",
+        "oldSectionKey": "3.2.9",
+        "oldHeading": "FUTURO (POST-ROMANZO)",
+        "candidateNewSectionKey": "2.1.2.19",
+        "candidateNewHeading": "Futuro (Post-Romanzo)",
+        "candidateId": null,
+        "criterion": "semantic_section_high_ambiguous",
+        "score": 0.7603,
+        "status": "ambiguo",
+        "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+        "evidencePaths": [
+          "$.evidence[0].sectionKey",
+          "$.sectionKey"
+        ],
+        "nodeContentSample": "Figlia futura di Lisa e Gabriele."
+      }
+    ],
+    "sections": [
+      {
+        "key": "2.1.2.19",
+        "id": "43947a3c-5f37-4b5c-9421-2f00c87cdd9a",
+        "label": "bibbia-gabriele-2025::2.1.2.19",
+        "heading": "Futuro (Post-Romanzo)",
+        "path": [
+          "2",
+          "2.1 PROTAGONISTI",
+          "2.1.2 LISA MARTINI",
+          "2.1.2.19 Futuro (Post-Romanzo)"
+        ],
+        "content": "2.1.2.19\tFuturo (Post-Romanzo)\nLisa costruirà vita felice e appagante con Gabriele, basata su amore profondo e comprensione reciproca che trascende l'ordinario. FAMIGLIA: Avranno figlia Marta e successivamente nipoti Asia ed Elea.\nEVOLUZIONE RELAZIONE TREVOR: Rapporto inizialmente complesso si placherà gradualmente. Affetto comune per Gabriele e condivisione segreto sulla sua vera natura li porteranno a superare divergenze, trasformando legame in solida amicizia duratura. Trevor rimarrà parte importante e costante della loro vita familiare.\nCARRIERA: Forte della sua esperienza e sensibilità maturata, intraprenderà carriera nella comunicazione (giornalismo, radio, editoria) con rinnovato impegno verso verità e giustizia, o si dedicherà a cause sociali.\nEREDITÀ SPIRITUALE: Conoscenza della vera natura di Gabriele e del loro passato condiviso, unita alle memorie delle sue stesse vite passate, le conferirà saggezza e profondità interiore uniche, che guideranno le sue scelte e il suo impatto positivo sul mondo."
+      }
+    ],
+    "edges": [
+      {
+        "otherId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf",
+        "kind": "family_of",
+        "otherLabel": "Gabriele Rinaldi (Gabriel)",
+        "dir": "out",
+        "otherType": "character"
+      },
+      {
+        "otherId": "2535b915-f630-4ebf-9329-3addec688c6a",
+        "kind": "family_of",
+        "otherLabel": "Lisa Martini",
+        "dir": "out",
+        "otherType": "character"
+      }
+    ]
+  },
+  {
+    "id": "496aa500-8970-42b7-8e89-71593853f11f",
+    "type": "character_state",
+    "label": "Personalità iniziale di Gabriele",
+    "content": "Gabriele inizialmente è timido, introverso, insicuro, sensibile, goffo, vittima di bullismo, con bassa autostima; è sognatore, leale verso Trevor, innamorato idealmente di Lisa e rifugiato nell'arte.",
+    "metadata": {
+      "sourceBatch": "sezione-3.1-gabriele-rinaldi-gabriel",
+      "family": "characters",
+      "granularity": "section",
+      "curatedBy": "codex",
+      "requiresReview": false,
+      "canonStatus": "canonical",
+      "committedFromCandidateId": "s31-node-013-personalita-iniziale",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.1.5",
+          "textSnippet": "Timido, introverso, insicuro, profondamente sensibile e goffo."
+        }
+      ],
+      "sourceId": "bibbia-gabriele-2025"
+    },
+    "provenance": {
+      "source": "novel_commit_bible_candidates",
+      "sourceId": "bibbia-gabriele-2025",
+      "sectionKey": "3.1.5",
+      "candidateId": "s31-node-013-personalita-iniziale"
+    },
+    "rows": [
+      {
+        "nodeId": "496aa500-8970-42b7-8e89-71593853f11f",
+        "type": "character_state",
+        "label": "Personalità iniziale di Gabriele",
+        "oldSectionKey": "3.1.5",
+        "oldHeading": "Personalità Iniziale",
+        "candidateNewSectionKey": "2.1.1.3",
+        "candidateNewHeading": "Personalità Iniziale",
+        "candidateId": null,
+        "criterion": "semantic_section_high_ambiguous",
+        "score": 0.9333,
+        "status": "ambiguo",
+        "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+        "evidencePaths": [
+          "$.evidence[0].sectionKey",
+          "$.sectionKey"
+        ],
+        "nodeContentSample": "Gabriele inizialmente è timido, introverso, insicuro, sensibile, goffo, vittima di bullismo, con bassa autostima; è sognatore, leale verso Trevor, innamorato idealmente di Lisa e rifugiato nell'arte."
+      }
+    ],
+    "sections": [
+      {
+        "key": "2.1.1.3",
+        "id": "16cd6add-400c-48cf-804d-a17ec9abe533",
+        "label": "bibbia-gabriele-2025::2.1.1.3",
+        "heading": "Personalità Iniziale",
+        "path": [
+          "2",
+          "2.1 PROTAGONISTI",
+          "2.1.1 GABRIELE RINALDI (GABRIEL)",
+          "2.1.1.3 Personalità Iniziale"
+        ],
+        "content": "2.1.1.3\tPersonalità Iniziale\nTimido, introverso, insicuro, profondamente sensibile e goffo. Vittima di bullismo, si sente emarginato, inadeguato, invisibile o un bersaglio, con una radicata bassa autostima. Sognatore, desidera un cambiamento radicale e l'accettazione. Leale e affezionato all'amico Trevor. Segretamente innamorato (in modo idealizzato e platonico) di Lisa. Tende a chiudersi in sé stesso e a rifugiarsi nell'arte, suo unico linguaggio segreto."
+      }
+    ],
+    "edges": [
+      {
+        "otherId": "211cea76-7fb5-4a60-b791-f825e497bdd3",
+        "kind": "changes_state",
+        "otherLabel": "Evoluzione della personalità di Gabriele",
+        "dir": "out",
+        "otherType": "character_state"
+      },
+      {
+        "otherId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf",
+        "kind": "has_status",
+        "otherLabel": "Gabriele Rinaldi (Gabriel)",
+        "dir": "in",
+        "otherType": "character"
+      }
+    ]
+  },
+  {
+    "id": "8e62a765-8370-41c9-880f-8615d8a0a209",
+    "type": "character_trait",
+    "label": "Valori non negoziabili di Gabriele",
+    "content": "Valori di Gabriele: lealtà, giustizia, protezione degli innocenti e amore autentico; tali valori orientano la richiesta di rettifica a Trevor e gli interventi per Lisa, il cucciolo di leone e gli studenti.",
+    "metadata": {
+      "sourceBatch": "sezione-3.1-gabriele-rinaldi-gabriel",
+      "family": "characters",
+      "granularity": "atomic",
+      "curatedBy": "codex",
+      "requiresReview": false,
+      "canonStatus": "canonical",
+      "committedFromCandidateId": "s31-node-024-valori",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.1.9.1",
+          "textSnippet": "Lealtà (inizialmente verso Trevor, poi verso la verità del suo amore per Lisa"
+        }
+      ],
+      "sourceId": "bibbia-gabriele-2025"
+    },
+    "provenance": {
+      "source": "novel_commit_bible_candidates",
+      "sourceId": "bibbia-gabriele-2025",
+      "sectionKey": "3.1.9.1",
+      "candidateId": "s31-node-024-valori"
+    },
+    "rows": [
+      {
+        "nodeId": "8e62a765-8370-41c9-880f-8615d8a0a209",
+        "type": "character_trait",
+        "label": "Valori non negoziabili di Gabriele",
+        "oldSectionKey": "3.1.9.1",
+        "oldHeading": "Valori",
+        "candidateNewSectionKey": "2.1.1.7.1",
+        "candidateNewHeading": "Valori",
+        "candidateId": null,
+        "criterion": "semantic_section_high_ambiguous",
+        "score": 0.89,
+        "status": "ambiguo",
+        "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+        "evidencePaths": [
+          "$.evidence[0].sectionKey",
+          "$.sectionKey"
+        ],
+        "nodeContentSample": "Valori di Gabriele: lealtà, giustizia, protezione degli innocenti e amore autentico; tali valori orientano la richiesta di rettifica a Trevor e gli interventi per Lisa, il cucciolo di leone e gli studenti."
+      }
+    ],
+    "sections": [
+      {
+        "key": "2.1.1.7.1",
+        "id": "f76a6405-0fae-40fb-8ae0-13a41ebb3041",
+        "label": "bibbia-gabriele-2025::2.1.1.7.1",
+        "heading": "Valori",
+        "path": [
+          "2",
+          "2.1 PROTAGONISTI",
+          "2.1.1 GABRIELE RINALDI (GABRIEL)",
+          "2.1.1.7 Valori Non Negoziabili e Punti di Rottura",
+          "2.1.1.7.1 Valori"
+        ],
+        "content": "2.1.1.7.1\tValori\nLealtà (inizialmente verso Trevor, poi verso la verità del suo amore per Lisa e la sua stessa integrità), giustizia (lo spinge a chiedere la rettifica a Trevor per Lisa), protezione degli innocenti (manifesta con Lisa, con il cucciolo di leone, e con gli studenti durante l'intervento di Michael), amore autentico."
+      }
+    ],
+    "edges": [
+      {
+        "otherId": "58233842-56dc-4bd2-9409-a74be71d950f",
+        "kind": "constrains",
+        "otherLabel": "Uso responsabile della forza di Gabriele",
+        "dir": "out",
+        "otherType": "narrative_constraint"
+      },
+      {
+        "otherId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf",
+        "kind": "has_status",
+        "otherLabel": "Gabriele Rinaldi (Gabriel)",
+        "dir": "in",
+        "otherType": "character"
+      }
+    ]
+  },
+  {
+    "id": "bb3c391a-9359-4d88-aade-075cc929e3de",
+    "type": "narrative_constraint",
+    "label": "Punti di rottura operativi di Gabriele",
+    "content": "Gabriele rompe il proprio freno quando Lisa è minacciata, quando subisce o vede ingiustizia e sofferenza altrui, o quando rischia di perdere Lisa o causarle un danno irreparabile.",
+    "metadata": {
+      "sourceBatch": "sezione-3.1-gabriele-rinaldi-gabriel",
+      "family": "characters",
+      "granularity": "atomic",
+      "curatedBy": "codex",
+      "requiresReview": false,
+      "canonStatus": "canonical",
+      "committedFromCandidateId": "s31-node-025-punti-rottura",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.1.9.2",
+          "textSnippet": "La minaccia diretta alla vita o al benessere di Lisa"
+        }
+      ],
+      "sourceId": "bibbia-gabriele-2025"
+    },
+    "provenance": {
+      "source": "novel_commit_bible_candidates",
+      "sourceId": "bibbia-gabriele-2025",
+      "sectionKey": "3.1.9.2",
+      "candidateId": "s31-node-025-punti-rottura"
+    },
+    "rows": [
+      {
+        "nodeId": "bb3c391a-9359-4d88-aade-075cc929e3de",
+        "type": "narrative_constraint",
+        "label": "Punti di rottura operativi di Gabriele",
+        "oldSectionKey": "3.1.9.2",
+        "oldHeading": "Punti di Rottura",
+        "candidateNewSectionKey": "2.1.1.7.2",
+        "candidateNewHeading": "Punti di Rottura",
+        "candidateId": null,
+        "criterion": "semantic_section_high_ambiguous",
+        "score": 0.9,
+        "status": "ambiguo",
+        "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+        "evidencePaths": [
+          "$.evidence[0].sectionKey",
+          "$.sectionKey"
+        ],
+        "nodeContentSample": "Gabriele rompe il proprio freno quando Lisa è minacciata, quando subisce o vede ingiustizia e sofferenza altrui, o quando rischia di perdere Lisa o causarle un danno irreparabile."
+      }
+    ],
+    "sections": [
+      {
+        "key": "2.1.1.7.2",
+        "id": "1fb6d9fd-7ecb-49a4-b067-76c3941eabb9",
+        "label": "bibbia-gabriele-2025::2.1.1.7.2",
+        "heading": "Punti di Rottura",
+        "path": [
+          "2",
+          "2.1 PROTAGONISTI",
+          "2.1.1 GABRIELE RINALDI (GABRIEL)",
+          "2.1.1.7 Valori Non Negoziabili e Punti di Rottura",
+          "2.1.1.7.2 Punti di Rottura"
+        ],
+        "content": "2.1.1.7.2\tPunti di Rottura\n La minaccia diretta alla vita o al benessere di Lisa (lo spinge a usare i poteri in modo plateale, come nella partita di basket o contro Michael); l'ingiustizia palese e la sofferenza altrui (lo spinge a intervenire, superando la timidezza, come con il cucciolo di leone o nel difendere Trevor da Cristiano); la prospettiva di perdere Lisa o di causarle danno irreparabile (lo porta alla scelta finale)."
+      }
+    ],
+    "edges": [
+      {
+        "otherId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf",
+        "kind": "constrains",
+        "otherLabel": "Gabriele Rinaldi (Gabriel)",
+        "dir": "out",
+        "otherType": "character"
+      }
+    ]
+  },
+  {
+    "id": "f8ba15dd-6ebd-474c-a68e-ddbf2499b903",
+    "type": "plot_thread",
+    "label": "Lisa futura comunicazione etica e giustizia",
+    "content": "Nel futuro Lisa orienta comunicazione, giornalismo/radio/editoria o cause sociali verso verità, giustizia e impatto positivo.",
+    "metadata": {
+      "curatedBy": "codex",
+      "family": "plot",
+      "granularity": "atomic",
+      "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+      "requiresReview": false,
+      "canonStatus": "canonical",
+      "committedFromCandidateId": "atom-s32-lisa-carriera-comunicazione-etica",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "carriera nella comunicazione ... con un rinnovato impegno verso la verità e la giustizia"
+        },
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "carriera nella comunicazione ... con un rinnovato impegno verso la verità e la giustizia"
+        }
+      ],
+      "sourceId": "bibbia-gabriele-2025"
+    },
+    "provenance": {
+      "source": "novel_commit_bible_candidates",
+      "sourceId": "bibbia-gabriele-2025",
+      "sectionKey": "3.2.9",
+      "candidateId": "atom-s32-lisa-carriera-comunicazione-etica"
+    },
+    "rows": [
+      {
+        "nodeId": "f8ba15dd-6ebd-474c-a68e-ddbf2499b903",
+        "type": "plot_thread",
+        "label": "Lisa futura comunicazione etica e giustizia",
+        "oldSectionKey": "3.2.9",
+        "oldHeading": "FUTURO (POST-ROMANZO)",
+        "candidateNewSectionKey": "2.1.2.19",
+        "candidateNewHeading": "Futuro (Post-Romanzo)",
+        "candidateId": null,
+        "criterion": "semantic_section_high_ambiguous",
+        "score": 0.7603,
+        "status": "ambiguo",
+        "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+        "evidencePaths": [
+          "$.evidence[0].sectionKey",
+          "$.evidence[1].sectionKey",
+          "$.sectionKey"
+        ],
+        "nodeContentSample": "Nel futuro Lisa orienta comunicazione, giornalismo/radio/editoria o cause sociali verso verità, giustizia e impatto positivo."
+      }
+    ],
+    "sections": [
+      {
+        "key": "2.1.2.19",
+        "id": "43947a3c-5f37-4b5c-9421-2f00c87cdd9a",
+        "label": "bibbia-gabriele-2025::2.1.2.19",
+        "heading": "Futuro (Post-Romanzo)",
+        "path": [
+          "2",
+          "2.1 PROTAGONISTI",
+          "2.1.2 LISA MARTINI",
+          "2.1.2.19 Futuro (Post-Romanzo)"
+        ],
+        "content": "2.1.2.19\tFuturo (Post-Romanzo)\nLisa costruirà vita felice e appagante con Gabriele, basata su amore profondo e comprensione reciproca che trascende l'ordinario. FAMIGLIA: Avranno figlia Marta e successivamente nipoti Asia ed Elea.\nEVOLUZIONE RELAZIONE TREVOR: Rapporto inizialmente complesso si placherà gradualmente. Affetto comune per Gabriele e condivisione segreto sulla sua vera natura li porteranno a superare divergenze, trasformando legame in solida amicizia duratura. Trevor rimarrà parte importante e costante della loro vita familiare.\nCARRIERA: Forte della sua esperienza e sensibilità maturata, intraprenderà carriera nella comunicazione (giornalismo, radio, editoria) con rinnovato impegno verso verità e giustizia, o si dedicherà a cause sociali.\nEREDITÀ SPIRITUALE: Conoscenza della vera natura di Gabriele e del loro passato condiviso, unita alle memorie delle sue stesse vite passate, le conferirà saggezza e profondità interiore uniche, che guideranno le sue scelte e il suo impatto positivo sul mondo."
+      }
+    ],
+    "edges": [
+      {
+        "otherId": "finding-inactive-thread-Lisafuturacomunicazioneeticaegiustizia",
+        "kind": "applies_to",
+        "otherLabel": "plot_thread_inactive:Lisa futura comunicazione etica e giustizia",
+        "dir": "in",
+        "otherType": "continuity_finding"
+      },
+      {
+        "otherId": "2535b915-f630-4ebf-9329-3addec688c6a",
+        "kind": "has_arc",
+        "otherLabel": "Lisa Martini",
+        "dir": "in",
+        "otherType": "character"
+      }
+    ]
+  },
+  {
+    "id": "738aa4a2-203c-4e28-afec-462058d24295",
+    "type": "precognitive_data",
+    "label": "Futuro post-romanzo di Gabriele",
+    "content": "Dopo il romanzo, Gabriele vive una vita umana piena accanto a Lisa, ha una famiglia con Marta, Asia ed Elea, mantiene un legame profondo con Trevor e conserva sensibilità, vena artistica ed empatia come eredità spirituale.",
+    "metadata": {
+      "sourceBatch": "sezione-3.1-gabriele-rinaldi-gabriel",
+      "family": "timeline",
+      "granularity": "section",
+      "curatedBy": "codex",
+      "requiresReview": false,
+      "canonStatus": "canonical",
+      "committedFromCandidateId": "s31-node-060-futuro-post-romanzo",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.1.20",
+          "textSnippet": "Come umano, Gabriele vivrà una vita piena accanto a Lisa."
+        }
+      ],
+      "sourceId": "bibbia-gabriele-2025"
+    },
+    "provenance": {
+      "source": "novel_commit_bible_candidates",
+      "sourceId": "bibbia-gabriele-2025",
+      "sectionKey": "3.1.20",
+      "candidateId": "s31-node-060-futuro-post-romanzo"
+    },
+    "rows": [
+      {
+        "nodeId": "738aa4a2-203c-4e28-afec-462058d24295",
+        "type": "precognitive_data",
+        "label": "Futuro post-romanzo di Gabriele",
+        "oldSectionKey": "3.1.20",
+        "oldHeading": "Futuro (Post-Romanzo)",
+        "candidateNewSectionKey": "2.1.1.19",
+        "candidateNewHeading": "Futuro (Post-Romanzo)",
+        "candidateId": null,
+        "criterion": "semantic_section_high_ambiguous",
+        "score": 0.94,
+        "status": "ambiguo",
+        "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+        "evidencePaths": [
+          "$.evidence[0].sectionKey",
+          "$.sectionKey"
+        ],
+        "nodeContentSample": "Dopo il romanzo, Gabriele vive una vita umana piena accanto a Lisa, ha una famiglia con Marta, Asia ed Elea, mantiene un legame profondo con Trevor e conserva sensibilità, vena artistica ed empatia come eredità spirit..."
+      }
+    ],
+    "sections": [
+      {
+        "key": "2.1.1.19",
+        "id": "edfc8fde-c916-41ef-9d97-629980629d19",
+        "label": "bibbia-gabriele-2025::2.1.1.19",
+        "heading": "Futuro (Post-Romanzo)",
+        "path": [
+          "2",
+          "2.1 PROTAGONISTI",
+          "2.1.1 GABRIELE RINALDI (GABRIEL)",
+          "2.1.1.19 Futuro (Post-Romanzo)"
+        ],
+        "content": "2.1.1.19\tFuturo (Post-Romanzo)\nCome umano, Gabriele vivrà una vita piena accanto a Lisa. Avranno una famiglia (la figlia Marta, le nipoti Asia ed Elea). Manterrà un legame speciale e profondo con Trevor, custode del suo segreto. Nonostante la perdita dei suoi poteri angelici, la sua sensibilità, la sua vena artistica e la sua profonda empatia (forse una traccia della sua antica saggezza angelica) rimarranno, arricchendo la sua vita terrena. La sua vita sarà una testimonianza della forza dell'amore e della scelta consapevole dell'umanità. Potrebbe diventare un artista riconosciuto o dedicarsi a cause umanitarie. La piuma, passata a Elea, simboleggia la continuità della sua eredità spirituale e del suo amore.\nNell'Epilogo della cornice narrativa (27/12/2080), dopo aver trasmesso la memoria alle nipoti, incontra serenamente Azrael sotto la cometa vista nel Prologo. Il dialogo finale (“È ora?” / “Non ancora... ma sarà presto”) rivela l'accettazione matura del suo destino e la pace per aver compiuto tutto ciò che era in suo potere fare."
+      }
+    ],
+    "edges": [
+      {
+        "otherId": "878d9101-7e98-4e61-bdbc-866307c1e2af",
+        "kind": "pays_off",
+        "otherLabel": "Arco narrativo principale di Gabriele",
+        "dir": "in",
+        "otherType": "plot_thread"
+      }
+    ]
+  },
+  {
+    "id": "b392a47f-e618-48e5-adb3-6fd7531376d4",
+    "type": "relationship_dynamic",
+    "label": "Elena Costa - Relazioni Chiave",
+    "content": "Relazioni Chiave",
+    "metadata": {
+      "family": "relationships",
+      "granularity": "atomic",
+      "curatedBy": "codex",
+      "batch": "sezione-3-5-3-7-raphael-michael-secondari",
+      "sectionKeyMapped": "3.7.6.7",
+      "topEntity": "Elena Costa",
+      "structuralOnly": true,
+      "canonStatus": "canonical",
+      "committedFromCandidateId": "s35-node-38db66a760ab",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.7.6.7",
+          "textSnippet": "Relazioni Chiave"
+        }
+      ],
+      "sourceId": "bibbia-gabriele-2025"
+    },
+    "provenance": {
+      "source": "novel_commit_bible_candidates",
+      "sourceId": "bibbia-gabriele-2025",
+      "sectionKey": "3.7.6.7",
+      "candidateId": "s35-node-38db66a760ab"
+    },
+    "rows": [
+      {
+        "nodeId": "b392a47f-e618-48e5-adb3-6fd7531376d4",
+        "type": "relationship_dynamic",
+        "label": "Elena Costa - Relazioni Chiave",
+        "oldSectionKey": "3.7.6.7",
+        "oldHeading": "Relazioni Chiave",
+        "candidateNewSectionKey": "2.4.1.8",
+        "candidateNewHeading": "Relazioni Chiave",
+        "candidateId": null,
+        "criterion": "semantic_section_high_ambiguous",
+        "score": 0.8571,
+        "status": "ambiguo",
+        "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+        "evidencePaths": [
+          "$.evidence[0].sectionKey",
+          "$.sectionKey"
+        ],
+        "nodeContentSample": "Relazioni Chiave"
+      }
+    ],
+    "sections": [
+      {
+        "key": "2.4.1.8",
+        "id": "9e21a9e6-4e5f-481b-b820-bc68b107bea5",
+        "label": "bibbia-gabriele-2025::2.4.1.8",
+        "heading": "Relazioni Chiave",
+        "path": [
+          "2",
+          "2.4 PERSONAGGI SECONDARI RICORRENTI",
+          "2.4.1 ELENA COSTA",
+          "2.4.1.8 Relazioni Chiave"
+        ],
+        "content": "2.4.1.8\tRelazioni Chiave"
+      }
+    ],
+    "edges": [
+      {
+        "otherId": "33de9b69-a7d6-41ba-a305-f01e4f1f2cdf",
+        "kind": "about",
+        "otherLabel": "Elena Costa",
+        "dir": "in",
+        "otherType": "character"
+      }
+    ]
+  },
+  {
+    "id": "daa3a754-5c95-4631-8b03-a50598aef708",
+    "type": "relationship_dynamic",
+    "label": "Lisa-Trevor amicizia adulta duratura",
+    "content": "Nel post-romanzo il rapporto Lisa-Trevor si placa e diventa una solida amicizia familiare fondata sull affetto comune per Gabriele e sul segreto condiviso.",
+    "metadata": {
+      "curatedBy": "codex",
+      "family": "relationships",
+      "granularity": "atomic",
+      "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+      "requiresReview": false,
+      "canonStatus": "canonical",
+      "committedFromCandidateId": "atom-s32-lisa-trevor-amicizia-adulta",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.2.9",
+          "textSnippet": "trasformando il loro legame in una solida e duratura amicizia"
+        }
+      ],
+      "sourceId": "bibbia-gabriele-2025"
+    },
+    "provenance": {
+      "source": "novel_commit_bible_candidates",
+      "sourceId": "bibbia-gabriele-2025",
+      "sectionKey": "3.2.9",
+      "candidateId": "atom-s32-lisa-trevor-amicizia-adulta"
+    },
+    "rows": [
+      {
+        "nodeId": "daa3a754-5c95-4631-8b03-a50598aef708",
+        "type": "relationship_dynamic",
+        "label": "Lisa-Trevor amicizia adulta duratura",
+        "oldSectionKey": "3.2.9",
+        "oldHeading": "FUTURO (POST-ROMANZO)",
+        "candidateNewSectionKey": "2.1.2.19",
+        "candidateNewHeading": "Futuro (Post-Romanzo)",
+        "candidateId": null,
+        "criterion": "semantic_section_high_ambiguous",
+        "score": 0.7603,
+        "status": "ambiguo",
+        "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+        "evidencePaths": [
+          "$.evidence[0].sectionKey",
+          "$.sectionKey"
+        ],
+        "nodeContentSample": "Nel post-romanzo il rapporto Lisa-Trevor si placa e diventa una solida amicizia familiare fondata sull affetto comune per Gabriele e sul segreto condiviso."
+      }
+    ],
+    "sections": [
+      {
+        "key": "2.1.2.19",
+        "id": "43947a3c-5f37-4b5c-9421-2f00c87cdd9a",
+        "label": "bibbia-gabriele-2025::2.1.2.19",
+        "heading": "Futuro (Post-Romanzo)",
+        "path": [
+          "2",
+          "2.1 PROTAGONISTI",
+          "2.1.2 LISA MARTINI",
+          "2.1.2.19 Futuro (Post-Romanzo)"
+        ],
+        "content": "2.1.2.19\tFuturo (Post-Romanzo)\nLisa costruirà vita felice e appagante con Gabriele, basata su amore profondo e comprensione reciproca che trascende l'ordinario. FAMIGLIA: Avranno figlia Marta e successivamente nipoti Asia ed Elea.\nEVOLUZIONE RELAZIONE TREVOR: Rapporto inizialmente complesso si placherà gradualmente. Affetto comune per Gabriele e condivisione segreto sulla sua vera natura li porteranno a superare divergenze, trasformando legame in solida amicizia duratura. Trevor rimarrà parte importante e costante della loro vita familiare.\nCARRIERA: Forte della sua esperienza e sensibilità maturata, intraprenderà carriera nella comunicazione (giornalismo, radio, editoria) con rinnovato impegno verso verità e giustizia, o si dedicherà a cause sociali.\nEREDITÀ SPIRITUALE: Conoscenza della vera natura di Gabriele e del loro passato condiviso, unita alle memorie delle sue stesse vite passate, le conferirà saggezza e profondità interiore uniche, che guideranno le sue scelte e il suo impatto positivo sul mondo."
+      }
+    ],
+    "edges": [
+      {
+        "otherId": "a97f6bb1-883d-4352-87a0-ace580ca6bba",
+        "kind": "precedes",
+        "otherLabel": "Lisa-Trevor amicizia non tradizionale e custodia del segreto",
+        "dir": "in",
+        "otherType": "relationship_dynamic"
+      },
+      {
+        "otherId": "a562ec43-bdd3-4574-899c-e8541aed7e66",
+        "kind": "about",
+        "otherLabel": "Trevor Rossi (SpeedyGonzy)",
+        "dir": "out",
+        "otherType": "character"
+      },
+      {
+        "otherId": "2535b915-f630-4ebf-9329-3addec688c6a",
+        "kind": "about",
+        "otherLabel": "Lisa Martini",
+        "dir": "out",
+        "otherType": "character"
+      }
+    ]
+  },
+  {
+    "id": "7280d9c3-960d-44e0-a8a9-9d7245ec71af",
+    "type": "relationship_dynamic",
+    "label": "Relazioni chiave di Gabriele",
+    "content": "Sistema relazionale del personaggio: Lisa come amore millenario, Trevor come migliore amico e custode del segreto, Cristiano come bullo/rivale, Raphael come fratello angelico e i genitori umani come figure affettuose ma ignare.",
+    "metadata": {
+      "sourceBatch": "sezione-3.1-gabriele-rinaldi-gabriel",
+      "family": "relationships",
+      "granularity": "section",
+      "curatedBy": "codex",
+      "requiresReview": false,
+      "canonStatus": "canonical",
+      "committedFromCandidateId": "s31-node-047-relazioni-chiave",
+      "evidence": [
+        {
+          "sourceId": "bibbia-gabriele-2025",
+          "sectionKey": "3.1.17",
+          "textSnippet": "RELAZIONI CHIAVE"
+        }
+      ],
+      "sourceId": "bibbia-gabriele-2025"
+    },
+    "provenance": {
+      "source": "novel_commit_bible_candidates",
+      "sourceId": "bibbia-gabriele-2025",
+      "sectionKey": "3.1.17",
+      "candidateId": "s31-node-047-relazioni-chiave"
+    },
+    "rows": [
+      {
+        "nodeId": "7280d9c3-960d-44e0-a8a9-9d7245ec71af",
+        "type": "relationship_dynamic",
+        "label": "Relazioni chiave di Gabriele",
+        "oldSectionKey": "3.1.17",
+        "oldHeading": "Relazioni Chiave",
+        "candidateNewSectionKey": "2.1.1.15",
+        "candidateNewHeading": "Relazioni Chiave",
+        "candidateId": null,
+        "criterion": "semantic_section_high_ambiguous",
+        "score": 0.9333,
+        "status": "ambiguo",
+        "reason": "Match possibile ma non sicuro: heading generico o contesto insufficiente. Similarita semantico-lessicale alta con ramo coerente.",
+        "evidencePaths": [
+          "$.evidence[0].sectionKey",
+          "$.sectionKey"
+        ],
+        "nodeContentSample": "Sistema relazionale del personaggio: Lisa come amore millenario, Trevor come migliore amico e custode del segreto, Cristiano come bullo/rivale, Raphael come fratello angelico e i genitori umani come figure affettuose..."
+      }
+    ],
+    "sections": [
+      {
+        "key": "2.1.1.15",
+        "id": "75895a9f-76b4-435b-b2e8-035378f82db9",
+        "label": "bibbia-gabriele-2025::2.1.1.15",
+        "heading": "Relazioni Chiave",
+        "path": [
+          "2",
+          "2.1 PROTAGONISTI",
+          "2.1.1 GABRIELE RINALDI (GABRIEL)",
+          "2.1.1.15 Relazioni Chiave"
+        ],
+        "content": "2.1.1.15\tRelazioni Chiave\nCONTROLLO OBBLIGATORIO: Verificare stato relazionale specifico consultando Sez. 4 (Cronologia Dettagliata degli Eventi) prima di scrivere qualsiasi interazione."
+      }
+    ],
+    "edges": [
+      {
+        "otherId": "73e7e43b-847f-41de-9e50-72288502daf8",
+        "kind": "part_of",
+        "otherLabel": "Gabriel-Raphael fratellanza angelica e dovere",
+        "dir": "in",
+        "otherType": "relationship_dynamic"
+      },
+      {
+        "otherId": "4c344e0e-f2bd-431c-856e-5a9888478530",
+        "kind": "part_of",
+        "otherLabel": "Gabriele-Cristiano rivalità e bullismo",
+        "dir": "in",
+        "otherType": "relationship_dynamic"
+      },
+      {
+        "otherId": "91685e6c-1e33-482a-a0dc-ed44683d68a2",
+        "kind": "part_of",
+        "otherLabel": "Gabriele-Trevor amicizia rottura e riconciliazione",
+        "dir": "in",
+        "otherType": "relationship_dynamic"
+      },
+      {
+        "otherId": "2cda3a82-ef1a-429f-8ee6-4fccf6f44bc8",
+        "kind": "part_of",
+        "otherLabel": "Gabriele-Lisa legame eterno e futuro umano",
+        "dir": "in",
+        "otherType": "relationship_dynamic"
+      },
+      {
+        "otherId": "df698b81-a4fc-4a4b-92e1-6f23ed5ebdbf",
+        "kind": "about",
+        "otherLabel": "Gabriele Rinaldi (Gabriel)",
+        "dir": "out",
+        "otherType": "character"
+      }
+    ]
+  }
+]

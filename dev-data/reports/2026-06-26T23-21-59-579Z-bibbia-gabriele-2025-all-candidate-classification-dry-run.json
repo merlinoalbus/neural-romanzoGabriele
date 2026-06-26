@@ -1,0 +1,3427 @@
+{
+  "ok": true,
+  "readOnly": true,
+  "sourceId": "bibbia-gabriele-2025",
+  "generatedAt": "2026-06-26T23:21:59.577Z",
+  "beforeAudit": {
+    "nodes": 11595,
+    "edges": 23544,
+    "orphanNodes": 0,
+    "relatedToTotal": 0,
+    "nonRelPhysicalEdges": 0
+  },
+  "summary": {
+    "total": 10295,
+    "byDisposition": {
+      "B_merged_into_existing_canonical_candidate": 1386,
+      "C_rejected_false_positive_candidate": 1360,
+      "D_superseded_by_section_or_better_candidate": 1,
+      "E_conflict_requires_author_resolution": 7548
+    },
+    "byReason": {
+      "heading_or_title_only_not_atomic_concept": 1360,
+      "high_semantic_overlap_existing_canonical": 1385,
+      "low_information_or_extractor_artifact": 1,
+      "same_content_multiple_target_types_requires_type_selection": 7543,
+      "same_type_label_existing_canonical": 1,
+      "target_type_false_positive_requires_retyping_or_rejection": 5
+    },
+    "byTargetType": {
+      "artifact": 47,
+      "bible_claim": 4695,
+      "character_belief": 5,
+      "character_goal": 23,
+      "character_state": 397,
+      "character_trait": 1,
+      "character_voice": 5,
+      "character_wound": 128,
+      "faction": 204,
+      "glossary_term": 1,
+      "knowledge_state": 1083,
+      "location": 8,
+      "motif": 1418,
+      "narrative_constraint": 80,
+      "power": 237,
+      "precognitive_data": 27,
+      "relationship_dynamic": 10,
+      "revelation": 151,
+      "secret": 207,
+      "symbol": 36,
+      "theme": 50,
+      "timeline_event": 1438,
+      "world_rule": 44
+    },
+    "byGranularity": {
+      "atomic": 9684,
+      "section": 611
+    },
+    "pendingBeforeClassification": 10295,
+    "unresolvedAfterClassification": 7548,
+    "conflicts": 7548,
+    "classifiedReceipts": 2747
+  },
+  "samplesByDisposition": {
+    "C_rejected_false_positive_candidate": [
+      {
+        "candidateId": "bible-candidate-0000000021fe4207",
+        "targetType": "bible_claim",
+        "label": "GABRIELE RINALDI (GABRIEL) - claim 1",
+        "sectionKey": "2.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1 GABRIELE RINALDI (GABRIEL)"
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de45eb",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 1",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.1.1 Fase Iniziale (Umano – Adolescente, Pre-29/09/2020)"
+      },
+      {
+        "candidateId": "bible-candidate-00000000048e1414",
+        "targetType": "bible_claim",
+        "label": "Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020) - claim 1",
+        "sectionKey": "2.1.1.1.2",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.1.2 Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020)"
+      },
+      {
+        "candidateId": "bible-candidate-000000001f8965e7",
+        "targetType": "bible_claim",
+        "label": "Forma Angelica (25/02/2021 – Festa Carnevale) - claim 1",
+        "sectionKey": "2.1.1.1.3",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.1.3 Forma Angelica (25/02/2021 – Festa Carnevale)"
+      },
+      {
+        "candidateId": "bible-candidate-0000000056b4f670",
+        "targetType": "bible_claim",
+        "label": "Forma Umana Finale (Post 21/06/2021) - claim 1",
+        "sectionKey": "2.1.1.1.4",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.1.4 Forma Umana Finale (Post 21/06/2021)"
+      },
+      {
+        "candidateId": "bible-candidate-0000000036ce2c97",
+        "targetType": "bible_claim",
+        "label": "Talenti Nascosti e Rapporto con l'Arte - claim 1",
+        "sectionKey": "2.1.1.10",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.10 Talenti Nascosti e Rapporto con l'Arte"
+      },
+      {
+        "candidateId": "bible-candidate-000000003f80b9e8",
+        "targetType": "bible_claim",
+        "label": "Amore Segreto (poi Rivelato e Ricambiato) - claim 1",
+        "sectionKey": "2.1.1.11",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.11 Amore Segreto (poi Rivelato e Ricambiato)"
+      },
+      {
+        "candidateId": "bible-candidate-00000000139c0ed7",
+        "targetType": "secret",
+        "label": "Amore Segreto (poi Rivelato e Ricambiato) - secret 1",
+        "sectionKey": "2.1.1.11",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.11 Amore Segreto (poi Rivelato e Ricambiato)"
+      },
+      {
+        "candidateId": "bible-candidate-0000000008ddf449",
+        "targetType": "revelation",
+        "label": "Amore Segreto (poi Rivelato e Ricambiato) - revelation 1",
+        "sectionKey": "2.1.1.11",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.11 Amore Segreto (poi Rivelato e Ricambiato)"
+      },
+      {
+        "candidateId": "bible-candidate-00000000549f5043",
+        "targetType": "bible_claim",
+        "label": "Poteri Angelici (Manifestazioni Graduali) - claim 1",
+        "sectionKey": "2.1.1.12",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.12 Poteri Angelici (Manifestazioni Graduali)"
+      }
+    ],
+    "E_conflict_requires_author_resolution": [
+      {
+        "candidateId": "bible-candidate-0000000021fe41e8",
+        "targetType": "bible_claim",
+        "label": "GABRIELE RINALDI (GABRIEL) - claim 2",
+        "sectionKey": "2.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+      },
+      {
+        "candidateId": "bible-candidate-000000005f21d0df",
+        "targetType": "narrative_constraint",
+        "label": "GABRIELE RINALDI (GABRIEL) - narrative_constraint 2",
+        "sectionKey": "2.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+      },
+      {
+        "candidateId": "bible-candidate-000000000e376645",
+        "targetType": "timeline_event",
+        "label": "GABRIELE RINALDI (GABRIEL) - timeline_event 2",
+        "sectionKey": "2.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+      },
+      {
+        "candidateId": "bible-candidate-0000000021fe41c9",
+        "targetType": "bible_claim",
+        "label": "GABRIELE RINALDI (GABRIEL) - claim 3",
+        "sectionKey": "2.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "4.1, 4.2, 4.3, 4.4 VIETATO utilizzare timeline alternative."
+      },
+      {
+        "candidateId": "bible-candidate-000000000e376626",
+        "targetType": "timeline_event",
+        "label": "GABRIELE RINALDI (GABRIEL) - timeline_event 3",
+        "sectionKey": "2.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "4.1, 4.2, 4.3, 4.4 VIETATO utilizzare timeline alternative."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de456f",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 5",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Il suo viso, di forma ovale o leggermente allungata, è tormentato da una fastidiosa acne giovanile – un paesaggio di brufoli rossi e infiammati, con qualche cicatrice, concentrata principalmente su fronte e guance."
+      },
+      {
+        "candidateId": "bible-candidate-000000000979be7e",
+        "targetType": "knowledge_state",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - knowledge_state 5",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Il suo viso, di forma ovale o leggermente allungata, è tormentato da una fastidiosa acne giovanile – un paesaggio di brufoli rossi e infiammati, con qualche cicatrice, concentrata principalmente su fronte e guance."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de4512",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 8",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Indossa occhiali dalla montatura spessa, rotonda, forse un po' datata (ad esempio, in metallo nero o tartaruga scura), che accentuano la sua aria da “secchione”."
+      },
+      {
+        "candidateId": "bible-candidate-000000000979bedb",
+        "targetType": "knowledge_state",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - knowledge_state 8",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Indossa occhiali dalla montatura spessa, rotonda, forse un po' datata (ad esempio, in metallo nero o tartaruga scura), che accentuano la sua aria da “secchione”."
+      },
+      {
+        "candidateId": "bible-candidate-000000006b6e444f",
+        "targetType": "artifact",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - artifact 8",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Indossa occhiali dalla montatura spessa, rotonda, forse un po' datata (ad esempio, in metallo nero o tartaruga scura), che accentuano la sua aria da “secchione”."
+      }
+    ],
+    "B_merged_into_existing_canonical_candidate": [
+      {
+        "candidateId": "bible-candidate-0000000013de45cc",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 2",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "024d0d29-118d-44e6-b28e-1d3fe41a881b",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.1",
+          "score": 1
+        },
+        "content": "Gabriele, all'età di quindici-sedici anni, incarna l'archetipo del “nerd” liceale."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de45ad",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 3",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "024d0d29-118d-44e6-b28e-1d3fe41a881b",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.1",
+          "score": 1
+        },
+        "content": "La sua corporatura è esile, quasi scheletrica, accentuata da una postura spesso curva e goffa che tradisce la sua profonda insicurezza."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de458e",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 4",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "024d0d29-118d-44e6-b28e-1d3fe41a881b",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.1",
+          "score": 1
+        },
+        "content": "Le spalle sono strette."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de4550",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 6",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "024d0d29-118d-44e6-b28e-1d3fe41a881b",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.1",
+          "score": 1
+        },
+        "content": "La sua espressione è frequentemente timida e ansiosa, con lo sguardo spesso rivolto verso il basso o perso nel vuoto."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de4531",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 7",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "024d0d29-118d-44e6-b28e-1d3fe41a881b",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.1",
+          "score": 1
+        },
+        "content": "I capelli neri, lisci, appaiono senza vita e trasandati, ricadendo spesso sulla fronte a coprire parzialmente gli occhi castani, di una tonalità media o scura, frequentemente cerchiati da ombre violacee dovute a insonnia o stress."
+      },
+      {
+        "candidateId": "bible-candidate-00000000048e13f5",
+        "targetType": "bible_claim",
+        "label": "Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020) - claim 2",
+        "sectionKey": "2.1.1.1.2",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "ef7877d2-d2b2-47f4-a0a1-1ef8bfb2a7cc",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.2",
+          "score": 1
+        },
+        "content": "Tra i sedici e i diciassette anni, Gabriele subisce una notevole trasformazione che gli conferisce un'aria più matura e definita."
+      },
+      {
+        "candidateId": "bible-candidate-00000000048e13d6",
+        "targetType": "bible_claim",
+        "label": "Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020) - claim 3",
+        "sectionKey": "2.1.1.1.2",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "ef7877d2-d2b2-47f4-a0a1-1ef8bfb2a7cc",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.2",
+          "score": 1
+        },
+        "content": "Diventa più alto, con un fisico asciutto ma atletico e ben delineato: le spalle si allargano, e la muscolatura di pettorali, addominali e braccia diventa tonica e visibile, seppur non esagerata."
+      },
+      {
+        "candidateId": "bible-candidate-00000000048e13b7",
+        "targetType": "bible_claim",
+        "label": "Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020) - claim 4",
+        "sectionKey": "2.1.1.1.2",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "ef7877d2-d2b2-47f4-a0a1-1ef8bfb2a7cc",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.2",
+          "score": 1
+        },
+        "content": "La sua postura si raddrizza, diventando più eretta e sicura."
+      },
+      {
+        "candidateId": "bible-candidate-00000000048e1398",
+        "targetType": "bible_claim",
+        "label": "Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020) - claim 5",
+        "sectionKey": "2.1.1.1.2",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "ef7877d2-d2b2-47f4-a0a1-1ef8bfb2a7cc",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.2",
+          "score": 1
+        },
+        "content": "Il viso acquisisce una pelle completamente liscia, priva di acne, quasi marmorea, con un colorito sano e forse un sottile splendore interno; i lineamenti si fanno più definiti, con zigomi più alti e una mascella leggermente più squadrata."
+      },
+      {
+        "candidateId": "bible-candidate-00000000048e1379",
+        "targetType": "bible_claim",
+        "label": "Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020) - claim 6",
+        "sectionKey": "2.1.1.1.2",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "ef7877d2-d2b2-47f4-a0a1-1ef8bfb2a7cc",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.2",
+          "score": 1
+        },
+        "content": "La sua espressione può variare da una nuova sicurezza a momenti di profonda ansia o un'intensità quasi ultraterrena."
+      }
+    ],
+    "D_superseded_by_section_or_better_candidate": [
+      {
+        "candidateId": "bible-candidate-000000005053ee1d",
+        "targetType": "bible_claim",
+        "label": "Trevor Rossi (Sez. 2.2.1) - claim 8",
+        "sectionKey": "2.1.1.15.2",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "low_information_or_extractor_artifact",
+        "content": "4.4.4, 4.4.5, 4.4.6)."
+      }
+    ]
+  },
+  "samplesByReason": {
+    "heading_or_title_only_not_atomic_concept": [
+      {
+        "candidateId": "bible-candidate-0000000021fe4207",
+        "targetType": "bible_claim",
+        "label": "GABRIELE RINALDI (GABRIEL) - claim 1",
+        "sectionKey": "2.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1 GABRIELE RINALDI (GABRIEL)"
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de45eb",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 1",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.1.1 Fase Iniziale (Umano – Adolescente, Pre-29/09/2020)"
+      },
+      {
+        "candidateId": "bible-candidate-00000000048e1414",
+        "targetType": "bible_claim",
+        "label": "Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020) - claim 1",
+        "sectionKey": "2.1.1.1.2",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.1.2 Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020)"
+      },
+      {
+        "candidateId": "bible-candidate-000000001f8965e7",
+        "targetType": "bible_claim",
+        "label": "Forma Angelica (25/02/2021 – Festa Carnevale) - claim 1",
+        "sectionKey": "2.1.1.1.3",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.1.3 Forma Angelica (25/02/2021 – Festa Carnevale)"
+      },
+      {
+        "candidateId": "bible-candidate-0000000056b4f670",
+        "targetType": "bible_claim",
+        "label": "Forma Umana Finale (Post 21/06/2021) - claim 1",
+        "sectionKey": "2.1.1.1.4",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.1.4 Forma Umana Finale (Post 21/06/2021)"
+      },
+      {
+        "candidateId": "bible-candidate-0000000036ce2c97",
+        "targetType": "bible_claim",
+        "label": "Talenti Nascosti e Rapporto con l'Arte - claim 1",
+        "sectionKey": "2.1.1.10",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.10 Talenti Nascosti e Rapporto con l'Arte"
+      }
+    ],
+    "same_content_multiple_target_types_requires_type_selection": [
+      {
+        "candidateId": "bible-candidate-0000000021fe41e8",
+        "targetType": "bible_claim",
+        "label": "GABRIELE RINALDI (GABRIEL) - claim 2",
+        "sectionKey": "2.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+      },
+      {
+        "candidateId": "bible-candidate-000000005f21d0df",
+        "targetType": "narrative_constraint",
+        "label": "GABRIELE RINALDI (GABRIEL) - narrative_constraint 2",
+        "sectionKey": "2.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+      },
+      {
+        "candidateId": "bible-candidate-000000000e376645",
+        "targetType": "timeline_event",
+        "label": "GABRIELE RINALDI (GABRIEL) - timeline_event 2",
+        "sectionKey": "2.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+      },
+      {
+        "candidateId": "bible-candidate-0000000021fe41c9",
+        "targetType": "bible_claim",
+        "label": "GABRIELE RINALDI (GABRIEL) - claim 3",
+        "sectionKey": "2.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "4.1, 4.2, 4.3, 4.4 VIETATO utilizzare timeline alternative."
+      },
+      {
+        "candidateId": "bible-candidate-000000000e376626",
+        "targetType": "timeline_event",
+        "label": "GABRIELE RINALDI (GABRIEL) - timeline_event 3",
+        "sectionKey": "2.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "4.1, 4.2, 4.3, 4.4 VIETATO utilizzare timeline alternative."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de456f",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 5",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Il suo viso, di forma ovale o leggermente allungata, è tormentato da una fastidiosa acne giovanile – un paesaggio di brufoli rossi e infiammati, con qualche cicatrice, concentrata principalmente su fronte e guance."
+      }
+    ],
+    "high_semantic_overlap_existing_canonical": [
+      {
+        "candidateId": "bible-candidate-0000000013de45cc",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 2",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "024d0d29-118d-44e6-b28e-1d3fe41a881b",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.1",
+          "score": 1
+        },
+        "content": "Gabriele, all'età di quindici-sedici anni, incarna l'archetipo del “nerd” liceale."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de45ad",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 3",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "024d0d29-118d-44e6-b28e-1d3fe41a881b",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.1",
+          "score": 1
+        },
+        "content": "La sua corporatura è esile, quasi scheletrica, accentuata da una postura spesso curva e goffa che tradisce la sua profonda insicurezza."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de458e",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 4",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "024d0d29-118d-44e6-b28e-1d3fe41a881b",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.1",
+          "score": 1
+        },
+        "content": "Le spalle sono strette."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de4550",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 6",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "024d0d29-118d-44e6-b28e-1d3fe41a881b",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.1",
+          "score": 1
+        },
+        "content": "La sua espressione è frequentemente timida e ansiosa, con lo sguardo spesso rivolto verso il basso o perso nel vuoto."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de4531",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 7",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "024d0d29-118d-44e6-b28e-1d3fe41a881b",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.1",
+          "score": 1
+        },
+        "content": "I capelli neri, lisci, appaiono senza vita e trasandati, ricadendo spesso sulla fronte a coprire parzialmente gli occhi castani, di una tonalità media o scura, frequentemente cerchiati da ombre violacee dovute a insonnia o stress."
+      },
+      {
+        "candidateId": "bible-candidate-00000000048e13f5",
+        "targetType": "bible_claim",
+        "label": "Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020) - claim 2",
+        "sectionKey": "2.1.1.1.2",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "ef7877d2-d2b2-47f4-a0a1-1ef8bfb2a7cc",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.2",
+          "score": 1
+        },
+        "content": "Tra i sedici e i diciassette anni, Gabriele subisce una notevole trasformazione che gli conferisce un'aria più matura e definita."
+      }
+    ],
+    "low_information_or_extractor_artifact": [
+      {
+        "candidateId": "bible-candidate-000000005053ee1d",
+        "targetType": "bible_claim",
+        "label": "Trevor Rossi (Sez. 2.2.1) - claim 8",
+        "sectionKey": "2.1.1.15.2",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "low_information_or_extractor_artifact",
+        "content": "4.4.4, 4.4.5, 4.4.6)."
+      }
+    ],
+    "target_type_false_positive_requires_retyping_or_rejection": [
+      {
+        "candidateId": "bible-candidate-000000002d98ef02",
+        "targetType": "location",
+        "label": "Momento di Intervento",
+        "sectionKey": "2.5.3.1.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "target_type_false_positive_requires_retyping_or_rejection",
+        "content": "2.5.3.1.1\tMomento di Intervento\nDicembre 2020, durante la fase avanzata di manifestazione dei poteri soprannaturali di Gabriele (dopo poteri empatici, contestuale a comunicazione animali e guarigione)."
+      },
+      {
+        "candidateId": "bible-candidate-000000005b715e4f",
+        "targetType": "location",
+        "label": "Ruolo Funzionale",
+        "sectionKey": "2.5.3.1.2",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "target_type_false_positive_requires_retyping_or_rejection",
+        "content": "2.5.3.1.2\tRuolo Funzionale\nTestimone inconsapevole delle capacità xenoglossiche di Gabriele. Nel quartiere residenziale con villette e giardini, interagisce con lui in mandarino ricevendo una risposta fluida e naturale che la sorprende prof"
+      },
+      {
+        "candidateId": "bible-candidate-0000000006b5f625",
+        "targetType": "location",
+        "label": "Aspetto Essenziale",
+        "sectionKey": "2.5.3.1.3",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "target_type_false_positive_requires_retyping_or_rejection",
+        "content": "2.5.3.1.3\tAspetto Essenziale\nDonna adulta (30-40 anni) di origine asiatica orientale. Espressione di sorpresa e confusione nel sentire Gabriele rispondere perfettamente in mandarino."
+      },
+      {
+        "candidateId": "bible-candidate-000000005b5cd30b",
+        "targetType": "location",
+        "label": "Funzione Narrativa",
+        "sectionKey": "2.5.3.1.4",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "target_type_false_positive_requires_retyping_or_rejection",
+        "content": "2.5.3.1.4\tFunzione Narrativa\nConferma delle capacità xenoglossiche nella progressione accelerata dei poteri angelici. Evidenzia la comprensione/comunicazione universale e contribuisce alla crescente consapevolezza di Gabriele della sua natu"
+      },
+      {
+        "candidateId": "bible-candidate-000000000d69e9a8",
+        "targetType": "location",
+        "label": "Impatto",
+        "sectionKey": "2.5.3.1.5",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "target_type_false_positive_requires_retyping_or_rejection",
+        "content": "2.5.3.1.5\tImpatto\nRinforzo della realizzazione di Gabriele sull'impossibilità \"scientifica\" dei suoi cambiamenti in rapida escalation. Post-oblio (meccanismo selettivo Cap. 38): ricorda uno scambio linguistico normale con il ragazzo del qua"
+      }
+    ],
+    "same_type_label_existing_canonical": [
+      {
+        "candidateId": "bible-candidate-00000000713e67bb",
+        "targetType": "world_rule",
+        "label": "REGOLE CELESTI",
+        "sectionKey": "3.3.4",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "same_type_label_existing_canonical",
+        "target": {
+          "id": "571bf7dc-911f-46d5-b6bf-32b835d56eed",
+          "type": "world_rule",
+          "label": "Regole celesti"
+        },
+        "content": "3.3.4\tREGOLE CELESTI\nL'esistenza angelica è governata da leggi divine fondamentali per il mantenimento dell'Ordine Divino e dell'equilibrio cosmico:"
+      }
+    ]
+  },
+  "conflicts": [
+    {
+      "candidateId": "bible-candidate-0000000021fe41e8",
+      "targetType": "bible_claim",
+      "label": "GABRIELE RINALDI (GABRIEL) - claim 2",
+      "sectionKey": "2.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "narrative_constraint",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 10,
+      "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000005f21d0df",
+      "targetType": "narrative_constraint",
+      "label": "GABRIELE RINALDI (GABRIEL) - narrative_constraint 2",
+      "sectionKey": "2.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "narrative_constraint",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 10,
+      "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000000e376645",
+      "targetType": "timeline_event",
+      "label": "GABRIELE RINALDI (GABRIEL) - timeline_event 2",
+      "sectionKey": "2.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "narrative_constraint",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 10,
+      "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000021fe41c9",
+      "targetType": "bible_claim",
+      "label": "GABRIELE RINALDI (GABRIEL) - claim 3",
+      "sectionKey": "2.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "4.1, 4.2, 4.3, 4.4 VIETATO utilizzare timeline alternative."
+    },
+    {
+      "candidateId": "bible-candidate-000000000e376626",
+      "targetType": "timeline_event",
+      "label": "GABRIELE RINALDI (GABRIEL) - timeline_event 3",
+      "sectionKey": "2.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "4.1, 4.2, 4.3, 4.4 VIETATO utilizzare timeline alternative."
+    },
+    {
+      "candidateId": "bible-candidate-0000000013de456f",
+      "targetType": "bible_claim",
+      "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 5",
+      "sectionKey": "2.1.1.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Il suo viso, di forma ovale o leggermente allungata, è tormentato da una fastidiosa acne giovanile – un paesaggio di brufoli rossi e infiammati, con qualche cicatrice, concentrata principalmente su fronte e guance."
+    },
+    {
+      "candidateId": "bible-candidate-000000000979be7e",
+      "targetType": "knowledge_state",
+      "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - knowledge_state 5",
+      "sectionKey": "2.1.1.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Il suo viso, di forma ovale o leggermente allungata, è tormentato da una fastidiosa acne giovanile – un paesaggio di brufoli rossi e infiammati, con qualche cicatrice, concentrata principalmente su fronte e guance."
+    },
+    {
+      "candidateId": "bible-candidate-0000000013de4512",
+      "targetType": "bible_claim",
+      "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 8",
+      "sectionKey": "2.1.1.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Indossa occhiali dalla montatura spessa, rotonda, forse un po' datata (ad esempio, in metallo nero o tartaruga scura), che accentuano la sua aria da “secchione”."
+    },
+    {
+      "candidateId": "bible-candidate-000000000979bedb",
+      "targetType": "knowledge_state",
+      "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - knowledge_state 8",
+      "sectionKey": "2.1.1.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Indossa occhiali dalla montatura spessa, rotonda, forse un po' datata (ad esempio, in metallo nero o tartaruga scura), che accentuano la sua aria da “secchione”."
+    },
+    {
+      "candidateId": "bible-candidate-000000006b6e444f",
+      "targetType": "artifact",
+      "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - artifact 8",
+      "sectionKey": "2.1.1.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Indossa occhiali dalla montatura spessa, rotonda, forse un po' datata (ad esempio, in metallo nero o tartaruga scura), che accentuano la sua aria da “secchione”."
+    },
+    {
+      "candidateId": "bible-candidate-0000000013de44f3",
+      "targetType": "bible_claim",
+      "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 9",
+      "sectionKey": "2.1.1.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "secret"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Il suo abbigliamento è costituito da abiti larghi e informi, scelti più per nascondere il corpo che per vestirlo: felpe con cappuccio oversize (spesso di colori scuri o spenti come il grigio), jeans comodi e un po' sformati, e scarpe da ginnastica consunte."
+    },
+    {
+      "candidateId": "bible-candidate-000000000ef107d2",
+      "targetType": "secret",
+      "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - secret 9",
+      "sectionKey": "2.1.1.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "secret"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Il suo abbigliamento è costituito da abiti larghi e informi, scelti più per nascondere il corpo che per vestirlo: felpe con cappuccio oversize (spesso di colori scuri o spenti come il grigio), jeans comodi e un po' sformati, e scarpe da ginnastica consunte."
+    },
+    {
+      "candidateId": "bible-candidate-0000000067ea72d1",
+      "targetType": "bible_claim",
+      "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 10",
+      "sectionKey": "2.1.1.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Emana un'aura generale di perenne disagio e bassa autostima, tipica dell'emarginato timido e introverso."
+    },
+    {
+      "candidateId": "bible-candidate-0000000025be06e2",
+      "targetType": "knowledge_state",
+      "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - knowledge_state 10",
+      "sectionKey": "2.1.1.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Emana un'aura generale di perenne disagio e bassa autostima, tipica dell'emarginato timido e introverso."
+    },
+    {
+      "candidateId": "bible-candidate-00000000048e131c",
+      "targetType": "bible_claim",
+      "label": "Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020) - claim 9",
+      "sectionKey": "2.1.1.1.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Inizialmente, per mascherare questo cambiamento e per abitudine, indossa occhiali con lenti neutre, ma poi li abbandona, lasciando i suoi nuovi occhi spesso liberi."
+    },
+    {
+      "candidateId": "bible-candidate-00000000220f85ef",
+      "targetType": "knowledge_state",
+      "label": "Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020) - knowledge_state 9",
+      "sectionKey": "2.1.1.1.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Inizialmente, per mascherare questo cambiamento e per abitudine, indossa occhiali con lenti neutre, ma poi li abbandona, lasciando i suoi nuovi occhi spesso liberi."
+    },
+    {
+      "candidateId": "bible-candidate-000000007572d927",
+      "targetType": "artifact",
+      "label": "Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020) - artifact 9",
+      "sectionKey": "2.1.1.1.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Inizialmente, per mascherare questo cambiamento e per abitudine, indossa occhiali con lenti neutre, ma poi li abbandona, lasciando i suoi nuovi occhi spesso liberi."
+    },
+    {
+      "candidateId": "bible-candidate-000000001f896625",
+      "targetType": "bible_claim",
+      "label": "Forma Angelica (25/02/2021 – Festa Carnevale) - claim 3",
+      "sectionKey": "2.1.1.1.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Il suo corpo emana una luce propria, bianco-dorata, intensa e potente, che proietta un leggero alone intorno a lui, conferendogli un'aura di potere e maestà antica."
+    },
+    {
+      "candidateId": "bible-candidate-000000004d291f52",
+      "targetType": "knowledge_state",
+      "label": "Forma Angelica (25/02/2021 – Festa Carnevale) - knowledge_state 3",
+      "sectionKey": "2.1.1.1.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Il suo corpo emana una luce propria, bianco-dorata, intensa e potente, che proietta un leggero alone intorno a lui, conferendogli un'aura di potere e maestà antica."
+    },
+    {
+      "candidateId": "bible-candidate-000000005eb129e8",
+      "targetType": "power",
+      "label": "Forma Angelica (25/02/2021 – Festa Carnevale) - power 3",
+      "sectionKey": "2.1.1.1.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Il suo corpo emana una luce propria, bianco-dorata, intensa e potente, che proietta un leggero alone intorno a lui, conferendogli un'aura di potere e maestà antica."
+    },
+    {
+      "candidateId": "bible-candidate-0000000056b4f68f",
+      "targetType": "bible_claim",
+      "label": "Forma Umana Finale (Post 21/06/2021) - claim 2",
+      "sectionKey": "2.1.1.1.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Dopo la rinuncia alla sua natura angelica – un atto compiuto nel Cap."
+    },
+    {
+      "candidateId": "bible-candidate-000000007d5baf4e",
+      "targetType": "timeline_event",
+      "label": "Forma Umana Finale (Post 21/06/2021) - timeline_event 2",
+      "sectionKey": "2.1.1.1.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Dopo la rinuncia alla sua natura angelica – un atto compiuto nel Cap."
+    },
+    {
+      "candidateId": "bible-candidate-0000000056b4f6ae",
+      "targetType": "bible_claim",
+      "label": "Forma Umana Finale (Post 21/06/2021) - claim 3",
+      "sectionKey": "2.1.1.1.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "38: Il Dono della Vita Umana con l'assistenza congiunta e fraterna degli Arcangeli Raphael e Michael, durante il quale le sue ali si dissolvono in luce – Gabriele appare come un giovane adulto, per poi maturare e invecchiare come un normale essere umano."
+    },
+    {
+      "candidateId": "bible-candidate-0000000057b04e27",
+      "targetType": "power",
+      "label": "Forma Umana Finale (Post 21/06/2021) - power 3",
+      "sectionKey": "2.1.1.1.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "38: Il Dono della Vita Umana con l'assistenza congiunta e fraterna degli Arcangeli Raphael e Michael, durante il quale le sue ali si dissolvono in luce – Gabriele appare come un giovane adulto, per poi maturare e invecchiare come un normale essere umano."
+    },
+    {
+      "candidateId": "bible-candidate-0000000056b4f768",
+      "targetType": "bible_claim",
+      "label": "Forma Umana Finale (Post 21/06/2021) - claim 9",
+      "sectionKey": "2.1.1.1.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Il suo abbigliamento sarà semplice e normale, adatto all'età e al contesto; da Nonno, vestirà in modo confortevole e classico (ad esempio, un maglione morbido, pantaloni di tessuto, forse occhiali da lettura appoggiati sul naso o appesi al collo quando non racconta)."
+    },
+    {
+      "candidateId": "bible-candidate-00000000223dec9f",
+      "targetType": "artifact",
+      "label": "Forma Umana Finale (Post 21/06/2021) - artifact 9",
+      "sectionKey": "2.1.1.1.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Il suo abbigliamento sarà semplice e normale, adatto all'età e al contesto; da Nonno, vestirà in modo confortevole e classico (ad esempio, un maglione morbido, pantaloni di tessuto, forse occhiali da lettura appoggiati sul naso o appesi al collo quando non racconta)."
+    },
+    {
+      "candidateId": "bible-candidate-0000000036ce2c59",
+      "targetType": "bible_claim",
+      "label": "Talenti Nascosti e Rapporto con l'Arte - claim 3",
+      "sectionKey": "2.1.1.10",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "CRISI POST-RIVELAZIONE: Dopo la piena consapevolezza angelica (Cap."
+    },
+    {
+      "candidateId": "bible-candidate-000000003430ac0e",
+      "targetType": "revelation",
+      "label": "Talenti Nascosti e Rapporto con l'Arte - revelation 3",
+      "sectionKey": "2.1.1.10",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "CRISI POST-RIVELAZIONE: Dopo la piena consapevolezza angelica (Cap."
+    },
+    {
+      "candidateId": "bible-candidate-0000000037db8c14",
+      "targetType": "timeline_event",
+      "label": "Talenti Nascosti e Rapporto con l'Arte - timeline_event 3",
+      "sectionKey": "2.1.1.10",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "CRISI POST-RIVELAZIONE: Dopo la piena consapevolezza angelica (Cap."
+    },
+    {
+      "candidateId": "bible-candidate-000000003f80ba07",
+      "targetType": "bible_claim",
+      "label": "Amore Segreto (poi Rivelato e Ricambiato) - claim 2",
+      "sectionKey": "2.1.1.11",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation",
+        "secret"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente innamorato di Lisa Martini in modo idealizzato e platonico, considerandola “luminosa” e irraggiungibile."
+    },
+    {
+      "candidateId": "bible-candidate-00000000139c0ef6",
+      "targetType": "secret",
+      "label": "Amore Segreto (poi Rivelato e Ricambiato) - secret 2",
+      "sectionKey": "2.1.1.11",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation",
+        "secret"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente innamorato di Lisa Martini in modo idealizzato e platonico, considerandola “luminosa” e irraggiungibile."
+    },
+    {
+      "candidateId": "bible-candidate-0000000001eeb58c",
+      "targetType": "knowledge_state",
+      "label": "Amore Segreto (poi Rivelato e Ricambiato) - knowledge_state 2",
+      "sectionKey": "2.1.1.11",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation",
+        "secret"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente innamorato di Lisa Martini in modo idealizzato e platonico, considerandola “luminosa” e irraggiungibile."
+    },
+    {
+      "candidateId": "bible-candidate-0000000008ddf42a",
+      "targetType": "revelation",
+      "label": "Amore Segreto (poi Rivelato e Ricambiato) - revelation 2",
+      "sectionKey": "2.1.1.11",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation",
+        "secret"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente innamorato di Lisa Martini in modo idealizzato e platonico, considerandola “luminosa” e irraggiungibile."
+    },
+    {
+      "candidateId": "bible-candidate-000000003f80ba26",
+      "targetType": "bible_claim",
+      "label": "Amore Segreto (poi Rivelato e Ricambiato) - claim 3",
+      "sectionKey": "2.1.1.11",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation",
+        "secret"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Il suo amore evolve attraverso la conoscenza reciproca, trasformandosi in un legame profondo e maturo, fino alla riscoperta del loro amore millenario."
+    },
+    {
+      "candidateId": "bible-candidate-00000000139c0f15",
+      "targetType": "secret",
+      "label": "Amore Segreto (poi Rivelato e Ricambiato) - secret 3",
+      "sectionKey": "2.1.1.11",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation",
+        "secret"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Il suo amore evolve attraverso la conoscenza reciproca, trasformandosi in un legame profondo e maturo, fino alla riscoperta del loro amore millenario."
+    },
+    {
+      "candidateId": "bible-candidate-0000000001eeb56d",
+      "targetType": "knowledge_state",
+      "label": "Amore Segreto (poi Rivelato e Ricambiato) - knowledge_state 3",
+      "sectionKey": "2.1.1.11",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation",
+        "secret"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Il suo amore evolve attraverso la conoscenza reciproca, trasformandosi in un legame profondo e maturo, fino alla riscoperta del loro amore millenario."
+    },
+    {
+      "candidateId": "bible-candidate-0000000008ddf40b",
+      "targetType": "revelation",
+      "label": "Amore Segreto (poi Rivelato e Ricambiato) - revelation 3",
+      "sectionKey": "2.1.1.11",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation",
+        "secret"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Il suo amore evolve attraverso la conoscenza reciproca, trasformandosi in un legame profondo e maturo, fino alla riscoperta del loro amore millenario."
+    },
+    {
+      "candidateId": "bible-candidate-00000000549f5024",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 2",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "CONTROLLO ATTIVAZIONE OBBLIGATORIO: Ogni potere ha trigger emotivi specifici documentati in Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000004625eba1",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 2",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "CONTROLLO ATTIVAZIONE OBBLIGATORIO: Ogni potere ha trigger emotivi specifici documentati in Sez."
+    },
+    {
+      "candidateId": "bible-candidate-00000000549f5005",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 3",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "SEQUENZA MANIFESTAZIONI COMPLETE:"
+    },
+    {
+      "candidateId": "bible-candidate-000000004625eb82",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 3",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "SEQUENZA MANIFESTAZIONI COMPLETE:"
+    },
+    {
+      "candidateId": "bible-candidate-00000000549f4fe6",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 4",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Fase 1 - Risveglio Iniziale:"
+    },
+    {
+      "candidateId": "bible-candidate-000000004625eb63",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 4",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Fase 1 - Risveglio Iniziale:"
+    },
+    {
+      "candidateId": "bible-candidate-00000000549f4fc7",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 5",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 29/09/2020 NOTTE: Prima piuma angelica (desiderio catalizzatore)"
+    },
+    {
+      "candidateId": "bible-candidate-000000004625eb44",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 5",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 29/09/2020 NOTTE: Prima piuma angelica (desiderio catalizzatore)"
+    },
+    {
+      "candidateId": "bible-candidate-000000000a42ca80",
+      "targetType": "timeline_event",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - timeline_event 5",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 29/09/2020 NOTTE: Prima piuma angelica (desiderio catalizzatore)"
+    },
+    {
+      "candidateId": "bible-candidate-00000000549f4fa8",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 6",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 30/09/2020 - 05/12/2020: Piume quotidiane + trasformazione fisica progressiva"
+    },
+    {
+      "candidateId": "bible-candidate-000000004625eb25",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 6",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 30/09/2020 - 05/12/2020: Piume quotidiane + trasformazione fisica progressiva"
+    },
+    {
+      "candidateId": "bible-candidate-00000000549f4f89",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 7",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Fase 2 - Cambiamenti Fisici:"
+    },
+    {
+      "candidateId": "bible-candidate-000000004625eb06",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 7",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Fase 2 - Cambiamenti Fisici:"
+    },
+    {
+      "candidateId": "bible-candidate-00000000549f4f6a",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 8",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 30/09/2020: Scomparsa acne (primo cambiamento fisico)"
+    },
+    {
+      "candidateId": "bible-candidate-0000000008012dbd",
+      "targetType": "knowledge_state",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - knowledge_state 8",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 30/09/2020: Scomparsa acne (primo cambiamento fisico)"
+    },
+    {
+      "candidateId": "bible-candidate-000000004625eae7",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 8",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 30/09/2020: Scomparsa acne (primo cambiamento fisico)"
+    },
+    {
+      "candidateId": "bible-candidate-00000000549f4f4b",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 9",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 05/10/2020: Vista sovrumana (stress isolamento)"
+    },
+    {
+      "candidateId": "bible-candidate-000000004625eac8",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 9",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 05/10/2020: Vista sovrumana (stress isolamento)"
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4ab379",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 10",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 20/10/2020: Capacità fisiche emergenti (crescita statura/muscolatura - prima acquazzone Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000007e97879c",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 10",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 20/10/2020: Capacità fisiche emergenti (crescita statura/muscolatura - prima acquazzone Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000003e168fe0",
+      "targetType": "timeline_event",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - timeline_event 10",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 20/10/2020: Capacità fisiche emergenti (crescita statura/muscolatura - prima acquazzone Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4ab35a",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 11",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 03/11/2020: Forza/agilità evidenti (esposizione sociale nuovo look)"
+    },
+    {
+      "candidateId": "bible-candidate-000000007e97877d",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 11",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 03/11/2020: Forza/agilità evidenti (esposizione sociale nuovo look)"
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4ab33b",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 12",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Fase 3 - Poteri Empatici/Inconsci:"
+    },
+    {
+      "candidateId": "bible-candidate-000000007e97875e",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 12",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Fase 3 - Poteri Empatici/Inconsci:"
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4ab31c",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 13",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 04/11/2020: Poteri empatici/calmanti (conforto Lisa – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000007db60d7",
+      "targetType": "knowledge_state",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - knowledge_state 13",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 04/11/2020: Poteri empatici/calmanti (conforto Lisa – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000007e97873f",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 13",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 04/11/2020: Poteri empatici/calmanti (conforto Lisa – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4ab2fd",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 14",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 10/12/2020: Xenoglossia - comprensione lingue sconosciute (mandarino Signora Chen – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000007e978720",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 14",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 10/12/2020: Xenoglossia - comprensione lingue sconosciute (mandarino Signora Chen – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4ab2de",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 15",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 10/12/2020: Comunicazione telepatica con animali (comprensione istintiva – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000007e978701",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 15",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 10/12/2020: Comunicazione telepatica con animali (comprensione istintiva – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4ab2bf",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 16",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "NOTA: Da questa data Gabriele inizia a sentire e comprendere attivamente tutti gli animali."
+    },
+    {
+      "candidateId": "bible-candidate-000000007e9786e2",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 16",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "NOTA: Da questa data Gabriele inizia a sentire e comprendere attivamente tutti gli animali."
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4ab2a0",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 17",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "L'episodio telepatico allo zoo (05/12/2020) era un precursore isolato, una ricezione passiva innescata dal legame emotivo durante il salvataggio del cucciolo, non il risveglio pieno del potere."
+    },
+    {
+      "candidateId": "bible-candidate-000000007e9786c3",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 17",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "L'episodio telepatico allo zoo (05/12/2020) era un precursore isolato, una ricezione passiva innescata dal legame emotivo durante il salvataggio del cucciolo, non il risveglio pieno del potere."
+    },
+    {
+      "candidateId": "bible-candidate-0000000061e571ef",
+      "targetType": "motif",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - motif 17",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "L'episodio telepatico allo zoo (05/12/2020) era un precursore isolato, una ricezione passiva innescata dal legame emotivo durante il salvataggio del cucciolo, non il risveglio pieno del potere."
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4ab281",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 18",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Fase 4 - Guarigione E Reintegrazione:"
+    },
+    {
+      "candidateId": "bible-candidate-000000007e9786a4",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 18",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Fase 4 - Guarigione E Reintegrazione:"
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4ab262",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 19",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 05/12/2020: Guarigione/resurrezione + reintegrazione piume (zoo, completamento metamorfosi – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000007e978685",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 19",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 05/12/2020: Guarigione/resurrezione + reintegrazione piume (zoo, completamento metamorfosi – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4aafb8",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 20",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Fase 5 - Manifestazioni Angeliche Plateali:"
+    },
+    {
+      "candidateId": "bible-candidate-000000007e9783db",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 20",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Fase 5 - Manifestazioni Angeliche Plateali:"
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4aaf99",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 21",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 17/12/2020: Prima esplosione incontrollata: bagliore corporeo bianco-dorato, occhi di fuoco bianco, ombre ali di luce, distorsione temporale (vs Cristiano – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000007e9783bc",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 21",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 17/12/2020: Prima esplosione incontrollata: bagliore corporeo bianco-dorato, occhi di fuoco bianco, ombre ali di luce, distorsione temporale (vs Cristiano – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000003e168c00",
+      "targetType": "timeline_event",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - timeline_event 21",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• 17/12/2020: Prima esplosione incontrollata: bagliore corporeo bianco-dorato, occhi di fuoco bianco, ombre ali di luce, distorsione temporale (vs Cristiano – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4aaf7a",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 22",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 17/12/2020: Telepatia con Raphael (comunicazione angelica diretta – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000007e97839d",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 22",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 17/12/2020: Telepatia con Raphael (comunicazione angelica diretta – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4aaf5b",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 23",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Fase 6 - Controllo Consapevole:"
+    },
+    {
+      "candidateId": "bible-candidate-000000007e97837e",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 23",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Fase 6 - Controllo Consapevole:"
+    },
+    {
+      "candidateId": "bible-candidate-000000003f4aaf3c",
+      "targetType": "bible_claim",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - claim 24",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 25/02/2021: Manipolazione elementale controllata (palazzo ghiaccio – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000007e97835f",
+      "targetType": "power",
+      "label": "Poteri Angelici (Manifestazioni Graduali) - power 24",
+      "sectionKey": "2.1.1.12",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• 25/02/2021: Manipolazione elementale controllata (palazzo ghiaccio – Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000002f7d9db4",
+      "targetType": "bible_claim",
+      "label": "Vera Natura (Rivelazione Progressiva) - claim 2",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "TIMELINE CONSAPEVOLEZZA:"
+    },
+    {
+      "candidateId": "bible-candidate-00000000291f0cf3",
+      "targetType": "revelation",
+      "label": "Vera Natura (Rivelazione Progressiva) - revelation 2",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "TIMELINE CONSAPEVOLEZZA:"
+    },
+    {
+      "candidateId": "bible-candidate-0000000031156553",
+      "targetType": "timeline_event",
+      "label": "Vera Natura (Rivelazione Progressiva) - timeline_event 2",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "TIMELINE CONSAPEVOLEZZA:"
+    },
+    {
+      "candidateId": "bible-candidate-000000002f7d9dd3",
+      "targetType": "bible_claim",
+      "label": "Vera Natura (Rivelazione Progressiva) - claim 3",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "7: Una Notte Misteriosa al Cap."
+    },
+    {
+      "candidateId": "bible-candidate-000000003312ee80",
+      "targetType": "knowledge_state",
+      "label": "Vera Natura (Rivelazione Progressiva) - knowledge_state 3",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "7: Una Notte Misteriosa al Cap."
+    },
+    {
+      "candidateId": "bible-candidate-00000000291f0cd4",
+      "targetType": "revelation",
+      "label": "Vera Natura (Rivelazione Progressiva) - revelation 3",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "7: Una Notte Misteriosa al Cap."
+    },
+    {
+      "candidateId": "bible-candidate-000000002f7d9df2",
+      "targetType": "bible_claim",
+      "label": "Vera Natura (Rivelazione Progressiva) - claim 4",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "25: Il ruggito del Leone: Inconsapevole, solo fenomeni inspiegabili"
+    },
+    {
+      "candidateId": "bible-candidate-00000000291f0cb5",
+      "targetType": "revelation",
+      "label": "Vera Natura (Rivelazione Progressiva) - revelation 4",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "25: Il ruggito del Leone: Inconsapevole, solo fenomeni inspiegabili"
+    },
+    {
+      "candidateId": "bible-candidate-000000002f7d9e11",
+      "targetType": "bible_claim",
+      "label": "Vera Natura (Rivelazione Progressiva) - claim 5",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "29: Fratello di Luce: Prima rivelazione Raphael - rifiuto terrorizzato"
+    },
+    {
+      "candidateId": "bible-candidate-00000000291f0c96",
+      "targetType": "revelation",
+      "label": "Vera Natura (Rivelazione Progressiva) - revelation 5",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "29: Fratello di Luce: Prima rivelazione Raphael - rifiuto terrorizzato"
+    },
+    {
+      "candidateId": "bible-candidate-00000000311564f6",
+      "targetType": "timeline_event",
+      "label": "Vera Natura (Rivelazione Progressiva) - timeline_event 5",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "29: Fratello di Luce: Prima rivelazione Raphael - rifiuto terrorizzato"
+    },
+    {
+      "candidateId": "bible-candidate-000000002f7d9e30",
+      "targetType": "bible_claim",
+      "label": "Vera Natura (Rivelazione Progressiva) - claim 6",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "32: L’Ultimatum Celeste: Recupero completo memoria tramite Raphael - accettazione tormentata"
+    },
+    {
+      "candidateId": "bible-candidate-00000000291f0c77",
+      "targetType": "revelation",
+      "label": "Vera Natura (Rivelazione Progressiva) - revelation 6",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "32: L’Ultimatum Celeste: Recupero completo memoria tramite Raphael - accettazione tormentata"
+    },
+    {
+      "candidateId": "bible-candidate-000000002f7d9e4f",
+      "targetType": "bible_claim",
+      "label": "Vera Natura (Rivelazione Progressiva) - claim 7",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "34: L’Arrivo di Michael, Cap."
+    },
+    {
+      "candidateId": "bible-candidate-00000000291f0c58",
+      "targetType": "revelation",
+      "label": "Vera Natura (Rivelazione Progressiva) - revelation 7",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "34: L’Arrivo di Michael, Cap."
+    },
+    {
+      "candidateId": "bible-candidate-000000002f7d9e6e",
+      "targetType": "bible_claim",
+      "label": "Vera Natura (Rivelazione Progressiva) - claim 8",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "35: Un istante lungo mille vite: Piena manifestazione consapevole natura Gabriel"
+    },
+    {
+      "candidateId": "bible-candidate-00000000291f0c39",
+      "targetType": "revelation",
+      "label": "Vera Natura (Rivelazione Progressiva) - revelation 8",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "35: Un istante lungo mille vite: Piena manifestazione consapevole natura Gabriel"
+    },
+    {
+      "candidateId": "bible-candidate-000000002f7d9e8d",
+      "targetType": "bible_claim",
+      "label": "Vera Natura (Rivelazione Progressiva) - claim 9",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Arcangelo Gabriel, il Messaggero Divino."
+    },
+    {
+      "candidateId": "bible-candidate-00000000291f0c1a",
+      "targetType": "revelation",
+      "label": "Vera Natura (Rivelazione Progressiva) - revelation 9",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Arcangelo Gabriel, il Messaggero Divino."
+    },
+    {
+      "candidateId": "bible-candidate-000000003fc9e651",
+      "targetType": "bible_claim",
+      "label": "Vera Natura (Rivelazione Progressiva) - claim 10",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Caduto volontariamente per amore dell'anima di Lisa, incarnatosi con perdita memoria per esperienza umana autentica."
+    },
+    {
+      "candidateId": "bible-candidate-00000000053d6f76",
+      "targetType": "revelation",
+      "label": "Vera Natura (Rivelazione Progressiva) - revelation 10",
+      "sectionKey": "2.1.1.13",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Caduto volontariamente per amore dell'anima di Lisa, incarnatosi con perdita memoria per esperienza umana autentica."
+    },
+    {
+      "candidateId": "bible-candidate-0000000022583b77",
+      "targetType": "bible_claim",
+      "label": "Arco Narrativo Principale - claim 3",
+      "sectionKey": "2.1.1.14",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_wound",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Scoperta graduale e traumatica della sua vera natura e dei suoi poteri."
+    },
+    {
+      "candidateId": "bible-candidate-000000004a0d0a8c",
+      "targetType": "power",
+      "label": "Arco Narrativo Principale - power 3",
+      "sectionKey": "2.1.1.14",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_wound",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Scoperta graduale e traumatica della sua vera natura e dei suoi poteri."
+    },
+    {
+      "candidateId": "bible-candidate-0000000060c69ae4",
+      "targetType": "character_wound",
+      "label": "Arco Narrativo Principale - character_wound 3",
+      "sectionKey": "2.1.1.14",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_wound",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Scoperta graduale e traumatica della sua vera natura e dei suoi poteri."
+    },
+    {
+      "candidateId": "bible-candidate-000000002b0ab6a5",
+      "targetType": "bible_claim",
+      "label": "Relazioni Chiave - claim 3",
+      "sectionKey": "2.1.1.15",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4 (Cronologia Dettagliata degli Eventi) prima di scrivere qualsiasi interazione."
+    },
+    {
+      "candidateId": "bible-candidate-0000000012c22232",
+      "targetType": "timeline_event",
+      "label": "Relazioni Chiave - timeline_event 3",
+      "sectionKey": "2.1.1.15",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4 (Cronologia Dettagliata degli Eventi) prima di scrivere qualsiasi interazione."
+    },
+    {
+      "candidateId": "bible-candidate-000000006897811c",
+      "targetType": "bible_claim",
+      "label": "Lisa Martini (Sez. 2.1.2) - claim 1",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "2.1.1.15.1 Lisa Martini (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000054904ad1",
+      "targetType": "knowledge_state",
+      "label": "Lisa Martini (Sez. 2.1.2) - knowledge_state 1",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "2.1.1.15.1 Lisa Martini (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-00000000689780fd",
+      "targetType": "bible_claim",
+      "label": "Lisa Martini (Sez. 2.1.2) - claim 2",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "NATURA: Anima antica, oggetto amore millenario, catalizzatore Caduta angelica Gabriel."
+    },
+    {
+      "candidateId": "bible-candidate-0000000054904af0",
+      "targetType": "knowledge_state",
+      "label": "Lisa Martini (Sez. 2.1.2) - knowledge_state 2",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "NATURA: Anima antica, oggetto amore millenario, catalizzatore Caduta angelica Gabriel."
+    },
+    {
+      "candidateId": "bible-candidate-0000000005d39368",
+      "targetType": "artifact",
+      "label": "Lisa Martini (Sez. 2.1.2) - artifact 2",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "NATURA: Anima antica, oggetto amore millenario, catalizzatore Caduta angelica Gabriel."
+    },
+    {
+      "candidateId": "bible-candidate-00000000689780de",
+      "targetType": "bible_claim",
+      "label": "Lisa Martini (Sez. 2.1.2) - claim 3",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_wound",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "PATTERN EVOLUTIVO: Idealizzazione segreta → Trauma/Umiliazione (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000054904b0f",
+      "targetType": "knowledge_state",
+      "label": "Lisa Martini (Sez. 2.1.2) - knowledge_state 3",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_wound",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "PATTERN EVOLUTIVO: Idealizzazione segreta → Trauma/Umiliazione (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-00000000374c5275",
+      "targetType": "character_wound",
+      "label": "Lisa Martini (Sez. 2.1.2) - character_wound 3",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_wound",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "PATTERN EVOLUTIVO: Idealizzazione segreta → Trauma/Umiliazione (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-00000000689780bf",
+      "targetType": "bible_claim",
+      "label": "Lisa Martini (Sez. 2.1.2) - claim 4",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4.1.7) → Riconciliazione/Gratitudine (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000054904b2e",
+      "targetType": "knowledge_state",
+      "label": "Lisa Martini (Sez. 2.1.2) - knowledge_state 4",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4.1.7) → Riconciliazione/Gratitudine (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-00000000689780a0",
+      "targetType": "bible_claim",
+      "label": "Lisa Martini (Sez. 2.1.2) - claim 5",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4.2.5) → Intimità crescente (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000054904b4d",
+      "targetType": "knowledge_state",
+      "label": "Lisa Martini (Sez. 2.1.2) - knowledge_state 5",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4.2.5) → Intimità crescente (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000068978081",
+      "targetType": "bible_claim",
+      "label": "Lisa Martini (Sez. 2.1.2) - claim 6",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4.2.10, 4.2.11) → Allontanamento/Accuse (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000054904b6c",
+      "targetType": "knowledge_state",
+      "label": "Lisa Martini (Sez. 2.1.2) - knowledge_state 6",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4.2.10, 4.2.11) → Allontanamento/Accuse (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000068978062",
+      "targetType": "bible_claim",
+      "label": "Lisa Martini (Sez. 2.1.2) - claim 7",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4.3.11) → Distanza mantenuta (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000054904b8b",
+      "targetType": "knowledge_state",
+      "label": "Lisa Martini (Sez. 2.1.2) - knowledge_state 7",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4.3.11) → Distanza mantenuta (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000068978043",
+      "targetType": "bible_claim",
+      "label": "Lisa Martini (Sez. 2.1.2) - claim 8",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "4.4.2) → Rivelazione/Memoria ancestrale (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000054904baa",
+      "targetType": "knowledge_state",
+      "label": "Lisa Martini (Sez. 2.1.2) - knowledge_state 8",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "4.4.2) → Rivelazione/Memoria ancestrale (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000000bcdf73e",
+      "targetType": "revelation",
+      "label": "Lisa Martini (Sez. 2.1.2) - revelation 8",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "revelation"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "4.4.2) → Rivelazione/Memoria ancestrale (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000068978024",
+      "targetType": "bible_claim",
+      "label": "Lisa Martini (Sez. 2.1.2) - claim 9",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4.4.6) → Unione definitiva (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000054904bc9",
+      "targetType": "knowledge_state",
+      "label": "Lisa Martini (Sez. 2.1.2) - knowledge_state 9",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4.4.6) → Unione definitiva (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000055a76240",
+      "targetType": "bible_claim",
+      "label": "Lisa Martini (Sez. 2.1.2) - claim 10",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "TRIGGER CHIAVE: 29/09/2020 (parole “perdente”), 17/12/2020 (delusione comportamento vs Cristiano), 25/02/2021 (bacio/recupero memoria)."
+    },
+    {
+      "candidateId": "bible-candidate-000000003d7913f3",
+      "targetType": "knowledge_state",
+      "label": "Lisa Martini (Sez. 2.1.2) - knowledge_state 10",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "TRIGGER CHIAVE: 29/09/2020 (parole “perdente”), 17/12/2020 (delusione comportamento vs Cristiano), 25/02/2021 (bacio/recupero memoria)."
+    },
+    {
+      "candidateId": "bible-candidate-0000000055a7625f",
+      "targetType": "bible_claim",
+      "label": "Lisa Martini (Sez. 2.1.2) - claim 11",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power",
+        "secret"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "DINAMICHE OPERATIVE: Gabriele nasconde sempre trasformazioni per paura rifiuto; Lisa percepisce “diversità” senza identificarla; solo Lisa vede manifestazioni luminose poteri."
+    },
+    {
+      "candidateId": "bible-candidate-00000000178ee3a6",
+      "targetType": "secret",
+      "label": "Lisa Martini (Sez. 2.1.2) - secret 11",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power",
+        "secret"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "DINAMICHE OPERATIVE: Gabriele nasconde sempre trasformazioni per paura rifiuto; Lisa percepisce “diversità” senza identificarla; solo Lisa vede manifestazioni luminose poteri."
+    },
+    {
+      "candidateId": "bible-candidate-000000003d791412",
+      "targetType": "knowledge_state",
+      "label": "Lisa Martini (Sez. 2.1.2) - knowledge_state 11",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power",
+        "secret"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "DINAMICHE OPERATIVE: Gabriele nasconde sempre trasformazioni per paura rifiuto; Lisa percepisce “diversità” senza identificarla; solo Lisa vede manifestazioni luminose poteri."
+    },
+    {
+      "candidateId": "bible-candidate-0000000048a169bc",
+      "targetType": "power",
+      "label": "Lisa Martini (Sez. 2.1.2) - power 11",
+      "sectionKey": "2.1.1.15.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power",
+        "secret"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "DINAMICHE OPERATIVE: Gabriele nasconde sempre trasformazioni per paura rifiuto; Lisa percepisce “diversità” senza identificarla; solo Lisa vede manifestazioni luminose poteri."
+    },
+    {
+      "candidateId": "bible-candidate-000000005053eed7",
+      "targetType": "bible_claim",
+      "label": "Trevor Rossi (Sez. 2.2.1) - claim 2",
+      "sectionKey": "2.1.1.15.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "secret"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "NATURA: Migliore amico infanzia, ancora normalità, custode segreto cosmico."
+    },
+    {
+      "candidateId": "bible-candidate-000000007baa68dc",
+      "targetType": "secret",
+      "label": "Trevor Rossi (Sez. 2.2.1) - secret 2",
+      "sectionKey": "2.1.1.15.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "secret"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "NATURA: Migliore amico infanzia, ancora normalità, custode segreto cosmico."
+    },
+    {
+      "candidateId": "bible-candidate-000000005053ee5b",
+      "targetType": "bible_claim",
+      "label": "Trevor Rossi (Sez. 2.2.1) - claim 6",
+      "sectionKey": "2.1.1.15.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4.3.5) → Riconciliazione/Rivelazione (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-00000000031c2080",
+      "targetType": "revelation",
+      "label": "Trevor Rossi (Sez. 2.2.1) - revelation 6",
+      "sectionKey": "2.1.1.15.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "4.3.5) → Riconciliazione/Rivelazione (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000054a01823",
+      "targetType": "bible_claim",
+      "label": "Cristiano (Sez. 2.2.2) - claim 2",
+      "sectionKey": "2.1.1.15.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "NATURA: Antagonista primario umano, capitano basket, bullo sistematico."
+    },
+    {
+      "candidateId": "bible-candidate-000000003b72173e",
+      "targetType": "timeline_event",
+      "label": "Cristiano (Sez. 2.2.2) - timeline_event 2",
+      "sectionKey": "2.1.1.15.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "NATURA: Antagonista primario umano, capitano basket, bullo sistematico."
+    },
+    {
+      "candidateId": "bible-candidate-0000000054a018fc",
+      "targetType": "bible_claim",
+      "label": "Cristiano (Sez. 2.2.2) - claim 9",
+      "sectionKey": "2.1.1.15.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "ARCO DISCENDENTE: Perdita progressiva Lisa (04/11/2020) → squadra (10/12/2020) → status → dignità (17/12/2020)."
+    },
+    {
+      "candidateId": "bible-candidate-0000000066451087",
+      "targetType": "knowledge_state",
+      "label": "Cristiano (Sez. 2.2.2) - knowledge_state 9",
+      "sectionKey": "2.1.1.15.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "ARCO DISCENDENTE: Perdita progressiva Lisa (04/11/2020) → squadra (10/12/2020) → status → dignità (17/12/2020)."
+    },
+    {
+      "candidateId": "bible-candidate-000000001731fd6d",
+      "targetType": "bible_claim",
+      "label": "Raphael (Sez. 2.3.1) - claim 4",
+      "sectionKey": "2.1.1.15.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "29: Fratello di Luce (17/12/2020 prima apparizione/rivelazione), Cap."
+    },
+    {
+      "candidateId": "bible-candidate-0000000071066090",
+      "targetType": "revelation",
+      "label": "Raphael (Sez. 2.3.1) - revelation 4",
+      "sectionKey": "2.1.1.15.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "29: Fratello di Luce (17/12/2020 prima apparizione/rivelazione), Cap."
+    },
+    {
+      "candidateId": "bible-candidate-000000001497890e",
+      "targetType": "timeline_event",
+      "label": "Raphael (Sez. 2.3.1) - timeline_event 4",
+      "sectionKey": "2.1.1.15.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "29: Fratello di Luce (17/12/2020 prima apparizione/rivelazione), Cap."
+    },
+    {
+      "candidateId": "bible-candidate-000000001731fdab",
+      "targetType": "bible_claim",
+      "label": "Raphael (Sez. 2.3.1) - claim 6",
+      "sectionKey": "2.1.1.15.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "38: Il Dono della Vita Umana (21/06/2021 trasformazione fraterna)."
+    },
+    {
+      "candidateId": "bible-candidate-000000002b0a5816",
+      "targetType": "power",
+      "label": "Raphael (Sez. 2.3.1) - power 6",
+      "sectionKey": "2.1.1.15.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "38: Il Dono della Vita Umana (21/06/2021 trasformazione fraterna)."
+    },
+    {
+      "candidateId": "bible-candidate-000000007b2982f5",
+      "targetType": "bible_claim",
+      "label": "Michael (Sez. 2.3.2) - claim 2",
+      "sectionKey": "2.1.1.15.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "faction"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "NATURA: Arcangelo Comandante, Guardiano Ordine Divino, minaccia/poi alleato."
+    },
+    {
+      "candidateId": "bible-candidate-000000002be73a40",
+      "targetType": "faction",
+      "label": "Michael (Sez. 2.3.2) - faction 2",
+      "sectionKey": "2.1.1.15.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "faction"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "NATURA: Arcangelo Comandante, Guardiano Ordine Divino, minaccia/poi alleato."
+    },
+    {
+      "candidateId": "bible-candidate-000000007b298352",
+      "targetType": "bible_claim",
+      "label": "Michael (Sez. 2.3.2) - claim 5",
+      "sectionKey": "2.1.1.15.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "4.4.5 – 25/02/2021) → Prima concessione (istante addio) → Trasformazione rispettosa (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000028d9f6e3",
+      "targetType": "knowledge_state",
+      "label": "Michael (Sez. 2.3.2) - knowledge_state 5",
+      "sectionKey": "2.1.1.15.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "4.4.5 – 25/02/2021) → Prima concessione (istante addio) → Trasformazione rispettosa (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000002d643afb",
+      "targetType": "timeline_event",
+      "label": "Michael (Sez. 2.3.2) - timeline_event 5",
+      "sectionKey": "2.1.1.15.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "4.4.5 – 25/02/2021) → Prima concessione (istante addio) → Trasformazione rispettosa (Sez."
+    },
+    {
+      "candidateId": "bible-candidate-000000004e23d9dd",
+      "targetType": "bible_claim",
+      "label": "Occhiali - claim 2",
+      "sectionKey": "2.1.1.16.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "secret",
+        "symbol"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente simbolo della sua miopia e del suo status di “nerd”; poi, con lenti neutre, diventano una maschera per nascondere i cambiamenti e un tentativo di aggrapparsi a una normalità percepita."
+    },
+    {
+      "candidateId": "bible-candidate-0000000006daed78",
+      "targetType": "secret",
+      "label": "Occhiali - secret 2",
+      "sectionKey": "2.1.1.16.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "secret",
+        "symbol"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente simbolo della sua miopia e del suo status di “nerd”; poi, con lenti neutre, diventano una maschera per nascondere i cambiamenti e un tentativo di aggrapparsi a una normalità percepita."
+    },
+    {
+      "candidateId": "bible-candidate-000000002b38510c",
+      "targetType": "artifact",
+      "label": "Occhiali - artifact 2",
+      "sectionKey": "2.1.1.16.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "secret",
+        "symbol"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente simbolo della sua miopia e del suo status di “nerd”; poi, con lenti neutre, diventano una maschera per nascondere i cambiamenti e un tentativo di aggrapparsi a una normalità percepita."
+    },
+    {
+      "candidateId": "bible-candidate-000000005b3337a8",
+      "targetType": "symbol",
+      "label": "Occhiali - symbol 2",
+      "sectionKey": "2.1.1.16.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "secret",
+        "symbol"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente simbolo della sua miopia e del suo status di “nerd”; poi, con lenti neutre, diventano una maschera per nascondere i cambiamenti e un tentativo di aggrapparsi a una normalità percepita."
+    },
+    {
+      "candidateId": "bible-candidate-0000000046838b95",
+      "targetType": "bible_claim",
+      "label": "Scultura dei cigni - claim 2",
+      "sectionKey": "2.1.1.16.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "secret",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Simbolo del suo amore puro e idealizzato per Lisa, del suo talento artistico nascosto e della sua capacità di creare bellezza anche nella sofferenza."
+    },
+    {
+      "candidateId": "bible-candidate-0000000059a5331c",
+      "targetType": "secret",
+      "label": "Scultura dei cigni - secret 2",
+      "sectionKey": "2.1.1.16.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "secret",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Simbolo del suo amore puro e idealizzato per Lisa, del suo talento artistico nascosto e della sua capacità di creare bellezza anche nella sofferenza."
+    },
+    {
+      "candidateId": "bible-candidate-00000000557ca6ec",
+      "targetType": "symbol",
+      "label": "Scultura dei cigni - symbol 2",
+      "sectionKey": "2.1.1.16.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "secret",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Simbolo del suo amore puro e idealizzato per Lisa, del suo talento artistico nascosto e della sua capacità di creare bellezza anche nella sofferenza."
+    },
+    {
+      "candidateId": "bible-candidate-000000006408f4bd",
+      "targetType": "bible_claim",
+      "label": "Piume angeliche - claim 2",
+      "sectionKey": "2.1.1.16.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente segni inquietanti della sua trasformazione inspiegabile; poi, dopo la reintegrazione, diventano un simbolo latente della sua vera natura; infine, le due piume lasciate a Lisa e Trevor sono un ricordo tangibile del suo sacrificio, della sua essenza e uno scudo contro l'oblio divino."
+    },
+    {
+      "candidateId": "bible-candidate-000000000bbcf510",
+      "targetType": "knowledge_state",
+      "label": "Piume angeliche - knowledge_state 2",
+      "sectionKey": "2.1.1.16.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente segni inquietanti della sua trasformazione inspiegabile; poi, dopo la reintegrazione, diventano un simbolo latente della sua vera natura; infine, le due piume lasciate a Lisa e Trevor sono un ricordo tangibile del suo sacrificio, della sua essenza e uno scudo contro l'oblio divino."
+    },
+    {
+      "candidateId": "bible-candidate-00000000487fdb32",
+      "targetType": "symbol",
+      "label": "Piume angeliche - symbol 2",
+      "sectionKey": "2.1.1.16.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente segni inquietanti della sua trasformazione inspiegabile; poi, dopo la reintegrazione, diventano un simbolo latente della sua vera natura; infine, le due piume lasciate a Lisa e Trevor sono un ricordo tangibile del suo sacrificio, della sua essenza e uno scudo contro l'oblio divino."
+    },
+    {
+      "candidateId": "bible-candidate-00000000450dd0b2",
+      "targetType": "timeline_event",
+      "label": "Piume angeliche - timeline_event 2",
+      "sectionKey": "2.1.1.16.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente segni inquietanti della sua trasformazione inspiegabile; poi, dopo la reintegrazione, diventano un simbolo latente della sua vera natura; infine, le due piume lasciate a Lisa e Trevor sono un ricordo tangibile del suo sacrificio, della sua essenza e uno scudo contro l'oblio divino."
+    },
+    {
+      "candidateId": "bible-candidate-00000000558022d2",
+      "targetType": "bible_claim",
+      "label": "Il Diario Personale - claim 6",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "secret"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• Quaderno con copertina blu scuro, nascosto nel secondo cassetto della scrivania sotto altri quaderni"
+    },
+    {
+      "candidateId": "bible-candidate-000000007511f49d",
+      "targetType": "secret",
+      "label": "Il Diario Personale - secret 6",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "secret"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• Quaderno con copertina blu scuro, nascosto nel secondo cassetto della scrivania sotto altri quaderni"
+    },
+    {
+      "candidateId": "bible-candidate-00000000558022b3",
+      "targetType": "bible_claim",
+      "label": "Il Diario Personale - claim 7",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "motif"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Scrittura in calligrafia stretta e precisa quando è calmo, più disordinata nei momenti di stress emotivo"
+    },
+    {
+      "candidateId": "bible-candidate-000000004b9acd3a",
+      "targetType": "knowledge_state",
+      "label": "Il Diario Personale - knowledge_state 7",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "motif"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Scrittura in calligrafia stretta e precisa quando è calmo, più disordinata nei momenti di stress emotivo"
+    },
+    {
+      "candidateId": "bible-candidate-0000000040452f7c",
+      "targetType": "motif",
+      "label": "Il Diario Personale - motif 7",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "motif"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Scrittura in calligrafia stretta e precisa quando è calmo, più disordinata nei momenti di stress emotivo"
+    },
+    {
+      "candidateId": "bible-candidate-0000000055802294",
+      "targetType": "bible_claim",
+      "label": "Il Diario Personale - claim 8",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• Usa biro nera, sempre la stessa marca (superstizione personale)"
+    },
+    {
+      "candidateId": "bible-candidate-000000004b9acd59",
+      "targetType": "knowledge_state",
+      "label": "Il Diario Personale - knowledge_state 8",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• Usa biro nera, sempre la stessa marca (superstizione personale)"
+    },
+    {
+      "candidateId": "bible-candidate-000000005a844532",
+      "targetType": "bible_claim",
+      "label": "Il Diario Personale - claim 13",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• Non usa nomi reali per proteggere privacy: Lisa = \"lei\", Cristiano = nome proprio, Trevor = \"T\" o nome completo"
+    },
+    {
+      "candidateId": "bible-candidate-0000000027bec881",
+      "targetType": "knowledge_state",
+      "label": "Il Diario Personale - knowledge_state 13",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• Non usa nomi reali per proteggere privacy: Lisa = \"lei\", Cristiano = nome proprio, Trevor = \"T\" o nome completo"
+    },
+    {
+      "candidateId": "bible-candidate-000000005a844513",
+      "targetType": "bible_claim",
+      "label": "Il Diario Personale - claim 14",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• Registra sia eventi quotidiani che riflessioni profonde, sogni ricorrenti, countdown verso eventi importanti"
+    },
+    {
+      "candidateId": "bible-candidate-00000000379f5162",
+      "targetType": "motif",
+      "label": "Il Diario Personale - motif 14",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• Registra sia eventi quotidiani che riflessioni profonde, sogni ricorrenti, countdown verso eventi importanti"
+    },
+    {
+      "candidateId": "bible-candidate-000000005a8441ce",
+      "targetType": "bible_claim",
+      "label": "Il Diario Personale - claim 20",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "EVOLUZIONE DEL DIARIO: Il diario viene abbandonato dopo il 17 dicembre 2020 (Cap."
+    },
+    {
+      "candidateId": "bible-candidate-000000003507d923",
+      "targetType": "timeline_event",
+      "label": "Il Diario Personale - timeline_event 20",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "EVOLUZIONE DEL DIARIO: Il diario viene abbandonato dopo il 17 dicembre 2020 (Cap."
+    },
+    {
+      "candidateId": "bible-candidate-000000005a8441af",
+      "targetType": "bible_claim",
+      "label": "Il Diario Personale - claim 21",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "character_wound",
+        "knowledge_state",
+        "revelation"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "La rivelazione della natura angelica rappresenta un trauma troppo grande per essere elaborato per iscritto, e Gabriele sviluppa paranoia per la sicurezza: teme che il diario possa essere letto da qualcuno e mettere in pericolo le persone a cui vuole bene."
+    },
+    {
+      "candidateId": "bible-candidate-0000000027becc04",
+      "targetType": "knowledge_state",
+      "label": "Il Diario Personale - knowledge_state 21",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "character_wound",
+        "knowledge_state",
+        "revelation"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "La rivelazione della natura angelica rappresenta un trauma troppo grande per essere elaborato per iscritto, e Gabriele sviluppa paranoia per la sicurezza: teme che il diario possa essere letto da qualcuno e mettere in pericolo le persone a cui vuole bene."
+    },
+    {
+      "candidateId": "bible-candidate-00000000748c08a2",
+      "targetType": "revelation",
+      "label": "Il Diario Personale - revelation 21",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "character_wound",
+        "knowledge_state",
+        "revelation"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "La rivelazione della natura angelica rappresenta un trauma troppo grande per essere elaborato per iscritto, e Gabriele sviluppa paranoia per la sicurezza: teme che il diario possa essere letto da qualcuno e mettere in pericolo le persone a cui vuole bene."
+    },
+    {
+      "candidateId": "bible-candidate-0000000067067a9e",
+      "targetType": "character_goal",
+      "label": "Il Diario Personale - character_goal 21",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "character_wound",
+        "knowledge_state",
+        "revelation"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "La rivelazione della natura angelica rappresenta un trauma troppo grande per essere elaborato per iscritto, e Gabriele sviluppa paranoia per la sicurezza: teme che il diario possa essere letto da qualcuno e mettere in pericolo le persone a cui vuole bene."
+    },
+    {
+      "candidateId": "bible-candidate-0000000034e9a71e",
+      "targetType": "character_wound",
+      "label": "Il Diario Personale - character_wound 21",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "character_wound",
+        "knowledge_state",
+        "revelation"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "La rivelazione della natura angelica rappresenta un trauma troppo grande per essere elaborato per iscritto, e Gabriele sviluppa paranoia per la sicurezza: teme che il diario possa essere letto da qualcuno e mettere in pericolo le persone a cui vuole bene."
+    },
+    {
+      "candidateId": "bible-candidate-000000005a844190",
+      "targetType": "bible_claim",
+      "label": "Il Diario Personale - claim 22",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "L'ultima entry è volutamente vaga e criptica, seguita dall'abbandono completo della scrittura diaristica."
+    },
+    {
+      "candidateId": "bible-candidate-000000007ed5e1cd",
+      "targetType": "power",
+      "label": "Il Diario Personale - power 22",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "L'ultima entry è volutamente vaga e criptica, seguita dall'abbandono completo della scrittura diaristica."
+    },
+    {
+      "candidateId": "bible-candidate-00000000067c42d9",
+      "targetType": "bible_claim",
+      "label": "Passato (come Arcangelo Gabriel) - claim 2",
+      "sectionKey": "2.1.1.17",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Essere di pura luce, Arcangelo Gabriel, il Messaggero Divino, tradizionalmente associato anche alle arti, alla comunicazione e alla rivelazione."
+    },
+    {
+      "candidateId": "bible-candidate-000000006667c93e",
+      "targetType": "revelation",
+      "label": "Passato (come Arcangelo Gabriel) - revelation 2",
+      "sectionKey": "2.1.1.17",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "revelation"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Essere di pura luce, Arcangelo Gabriel, il Messaggero Divino, tradizionalmente associato anche alle arti, alla comunicazione e alla rivelazione."
+    },
+    {
+      "candidateId": "bible-candidate-00000000067c42ba",
+      "targetType": "bible_claim",
+      "label": "Passato (come Arcangelo Gabriel) - claim 3",
+      "sectionKey": "2.1.1.17",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "faction"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "La sua esistenza primordiale era definita dal servizio all'Ordine Divino, dall'appartenenza al Coro Celeste e da un amore universale per tutta la Creazione."
+    },
+    {
+      "candidateId": "bible-candidate-000000003d087def",
+      "targetType": "faction",
+      "label": "Passato (come Arcangelo Gabriel) - faction 3",
+      "sectionKey": "2.1.1.17",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "faction"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "La sua esistenza primordiale era definita dal servizio all'Ordine Divino, dall'appartenenza al Coro Celeste e da un amore universale per tutta la Creazione."
+    },
+    {
+      "candidateId": "bible-candidate-00000000067c429b",
+      "targetType": "bible_claim",
+      "label": "Passato (come Arcangelo Gabriel) - claim 4",
+      "sectionKey": "2.1.1.17",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Durante le sue missioni come Messaggero attraverso le epoche, Gabriel incontrò ripetutamente, e in modo inizialmente casuale nel contesto dei suoi doveri divini, un'anima umana specifica (che si sarebbe incarnata come Lisa, e precedentemente come Elisabetta e altre figure, eventi che Lisa ricorderà)"
+    },
+    {
+      "candidateId": "bible-candidate-00000000377b7bb0",
+      "targetType": "knowledge_state",
+      "label": "Passato (come Arcangelo Gabriel) - knowledge_state 4",
+      "sectionKey": "2.1.1.17",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Durante le sue missioni come Messaggero attraverso le epoche, Gabriel incontrò ripetutamente, e in modo inizialmente casuale nel contesto dei suoi doveri divini, un'anima umana specifica (che si sarebbe incarnata come Lisa, e precedentemente come Elisabetta e altre figure, eventi che Lisa ricorderà)"
+    },
+    {
+      "candidateId": "bible-candidate-00000000067c423e",
+      "targetType": "bible_claim",
+      "label": "Passato (come Arcangelo Gabriel) - claim 7",
+      "sectionKey": "2.1.1.17",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Il conflitto interiore di Gabriel tra il suo dovere celeste e questo amore proibito si acuì, portandolo a rendere l'anima di Lisa (Elisabetta) una priorità."
+    },
+    {
+      "candidateId": "bible-candidate-00000000377b7c0d",
+      "targetType": "knowledge_state",
+      "label": "Passato (come Arcangelo Gabriel) - knowledge_state 7",
+      "sectionKey": "2.1.1.17",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Il conflitto interiore di Gabriel tra il suo dovere celeste e questo amore proibito si acuì, portandolo a rendere l'anima di Lisa (Elisabetta) una priorità."
+    },
+    {
+      "candidateId": "bible-candidate-00000000067c421f",
+      "targetType": "bible_claim",
+      "label": "Passato (come Arcangelo Gabriel) - claim 8",
+      "sectionKey": "2.1.1.17",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "faction",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Il punto di non ritorno fu la morte violenta di un'incarnazione di Lisa (Elisabetta) a cui Gabriel assistette impotente durante uno scontro con i suoi fratelli celesti (guidati da Michael) che cercavano di richiamarlo all'ordine."
+    }
+  ],
+  "nextSteps": [
+    "Validare questa classificazione con galaxy-task-validator.",
+    "Applicare prima C/D non canonici solo se motivazioni e campioni sono approvati.",
+    "Gestire E come blocchi da risolvere: nessun finale finche restano E.",
+    "Commit A/B solo con piani mirati che creano/aggiornano archi specializzati e zero related_to."
+  ]
+}

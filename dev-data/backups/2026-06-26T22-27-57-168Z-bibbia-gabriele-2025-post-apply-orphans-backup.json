@@ -1,0 +1,924 @@
+{
+  "source": "fix_post_apply_orphans",
+  "sourceId": "bibbia-gabriele-2025",
+  "createdAt": "2026-06-26T22:27:57.168Z",
+  "nodes": [
+    {
+      "id": "claim-inizio-scuola-1-settembre",
+      "type": "bible_claim",
+      "label": "Inizio dell'anno scolastico il 1 Settembre",
+      "content": "L'anno scolastico inizia ufficialmente il 1 Settembre. Questo garantisce a Gabriele un arco temporale di circa 25 giorni (fino alla scadenza del 26 Settembre) per lavorare al concorso \"Metamorfosi Creativa\".",
+      "metadata": {
+        "category": "chronology",
+        "schoolStart": "09-01"
+      },
+      "provenance": {
+        "source": "ingest_timeline_chapters_script",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-2.3.10.2-Sviluppo[GELOSIA]",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:2.3.10.2 - Sviluppo [GELOSIA]",
+      "content": "Avviso del cervello narrativo: Il filo conduttore '2.3.10.2 - Sviluppo [GELOSIA]' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "7ff0b1e0-ca84-43c4-9b3c-52db5598252f"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-2.3.11.2-Sviluppo[DESTINOVS.LIBEROARBITRIO]",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:2.3.11.2 - Sviluppo [DESTINO VS. LIBERO ARBITRIO]",
+      "content": "Avviso del cervello narrativo: Il filo conduttore '2.3.11.2 - Sviluppo [DESTINO VS. LIBERO ARBITRIO]' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "b344a923-de7e-4a73-ac39-b4f4383b514d"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-2.3.13.2-Sviluppo[LARICERCADINORMALITÀEAPPARTENENZA]",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:2.3.13.2 - Sviluppo [LA RICERCA DI NORMALITÀ E APPARTENENZA]",
+      "content": "Avviso del cervello narrativo: Il filo conduttore '2.3.13.2 - Sviluppo [LA RICERCA DI NORMALITÀ E APPARTENENZA]' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "ac0d9659-ba3b-4e0b-a820-61b3536271f8"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-2.3.15.2-Sviluppo[ILCONFLITTOTRALEGGE(DIVINA/UMANA)EAMORE/COMPASSIONE]",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:2.3.15.2 - Sviluppo [IL CONFLITTO TRA LEGGE (DIVINA/UMANA) E AMORE/COMPASSIONE]",
+      "content": "Avviso del cervello narrativo: Il filo conduttore '2.3.15.2 - Sviluppo [IL CONFLITTO TRA LEGGE (DIVINA/UMANA) E AMORE/COMPASSIONE]' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "8e4369bc-7115-49c6-b0df-17720e3897e3"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-2.3.16.2-Sviluppo[LADUALITÀDELL'ESSEREELEMASCHERESOCIALI]",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:2.3.16.2 - Sviluppo [LA DUALITÀ DELL'ESSERE E LE MASCHERE SOCIALI]",
+      "content": "Avviso del cervello narrativo: Il filo conduttore '2.3.16.2 - Sviluppo [LA DUALITÀ DELL'ESSERE E LE MASCHERE SOCIALI]' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "90517e97-aaeb-48b5-a14a-f66368b00bfa"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-2.3.8.2-Sviluppo[PERDONOEREDENZIONE]",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:2.3.8.2 - Sviluppo [PERDONO E REDENZIONE]",
+      "content": "Avviso del cervello narrativo: Il filo conduttore '2.3.8.2 - Sviluppo [PERDONO E REDENZIONE]' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "f5f5e266-119c-4c22-a3b1-26551339e911"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-BertoniricordaGabrielecomegiocatorestranoetalentuoso",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Bertoni ricorda Gabriele come giocatore strano e talentuoso",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Bertoni ricorda Gabriele come giocatore strano e talentuoso' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "34bcd677-b1d4-4995-b562-ba588559f58d"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-CornicenarrativadelNonnoedellenipotine",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Cornice narrativa del Nonno e delle nipotine",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Cornice narrativa del Nonno e delle nipotine' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "266e5761-7851-4232-8d8b-a1f0b7e77d4e"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Cristianoincattivimentopost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Cristiano incattivimento post-romanzo",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Cristiano incattivimento post-romanzo' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "574e0190-299b-461e-80ed-f30d87a8ac26"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-EleaspingeilNonnoariflessionipiùprofonde",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Elea spinge il Nonno a riflessioni più profonde",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Elea spinge il Nonno a riflessioni più profonde' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "2f7c4d3c-63c3-4934-a131-cdc160ed2d2e"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-ElenaCosta-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Elena Costa - Evoluzione",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Elena Costa - Evoluzione' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "6d3977c3-b18a-4091-ac08-aeefa33af6a5"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-ElenaCosta-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Elena Costa - Futuro post-romanzo",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Elena Costa - Futuro post-romanzo' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "d6a57b5a-e4f4-408d-b2ee-7877bbeceba5"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-ElenaCosta-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Elena Costa - Passato",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Elena Costa - Passato' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "eba95049-eca5-4d37-9aa6-4205ac59ee00"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-FedericaVilla-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Federica Villa - Evoluzione",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Federica Villa - Evoluzione' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "954bd7de-37c6-4c93-816f-2caae87ed9b0"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-FedericaVilla-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Federica Villa - Futuro post-romanzo",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Federica Villa - Futuro post-romanzo' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "cd6f28b1-de1d-4a36-80d6-6dc6797fc954"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-FedericaVilla-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Federica Villa - Passato",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Federica Villa - Passato' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "940437fb-06e0-4a51-8641-be4b6f8f492d"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Ferretticontinuailruolodipreside",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Ferretti continua il ruolo di preside",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Ferretti continua il ruolo di preside' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "728c71df-c802-490c-b418-98bb70ab7ced"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Futuropost-romanzodiCristiano",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Futuro post-romanzo di Cristiano",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Futuro post-romanzo di Cristiano' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "405be420-6211-453f-832d-0162b703d1b0"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-GenitoridiGabriele-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Genitori di Gabriele - Evoluzione",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Genitori di Gabriele - Evoluzione' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "157ff263-2412-480e-b10c-98536843852c"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-GenitoridiGabriele-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Genitori di Gabriele - Futuro post-romanzo",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Genitori di Gabriele - Futuro post-romanzo' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "dd5c9405-e4d4-41af-8933-ea46387b18e6"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-GenitoridiGabriele-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Genitori di Gabriele - Passato",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Genitori di Gabriele - Passato' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "12895981-cc33-4edc-8d13-a728537a9332"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-GenitoridiLisa-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Genitori di Lisa - Evoluzione",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Genitori di Lisa - Evoluzione' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "d4d74a60-000d-4260-b30d-b55164fbaa7f"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-GenitoridiLisa-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Genitori di Lisa - Futuro post-romanzo",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Genitori di Lisa - Futuro post-romanzo' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "ea6eb394-21a3-4926-95ac-769fa4c3e15b"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-GenitoridiLisa-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Genitori di Lisa - Passato",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Genitori di Lisa - Passato' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "816362ed-e858-47a6-a0e2-ba8d034ae5af"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Giulianitornaallepropriemansioni",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Giuliani torna alle proprie mansioni",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Giuliani torna alle proprie mansioni' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "b49fc216-6bfd-4c98-8277-fa405946ce4b"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Grimaldicontinuaainsegnareconrigore",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Grimaldi continua a insegnare con rigore",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Grimaldi continua a insegnare con rigore' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "2f4c16c8-4683-46e3-bd10-cce55a9f601a"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-LauraMancini-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Laura Mancini - Evoluzione",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Laura Mancini - Evoluzione' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "0497e61e-a109-46b5-b749-1131972a1b13"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-LauraMancini-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Laura Mancini - Futuro post-romanzo",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Laura Mancini - Futuro post-romanzo' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "7fbf70d4-11fc-4631-a69b-4ed6d7fac90d"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-LauraMancini-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Laura Mancini - Passato",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Laura Mancini - Passato' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "21bd5264-6ef9-4629-b33a-1e195b7c0e19"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-LisaMartini-EVOLUZIONE",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Lisa Martini - EVOLUZIONE",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Lisa Martini - EVOLUZIONE' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "a803b665-07ad-4fe8-a8a9-2507a81c5172"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Lisasiliberadapressionisocialierelazionitossiche",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Lisa si libera da pressioni sociali e relazioni tossiche",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Lisa si libera da pressioni sociali e relazioni tossiche' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "e1249543-6eef-4dd2-b767-24c452e4c7a6"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-MarcoBarbieri-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Marco Barbieri - Evoluzione",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Marco Barbieri - Evoluzione' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "27803ae3-4e1b-427b-8414-b6fc983c93d1"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-MarcoBarbieri-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Marco Barbieri - Futuro post-romanzo",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Marco Barbieri - Futuro post-romanzo' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "b41ba3b9-8a10-438c-9146-07e5c1015f4b"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-MarcoBarbieri-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Marco Barbieri - Passato",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Marco Barbieri - Passato' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "1eb397b8-80d7-4da5-af42-22e053274220"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-MarcoBellinifunzionalealmomentodelconcorso",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Marco Bellini funzionale al momento del concorso",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Marco Bellini funzionale al momento del concorso' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "f8c80b4d-39a0-4812-838e-727f66a8ca30"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-MarcoBellinisegueilpercorsoartisticodiGabriele",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Marco Bellini segue il percorso artistico di Gabriele",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Marco Bellini segue il percorso artistico di Gabriele' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "ea7acea8-ec12-43dd-be62-7e9124a9f493"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Michael-FUTURO(POST-ROMANZO)",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Michael - FUTURO (POST-ROMANZO)",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Michael - FUTURO (POST-ROMANZO)' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "46d313e9-7caa-47d7-9ab9-08c707e72240"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Michael-PASSATOCELESTE",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Michael - PASSATO CELESTE",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Michael - PASSATO CELESTE' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "9cb9e55a-2157-4521-8f06-96885a72323d"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-OculistaricordailcasodiGabrielecomeinspiegabile",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Oculista ricorda il caso di Gabriele come inspiegabile",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Oculista ricorda il caso di Gabriele come inspiegabile' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "a0b0969f-4299-4cae-9905-8c1452d4b7ba"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Prof.Moretticontinuaainsegnareeispirare",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Prof. Moretti continua a insegnare e ispirare",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Prof. Moretti continua a insegnare e ispirare' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "0c9b3395-0b30-4f40-88b9-6e17acb31cad"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Prof.MorettivalidailtalentodiGabriele",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Prof. Moretti valida il talento di Gabriele",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Prof. Moretti valida il talento di Gabriele' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "1ef66af9-446c-421e-bf9e-6d852841090e"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Raphael-FUTURO(POST-ROMANZO)",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Raphael - FUTURO (POST-ROMANZO)",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Raphael - FUTURO (POST-ROMANZO)' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "84287cdc-a5ec-4ddf-ba17-204e63f4c0df"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Raphael-PASSATOCELESTE(RELAZIONECONGABRIEL)",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Raphael - PASSATO CELESTE (RELAZIONE CON GABRIEL)",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Raphael - PASSATO CELESTE (RELAZIONE CON GABRIEL)' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "6a9c2c58-3254-4ad5-8534-d44aea433b05"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Sig.raConticontinuaainsegnare",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Sig.ra Conti continua a insegnare",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Sig.ra Conti continua a insegnare' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "47003d42-162f-439b-a09f-726909936f5d"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-Sig.raContiriconosceiltalentodiGabriele",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Sig.ra Conti riconosce il talento di Gabriele",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Sig.ra Conti riconosce il talento di Gabriele' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "ea253d86-bfeb-4033-bc99-43c58860422b"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-SignoraChenricordaconstuporel'episodioinmandarino",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Signora Chen ricorda con stupore l'episodio in mandarino",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Signora Chen ricorda con stupore l'episodio in mandarino' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "28f23922-12e5-4a16-b9b1-e35e65a67ef7"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-StefanoFerrari-Evoluzione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Stefano Ferrari - Evoluzione",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Stefano Ferrari - Evoluzione' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "b37f43fe-1ce2-464c-9b82-10d44c6344b9"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-StefanoFerrari-Futuropost-romanzo",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Stefano Ferrari - Futuro post-romanzo",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Stefano Ferrari - Futuro post-romanzo' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "bb4d51a4-0a2b-4f44-b827-215de4834012"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-StefanoFerrari-Passato",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Stefano Ferrari - Passato",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Stefano Ferrari - Passato' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "b3ed8d86-57bc-4e89-ae4e-942f4d87a3f2"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-TrevorRossi(SpeedyGonzy)-FaseDistruttiva(RitorsioneeAuto-sabotaggio)",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Trevor Rossi (SpeedyGonzy) - Fase Distruttiva (Ritorsione e Auto-sabotaggio)",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Trevor Rossi (SpeedyGonzy) - Fase Distruttiva (Ritorsione e Auto-sabotaggio)' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "fcfc8062-2fe2-4581-9441-dd48f9c3f03a"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-TrevorRossi(SpeedyGonzy)-FasedellaMaturazioneedelSupporto",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Trevor Rossi (SpeedyGonzy) - Fase della Maturazione e del Supporto",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Trevor Rossi (SpeedyGonzy) - Fase della Maturazione e del Supporto' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "b6f4fac1-38d1-4fc1-848c-57f9086b38cf"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-TrevorRossi(SpeedyGonzy)-FasedellaPerdita,dellaVulnerabilitàedellaPresadiCoscienza",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Trevor Rossi (SpeedyGonzy) - Fase della Perdita, della Vulnerabilità e della Presa di Coscienza",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Trevor Rossi (SpeedyGonzy) - Fase della Perdita, della Vulnerabilità e della Presa di Coscienza' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "ad9dc18f-13b8-49e7-90a4-cd43d3ba9765"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-TrevorRossi(SpeedyGonzy)-FasedellaRivelazione,delSensodiColpaedellaRiconciliazione",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Trevor Rossi (SpeedyGonzy) - Fase della Rivelazione, del Senso di Colpa e della Riconciliazione",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Trevor Rossi (SpeedyGonzy) - Fase della Rivelazione, del Senso di Colpa e della Riconciliazione' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "ba6c6db6-c476-41a2-b9f4-673f03c619d3"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "finding-inactive-thread-TrevorRossi(SpeedyGonzy)-FasediAlienazione,DoloreeRancore(CRCap.14)",
+      "type": "continuity_finding",
+      "label": "plot_thread_inactive:Trevor Rossi (SpeedyGonzy) - Fase di Alienazione, Dolore e Rancore (CR Cap. 14)",
+      "content": "Avviso del cervello narrativo: Il filo conduttore 'Trevor Rossi (SpeedyGonzy) - Fase di Alienazione, Dolore e Rancore (CR Cap. 14)' non è collegato a nessun evento della timeline. Suggeriamo di pianificare un evento per sviluppare questa linea narrativa.",
+      "metadata": {
+        "code": "inactive_plot_thread",
+        "severity": "warning",
+        "plotThreadId": "d9b57227-35d2-4943-985b-c6644e6f8926"
+      },
+      "provenance": {
+        "source": "active_inference_daemon",
+        "pid": "romanzo-gabriele"
+      }
+    },
+    {
+      "id": "f6022904-c621-4c06-97dc-675455c4957f",
+      "type": "narrative_constraint",
+      "label": "Cristiano ha divieto assoluto di redenzione",
+      "content": "Cristiano deve mantenere coerenza di percorso negativo: è vietata una redenzione non prevista o una riabilitazione emotiva che contraddica possessività, controllo, perdita di status e traiettoria distruttiva.",
+      "metadata": {
+        "canonStatus": "canonical",
+        "sourceId": "bibbia-gabriele-2025",
+        "batch": "pending-zero-dossier-protocols-v1",
+        "family": "ai_controls",
+        "granularity": "atomic",
+        "controlScope": "cristiano_no_redemption",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3",
+            "textSnippet": "Cristiano: DIVIETO assoluto di redenzione - mantenere coerenza percorso negativo."
+          }
+        ]
+      },
+      "provenance": {
+        "source": "codex_curated_pending_zero",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3",
+        "batch": "pending-zero-dossier-protocols-v1"
+      }
+    },
+    {
+      "id": "d0382a88-1314-477a-9998-c8c04ba5634a",
+      "type": "narrative_constraint",
+      "label": "Personaggi secondari funzionali hanno ruolo limitato",
+      "content": "Famiglia, autorità scolastiche ed episodici devono restare limitati alla funzione assegnata: supporto o contesto familiare, funzione istituzionale o scena specifica, senza espansione non autorizzata.",
+      "metadata": {
+        "canonStatus": "canonical",
+        "sourceId": "bibbia-gabriele-2025",
+        "batch": "pending-zero-dossier-protocols-v1",
+        "family": "ai_controls",
+        "granularity": "atomic",
+        "controlScope": "functional_secondary_role_limits",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3",
+            "textSnippet": "FAMIGLIA: Genitori Gabriele/Lisa - limitati a supporto/contesto familiare; AUTORITÀ: Professori/Preside; EPISODICI: Oculista, Signora Chen; DIVIETO: Espansione oltre ruolo assegnato."
+          }
+        ]
+      },
+      "provenance": {
+        "source": "codex_curated_pending_zero",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3",
+        "batch": "pending-zero-dossier-protocols-v1"
+      }
+    },
+    {
+      "id": "f3068dd0-6255-488c-93d6-4f4f9106ff5a",
+      "type": "timeline_event",
+      "label": "Scoperta pubblica dell identità SpeedyGonzy",
+      "content": "Cristiano scopre l identità di SpeedyGonzy e distrugge il laptop, esponendo e vulnerabilizzando Trevor.",
+      "metadata": {
+        "curatedBy": "codex",
+        "family": "timeline",
+        "granularity": "atomic",
+        "sourceBatch": "sezione-3.2-3.4-dossier-personaggi",
+        "requiresReview": false,
+        "canonStatus": "canonical",
+        "committedFromCandidateId": "atom-s33-event-scoperta-speedy",
+        "evidence": [
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.3.2",
+            "textSnippet": "La scoperta della sua identità da parte di Cristiano"
+          },
+          {
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.3.2",
+            "textSnippet": "La scoperta della sua identità da parte di Cristiano"
+          }
+        ],
+        "sourceId": "bibbia-gabriele-2025"
+      },
+      "provenance": {
+        "source": "novel_commit_bible_candidates",
+        "sourceId": "bibbia-gabriele-2025",
+        "sectionKey": "3.3.2",
+        "candidateId": "atom-s33-event-scoperta-speedy"
+      }
+    }
+  ],
+  "relationships": [],
+  "counts": {
+    "nodes": 58,
+    "relationships": 0
+  }
+}

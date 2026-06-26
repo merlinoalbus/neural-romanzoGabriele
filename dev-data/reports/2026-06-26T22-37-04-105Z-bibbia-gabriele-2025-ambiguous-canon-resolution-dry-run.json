@@ -1,0 +1,265 @@
+{
+  "generatedAt": "2026-06-26T22:37:04.105Z",
+  "dryRun": true,
+  "sourceId": "bibbia-gabriele-2025",
+  "beforeAudit": {
+    "nodes": 11596,
+    "edges": 23530,
+    "orphanNodes": 0,
+    "relatedToTotal": 0,
+    "nonRelPhysicalEdges": 0
+  },
+  "summary": {
+    "migrateNodes": 10,
+    "deleteNodes": 1,
+    "derivedFromEdges": 15
+  },
+  "migrateNodes": [
+    {
+      "nodeId": "006acfe1-e978-448e-9e2f-043b402438af",
+      "type": "character",
+      "label": "Asia",
+      "primarySectionKey": "4.4.10",
+      "sectionKeys": [
+        "4.4.10",
+        "4.5.1.1",
+        "2.6.4.1"
+      ]
+    },
+    {
+      "nodeId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "type": "character",
+      "label": "Elea",
+      "primarySectionKey": "4.4.10",
+      "sectionKeys": [
+        "4.4.10",
+        "4.5.1.1",
+        "2.6.4.1"
+      ]
+    },
+    {
+      "nodeId": "527720a3-10cf-4ad9-bc25-c93292760050",
+      "type": "character",
+      "label": "Marta",
+      "primarySectionKey": "2.6.4.1",
+      "sectionKeys": [
+        "2.6.4.1",
+        "4.4.10"
+      ]
+    },
+    {
+      "nodeId": "496aa500-8970-42b7-8e89-71593853f11f",
+      "type": "character_state",
+      "label": "Personalità iniziale di Gabriele",
+      "primarySectionKey": "2.1.1.3",
+      "sectionKeys": [
+        "2.1.1.3"
+      ]
+    },
+    {
+      "nodeId": "8e62a765-8370-41c9-880f-8615d8a0a209",
+      "type": "character_trait",
+      "label": "Valori non negoziabili di Gabriele",
+      "primarySectionKey": "2.1.1.7.1",
+      "sectionKeys": [
+        "2.1.1.7.1"
+      ]
+    },
+    {
+      "nodeId": "bb3c391a-9359-4d88-aade-075cc929e3de",
+      "type": "narrative_constraint",
+      "label": "Punti di rottura operativi di Gabriele",
+      "primarySectionKey": "2.1.1.7.2",
+      "sectionKeys": [
+        "2.1.1.7.2"
+      ]
+    },
+    {
+      "nodeId": "f8ba15dd-6ebd-474c-a68e-ddbf2499b903",
+      "type": "plot_thread",
+      "label": "Lisa futura comunicazione etica e giustizia",
+      "primarySectionKey": "2.1.2.19",
+      "sectionKeys": [
+        "2.1.2.19"
+      ]
+    },
+    {
+      "nodeId": "738aa4a2-203c-4e28-afec-462058d24295",
+      "type": "precognitive_data",
+      "label": "Futuro post-romanzo di Gabriele",
+      "primarySectionKey": "2.1.1.19",
+      "sectionKeys": [
+        "2.1.1.19"
+      ]
+    },
+    {
+      "nodeId": "daa3a754-5c95-4631-8b03-a50598aef708",
+      "type": "relationship_dynamic",
+      "label": "Lisa-Trevor amicizia adulta duratura",
+      "primarySectionKey": "2.1.2.19",
+      "sectionKeys": [
+        "2.1.2.19"
+      ]
+    },
+    {
+      "nodeId": "7280d9c3-960d-44e0-a8a9-9d7245ec71af",
+      "type": "relationship_dynamic",
+      "label": "Relazioni chiave di Gabriele",
+      "primarySectionKey": "2.1.1.15",
+      "sectionKeys": [
+        "2.1.1.15"
+      ]
+    }
+  ],
+  "deleteNodes": [
+    {
+      "nodeId": "b392a47f-e618-48e5-adb3-6fd7531376d4",
+      "type": "relationship_dynamic",
+      "label": "Elena Costa - Relazioni Chiave",
+      "reason": "structural_title_only_not_atomic_canon",
+      "replacementSectionKeys": [
+        "2.4.1.8.1",
+        "2.4.1.8.2",
+        "2.4.1.8.3",
+        "2.4.1.8.4",
+        "2.4.1.8.5"
+      ],
+      "incidentEdges": [
+        {
+          "id": "145cbb6d-8335-474a-919c-09bb057164fe",
+          "kind": "about",
+          "weight": 1,
+          "metadata": {
+            "family": "relationships",
+            "granularity": "atomic",
+            "curatedBy": "codex",
+            "batch": "sezione-3-5-3-7-raphael-michael-secondari",
+            "sourceId": "bibbia-gabriele-2025",
+            "sectionKey": "3.7.6.7",
+            "candidateId": "s35-edge-94b43396c042",
+            "evidence": {
+              "sourceId": "bibbia-gabriele-2025",
+              "sectionKey": "3.7.6.7",
+              "textSnippet": "Relazioni Chiave"
+            }
+          },
+          "provenance": {
+            "source": "novel_commit_bible_candidates",
+            "sourceId": "bibbia-gabriele-2025",
+            "candidateId": "s35-edge-94b43396c042"
+          },
+          "createdAt": "2026-06-23T04:45:48.849Z",
+          "fromId": "33de9b69-a7d6-41ba-a305-f01e4f1f2cdf",
+          "toId": "b392a47f-e618-48e5-adb3-6fd7531376d4"
+        }
+      ]
+    }
+  ],
+  "derivedFromEdges": [
+    {
+      "fromId": "006acfe1-e978-448e-9e2f-043b402438af",
+      "toId": "42ee9626-3660-4b74-9eae-482df315b23f",
+      "sectionKey": "4.4.10",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "006acfe1-e978-448e-9e2f-043b402438af",
+      "toId": "565ebbcb-5d11-442e-8fd5-c14a61f1c1f2",
+      "sectionKey": "4.5.1.1",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "006acfe1-e978-448e-9e2f-043b402438af",
+      "toId": "f8e51d1c-d6e6-4225-b766-dbd9572583a0",
+      "sectionKey": "2.6.4.1",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "toId": "42ee9626-3660-4b74-9eae-482df315b23f",
+      "sectionKey": "4.4.10",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "toId": "565ebbcb-5d11-442e-8fd5-c14a61f1c1f2",
+      "sectionKey": "4.5.1.1",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "3bb5ba62-b13d-4044-b6b7-378d62f0c7c9",
+      "toId": "f8e51d1c-d6e6-4225-b766-dbd9572583a0",
+      "sectionKey": "2.6.4.1",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "527720a3-10cf-4ad9-bc25-c93292760050",
+      "toId": "f8e51d1c-d6e6-4225-b766-dbd9572583a0",
+      "sectionKey": "2.6.4.1",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "527720a3-10cf-4ad9-bc25-c93292760050",
+      "toId": "42ee9626-3660-4b74-9eae-482df315b23f",
+      "sectionKey": "4.4.10",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "496aa500-8970-42b7-8e89-71593853f11f",
+      "toId": "16cd6add-400c-48cf-804d-a17ec9abe533",
+      "sectionKey": "2.1.1.3",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "8e62a765-8370-41c9-880f-8615d8a0a209",
+      "toId": "f76a6405-0fae-40fb-8ae0-13a41ebb3041",
+      "sectionKey": "2.1.1.7.1",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "bb3c391a-9359-4d88-aade-075cc929e3de",
+      "toId": "1fb6d9fd-7ecb-49a4-b067-76c3941eabb9",
+      "sectionKey": "2.1.1.7.2",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "f8ba15dd-6ebd-474c-a68e-ddbf2499b903",
+      "toId": "43947a3c-5f37-4b5c-9421-2f00c87cdd9a",
+      "sectionKey": "2.1.2.19",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "738aa4a2-203c-4e28-afec-462058d24295",
+      "toId": "edfc8fde-c916-41ef-9d97-629980629d19",
+      "sectionKey": "2.1.1.19",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "daa3a754-5c95-4631-8b03-a50598aef708",
+      "toId": "43947a3c-5f37-4b5c-9421-2f00c87cdd9a",
+      "sectionKey": "2.1.2.19",
+      "kind": "derived_from",
+      "weight": 1
+    },
+    {
+      "fromId": "7280d9c3-960d-44e0-a8a9-9d7245ec71af",
+      "toId": "75895a9f-76b4-435b-b2e8-035378f82db9",
+      "sectionKey": "2.1.1.15",
+      "kind": "derived_from",
+      "weight": 1
+    }
+  ]
+}

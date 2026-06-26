@@ -1,0 +1,2114 @@
+{
+  "ok": true,
+  "readOnly": true,
+  "sourceId": "bibbia-gabriele-2025",
+  "generatedAt": "2026-06-26T23:06:25.309Z",
+  "beforeAudit": {
+    "nodes": 11595,
+    "edges": 23544,
+    "orphanNodes": 0,
+    "relatedToTotal": 0,
+    "nonRelPhysicalEdges": 0
+  },
+  "summary": {
+    "total": 10295,
+    "byDisposition": {
+      "B_merged_into_existing_canonical_candidate": 502,
+      "C_rejected_false_positive_candidate": 2996,
+      "D_superseded_by_section_or_better_candidate": 6708,
+      "E_conflict_requires_author_resolution": 89
+    },
+    "byReason": {
+      "generic_atomic_label_requires_normalization_before_canon": 6708,
+      "heading_or_title_only_not_atomic_concept": 2080,
+      "high_semantic_overlap_existing_canonical": 501,
+      "same_content_multiple_target_types_requires_type_selection": 89,
+      "same_type_label_existing_canonical": 1,
+      "target_type_false_positive_by_rule": 916
+    },
+    "byTargetType": {
+      "artifact": 47,
+      "bible_claim": 4695,
+      "character_belief": 5,
+      "character_goal": 23,
+      "character_state": 397,
+      "character_trait": 1,
+      "character_voice": 5,
+      "character_wound": 128,
+      "faction": 204,
+      "glossary_term": 1,
+      "knowledge_state": 1083,
+      "location": 8,
+      "motif": 1418,
+      "narrative_constraint": 80,
+      "power": 237,
+      "precognitive_data": 27,
+      "relationship_dynamic": 10,
+      "revelation": 151,
+      "secret": 207,
+      "symbol": 36,
+      "theme": 50,
+      "timeline_event": 1438,
+      "world_rule": 44
+    },
+    "byGranularity": {
+      "atomic": 9684,
+      "section": 611
+    },
+    "pendingBeforeClassification": 10295,
+    "unresolvedAfterClassification": 89,
+    "conflicts": 178,
+    "classifiedReceipts": 10206
+  },
+  "samplesByDisposition": {
+    "C_rejected_false_positive_candidate": [
+      {
+        "candidateId": "bible-candidate-0000000021fe4207",
+        "targetType": "bible_claim",
+        "label": "GABRIELE RINALDI (GABRIEL) - claim 1",
+        "sectionKey": "2.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1 GABRIELE RINALDI (GABRIEL)"
+      },
+      {
+        "candidateId": "bible-candidate-000000000e376645",
+        "targetType": "timeline_event",
+        "label": "GABRIELE RINALDI (GABRIEL) - timeline_event 2",
+        "sectionKey": "2.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "target_type_false_positive_by_rule",
+        "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+      },
+      {
+        "candidateId": "bible-candidate-0000000021fe41c9",
+        "targetType": "bible_claim",
+        "label": "GABRIELE RINALDI (GABRIEL) - claim 3",
+        "sectionKey": "2.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "4.1, 4.2, 4.3, 4.4 VIETATO utilizzare timeline alternative."
+      },
+      {
+        "candidateId": "bible-candidate-000000000e376626",
+        "targetType": "timeline_event",
+        "label": "GABRIELE RINALDI (GABRIEL) - timeline_event 3",
+        "sectionKey": "2.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "4.1, 4.2, 4.3, 4.4 VIETATO utilizzare timeline alternative."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de45eb",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 1",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.1.1 Fase Iniziale (Umano – Adolescente, Pre-29/09/2020)"
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de458e",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 4",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "Le spalle sono strette."
+      },
+      {
+        "candidateId": "bible-candidate-000000000979be7e",
+        "targetType": "knowledge_state",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - knowledge_state 5",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "target_type_false_positive_by_rule",
+        "content": "Il suo viso, di forma ovale o leggermente allungata, è tormentato da una fastidiosa acne giovanile – un paesaggio di brufoli rossi e infiammati, con qualche cicatrice, concentrata principalmente su fronte e guance."
+      },
+      {
+        "candidateId": "bible-candidate-000000000979bedb",
+        "targetType": "knowledge_state",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - knowledge_state 8",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "target_type_false_positive_by_rule",
+        "content": "Indossa occhiali dalla montatura spessa, rotonda, forse un po' datata (ad esempio, in metallo nero o tartaruga scura), che accentuano la sua aria da “secchione”."
+      },
+      {
+        "candidateId": "bible-candidate-000000000ef107d2",
+        "targetType": "secret",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - secret 9",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "target_type_false_positive_by_rule",
+        "content": "Il suo abbigliamento è costituito da abiti larghi e informi, scelti più per nascondere il corpo che per vestirlo: felpe con cappuccio oversize (spesso di colori scuri o spenti come il grigio), jeans comodi e un po' sformati, e scarpe da gin"
+      },
+      {
+        "candidateId": "bible-candidate-0000000025be06e2",
+        "targetType": "knowledge_state",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - knowledge_state 10",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "target_type_false_positive_by_rule",
+        "content": "Emana un'aura generale di perenne disagio e bassa autostima, tipica dell'emarginato timido e introverso."
+      }
+    ],
+    "D_superseded_by_section_or_better_candidate": [
+      {
+        "candidateId": "bible-candidate-0000000021fe41e8",
+        "targetType": "bible_claim",
+        "label": "GABRIELE RINALDI (GABRIEL) - claim 2",
+        "sectionKey": "2.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+      },
+      {
+        "candidateId": "bible-candidate-000000005f21d0df",
+        "targetType": "narrative_constraint",
+        "label": "GABRIELE RINALDI (GABRIEL) - narrative_constraint 2",
+        "sectionKey": "2.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de45cc",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 2",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "Gabriele, all'età di quindici-sedici anni, incarna l'archetipo del “nerd” liceale."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de45ad",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 3",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "La sua corporatura è esile, quasi scheletrica, accentuata da una postura spesso curva e goffa che tradisce la sua profonda insicurezza."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de456f",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 5",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "Il suo viso, di forma ovale o leggermente allungata, è tormentato da una fastidiosa acne giovanile – un paesaggio di brufoli rossi e infiammati, con qualche cicatrice, concentrata principalmente su fronte e guance."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de4550",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 6",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "La sua espressione è frequentemente timida e ansiosa, con lo sguardo spesso rivolto verso il basso o perso nel vuoto."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de4531",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 7",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "I capelli neri, lisci, appaiono senza vita e trasandati, ricadendo spesso sulla fronte a coprire parzialmente gli occhi castani, di una tonalità media o scura, frequentemente cerchiati da ombre violacee dovute a insonnia o stress."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de4512",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 8",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "Indossa occhiali dalla montatura spessa, rotonda, forse un po' datata (ad esempio, in metallo nero o tartaruga scura), che accentuano la sua aria da “secchione”."
+      },
+      {
+        "candidateId": "bible-candidate-000000006b6e444f",
+        "targetType": "artifact",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - artifact 8",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "Indossa occhiali dalla montatura spessa, rotonda, forse un po' datata (ad esempio, in metallo nero o tartaruga scura), che accentuano la sua aria da “secchione”."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de44f3",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 9",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "Il suo abbigliamento è costituito da abiti larghi e informi, scelti più per nascondere il corpo che per vestirlo: felpe con cappuccio oversize (spesso di colori scuri o spenti come il grigio), jeans comodi e un po' sformati, e scarpe da gin"
+      }
+    ],
+    "B_merged_into_existing_canonical_candidate": [
+      {
+        "candidateId": "bible-candidate-0000000064f52c41",
+        "targetType": "world_rule",
+        "label": "Forma Angelica (25/02/2021 – Festa Carnevale)",
+        "sectionKey": "2.1.1.1.3",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "859d5f81-5788-4b99-986c-65b716e8463e",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.3",
+          "score": 1
+        },
+        "content": "2.1.1.1.3\tForma Angelica (25/02/2021 – Festa Carnevale)\nNella sua piena manifestazione arcangelica, la figura umana di Gabriele viene trasfigurata, conservando i tratti somatici di base ma elevati a una perfezione quasi divina, più simmetri"
+      },
+      {
+        "candidateId": "bible-candidate-000000004d756be3",
+        "targetType": "world_rule",
+        "label": "Poteri Angelici (Manifestazioni Graduali)",
+        "sectionKey": "2.1.1.12",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "3f5f734a-e8c8-499e-818e-63aaab280226",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.12",
+          "score": 1
+        },
+        "content": "2.1.1.12\tPoteri Angelici (Manifestazioni Graduali)\nCONTROLLO ATTIVAZIONE OBBLIGATORIO: Ogni potere ha trigger emotivi specifici documentati in Sez. 4.\nSEQUENZA MANIFESTAZIONI COMPLETE:\nFase 1 - Risveglio Iniziale:\n•\t29/09/2020 NOTTE: Prima "
+      },
+      {
+        "candidateId": "bible-candidate-00000000170b2f28",
+        "targetType": "world_rule",
+        "label": "Piume angeliche",
+        "sectionKey": "2.1.1.16.3",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "2ee5f40d-7648-47bd-8ad2-f2cda44b1c36",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.16.3",
+          "score": 1
+        },
+        "content": "2.1.1.16.3\tPiume angeliche\nInizialmente segni inquietanti della sua trasformazione inspiegabile; poi, dopo la reintegrazione, diventano un simbolo latente della sua vera natura; infine, le due piume lasciate a Lisa e Trevor sono un ricordo "
+      },
+      {
+        "candidateId": "bible-candidate-0000000001d8dd58",
+        "targetType": "theme",
+        "label": "Coerenza Con Altri Personaggi",
+        "sectionKey": "2.1.1.21.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "01665bbb-0ec1-435c-a7a4-a925e9fc3e85",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.21.1",
+          "score": 1
+        },
+        "content": "2.1.1.21.1\tCoerenza Con Altri Personaggi\n•\tCon Lisa (Sez. 2.1.2):\no\tRelazione deve seguire pattern: idealizzazione → ferita → riconciliazione → intimità → separazione → rivelazione → unione\no\tSolo Lisa può percepire manifestazioni luminose "
+      },
+      {
+        "candidateId": "bible-candidate-000000003ec40ef0",
+        "targetType": "theme",
+        "label": "Coerenza Temporale Critica",
+        "sectionKey": "2.1.1.21.2",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "80f889fc-2d7b-44e8-bb2a-f4ff75963640",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.21.2",
+          "score": 1
+        },
+        "content": "2.1.1.21.2\tCoerenza Temporale Critica\n•\t29/09/2020: Desiderio Catalizzatore + Prima Piuma (trigger assoluto)\n•\t05/10/2020: Vista perfetta + occhi verdi (scoperta traumatica)\n•\t05/12/2020: Reintegrazione piume (completamento metamorfosi fisi"
+      },
+      {
+        "candidateId": "bible-candidate-000000005f293e32",
+        "targetType": "theme",
+        "label": "Coerenza Tematica Obbligatoria",
+        "sectionKey": "2.1.1.21.3",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "7ab90a33-f43d-4fe7-a870-0694b17a15cc",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.21.3",
+          "score": 1
+        },
+        "content": "2.1.1.21.3\tCoerenza Tematica Obbligatoria\n•\tIncarnare “Dualità e Molteplicità dell'Essere” (Sez. 1.5.1.1)\n•\tRappresentare “Identità in Metamorfosi” (Sez. 1.5.2.1)\n•\tGuidare “Amore come Forza Cosmica Trasformativa” (Sez. 1.5.1.3)\n•\tRisolvere"
+      },
+      {
+        "candidateId": "bible-candidate-000000005259b4fc",
+        "targetType": "theme",
+        "label": "Verifiche Finali Obbligatorie",
+        "sectionKey": "2.1.1.21.4",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "39f689b7-4159-4af4-8d17-f3ca8a085afe",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.21.4",
+          "score": 1
+        },
+        "content": "2.1.1.21.4\tVerifiche Finali Obbligatorie\n1.\tOgni scena deve consultare timeline esatta trasformazioni\n2.\tPoteri devono rispettare sequenza progressiva stabilita\n3.\tRelazioni devono riflettere stato emotivo/fisico del periodo\n4.\tNessuna mani"
+      },
+      {
+        "candidateId": "bible-candidate-000000005db0a0ef",
+        "targetType": "world_rule",
+        "label": "Umanità vs. Natura Angelica",
+        "sectionKey": "2.1.1.6.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "62ce7763-77a2-4ec5-b279-69bf5f2d2274",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.6.1",
+          "score": 1
+        },
+        "content": "2.1.1.6.1\tUmanità vs. Natura Angelica\nLa lotta costante tra il desiderio di una vita normale, con le sue gioie e dolori terreni, e l'emergere dei suoi poteri e ricordi celesti, che lo rendono “altro”. Questo conflitto si acuisce con la rive"
+      },
+      {
+        "candidateId": "bible-candidate-000000000021ed4c",
+        "targetType": "world_rule",
+        "label": "Piuma Angelica",
+        "sectionKey": "2.1.2.12.2",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "cb0b6550-d7c5-4665-94a0-b96b1b21a32c",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.2.12.2",
+          "score": 1
+        },
+        "content": "2.1.2.12.2\tPiuma Angelica\nRicordo tangibile di Gabriel e protezione contro l'oblio divino, simbolo del loro legame trascendente e custode della memoria impossibile."
+      },
+      {
+        "candidateId": "bible-candidate-000000003ba37f37",
+        "targetType": "theme",
+        "label": "Coerenza Con Altri Personaggi",
+        "sectionKey": "2.1.2.21.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "33de9b69-a7d6-41ba-a305-f01e4f1f2cdf",
+          "type": "character",
+          "label": "Elena Costa",
+          "score": 1
+        },
+        "content": "2.1.2.21.1\tCoerenza Con Altri Personaggi\n•\tCon Gabriele (2.1.1):\no\tDeve essere unica a percepire chiaramente manifestazioni luminose (connessione spirituale)\no\tEvoluzione sentimentale: curiosità → attrazione → allontanamento → rivelazione →"
+      }
+    ],
+    "E_conflict_requires_author_resolution": [
+      {
+        "candidateId": "bible-candidate-000000005b3337a8",
+        "targetType": "symbol",
+        "label": "Occhiali - symbol 2",
+        "sectionKey": "2.1.1.16.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Inizialmente simbolo della sua miopia e del suo status di “nerd”; poi, con lenti neutre, diventano una maschera per nascondere i cambiamenti e un tentativo di aggrapparsi a una normalità percepita."
+      },
+      {
+        "candidateId": "bible-candidate-00000000557ca6ec",
+        "targetType": "symbol",
+        "label": "Scultura dei cigni - symbol 2",
+        "sectionKey": "2.1.1.16.2",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Simbolo del suo amore puro e idealizzato per Lisa, del suo talento artistico nascosto e della sua capacità di creare bellezza anche nella sofferenza."
+      },
+      {
+        "candidateId": "bible-candidate-00000000487fdb32",
+        "targetType": "symbol",
+        "label": "Piume angeliche - symbol 2",
+        "sectionKey": "2.1.1.16.3",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Inizialmente segni inquietanti della sua trasformazione inspiegabile; poi, dopo la reintegrazione, diventano un simbolo latente della sua vera natura; infine, le due piume lasciate a Lisa e Trevor sono un ricordo tangibile del suo sacrifici"
+      },
+      {
+        "candidateId": "bible-candidate-0000000067067a9e",
+        "targetType": "character_goal",
+        "label": "Il Diario Personale - character_goal 21",
+        "sectionKey": "2.1.1.16.4",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "La rivelazione della natura angelica rappresenta un trauma troppo grande per essere elaborato per iscritto, e Gabriele sviluppa paranoia per la sicurezza: teme che il diario possa essere letto da qualcuno e mettere in pericolo le persone a "
+      },
+      {
+        "candidateId": "bible-candidate-000000003be1c1db",
+        "targetType": "character_goal",
+        "label": "Personalità Iniziale - character_goal 4",
+        "sectionKey": "2.1.1.3",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Sognatore, desidera un cambiamento radicale e l'accettazione."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013431128",
+        "targetType": "symbol",
+        "label": "Microfono della Radio “Leonardo On Air” - symbol 2",
+        "sectionKey": "2.1.2.12.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Simbolo della sua voce pubblica e del potere comunicativo, rappresenta sia la sua posizione sociale che la sua evoluzione verso l'autenticità comunicativa."
+      },
+      {
+        "candidateId": "bible-candidate-000000000ce9bc74",
+        "targetType": "symbol",
+        "label": "Piuma Angelica - symbol 2",
+        "sectionKey": "2.1.2.12.2",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Ricordo tangibile di Gabriel e protezione contro l'oblio divino, simbolo del loro legame trascendente e custode della memoria impossibile."
+      },
+      {
+        "candidateId": "bible-candidate-00000000083330d1",
+        "targetType": "symbol",
+        "label": "Foulard della Nonna - symbol 3",
+        "sectionKey": "2.1.2.12.3",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "4.3.6), simbolo di continuità generazionale e catalizzatore di eventi soprannaturali."
+      },
+      {
+        "candidateId": "bible-candidate-0000000070b291a3",
+        "targetType": "precognitive_data",
+        "label": "Futuro (Post-Romanzo) - precognitive_data 5",
+        "sectionKey": "2.1.2.19",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Affetto comune per Gabriele e condivisione segreto sulla sua vera natura li porteranno a superare divergenze, trasformando legame in solida amicizia duratura."
+      },
+      {
+        "candidateId": "bible-candidate-000000001cff1739",
+        "targetType": "precognitive_data",
+        "label": "Personalità Iniziale - precognitive_data 6",
+        "sectionKey": "2.1.2.2",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "La sua “visione superficiale” degli emarginati non è una convinzione radicata, ma più una conseguenza della pressione sociale e del suo legame con Cristiano, un meccanismo di difesa o di conformismo."
+      }
+    ]
+  },
+  "samplesByReason": {
+    "heading_or_title_only_not_atomic_concept": [
+      {
+        "candidateId": "bible-candidate-0000000021fe4207",
+        "targetType": "bible_claim",
+        "label": "GABRIELE RINALDI (GABRIEL) - claim 1",
+        "sectionKey": "2.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1 GABRIELE RINALDI (GABRIEL)"
+      },
+      {
+        "candidateId": "bible-candidate-0000000021fe41c9",
+        "targetType": "bible_claim",
+        "label": "GABRIELE RINALDI (GABRIEL) - claim 3",
+        "sectionKey": "2.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "4.1, 4.2, 4.3, 4.4 VIETATO utilizzare timeline alternative."
+      },
+      {
+        "candidateId": "bible-candidate-000000000e376626",
+        "targetType": "timeline_event",
+        "label": "GABRIELE RINALDI (GABRIEL) - timeline_event 3",
+        "sectionKey": "2.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "4.1, 4.2, 4.3, 4.4 VIETATO utilizzare timeline alternative."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de45eb",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 1",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.1.1 Fase Iniziale (Umano – Adolescente, Pre-29/09/2020)"
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de458e",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 4",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "Le spalle sono strette."
+      },
+      {
+        "candidateId": "bible-candidate-00000000048e1414",
+        "targetType": "bible_claim",
+        "label": "Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020) - claim 1",
+        "sectionKey": "2.1.1.1.2",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "heading_or_title_only_not_atomic_concept",
+        "content": "2.1.1.1.2 Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020)"
+      }
+    ],
+    "generic_atomic_label_requires_normalization_before_canon": [
+      {
+        "candidateId": "bible-candidate-0000000021fe41e8",
+        "targetType": "bible_claim",
+        "label": "GABRIELE RINALDI (GABRIEL) - claim 2",
+        "sectionKey": "2.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+      },
+      {
+        "candidateId": "bible-candidate-000000005f21d0df",
+        "targetType": "narrative_constraint",
+        "label": "GABRIELE RINALDI (GABRIEL) - narrative_constraint 2",
+        "sectionKey": "2.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de45cc",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 2",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "Gabriele, all'età di quindici-sedici anni, incarna l'archetipo del “nerd” liceale."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de45ad",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 3",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "La sua corporatura è esile, quasi scheletrica, accentuata da una postura spesso curva e goffa che tradisce la sua profonda insicurezza."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de456f",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 5",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "Il suo viso, di forma ovale o leggermente allungata, è tormentato da una fastidiosa acne giovanile – un paesaggio di brufoli rossi e infiammati, con qualche cicatrice, concentrata principalmente su fronte e guance."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013de4550",
+        "targetType": "bible_claim",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - claim 6",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "D_superseded_by_section_or_better_candidate",
+        "reason": "generic_atomic_label_requires_normalization_before_canon",
+        "content": "La sua espressione è frequentemente timida e ansiosa, con lo sguardo spesso rivolto verso il basso o perso nel vuoto."
+      }
+    ],
+    "target_type_false_positive_by_rule": [
+      {
+        "candidateId": "bible-candidate-000000000e376645",
+        "targetType": "timeline_event",
+        "label": "GABRIELE RINALDI (GABRIEL) - timeline_event 2",
+        "sectionKey": "2.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "target_type_false_positive_by_rule",
+        "content": "CONTROLLO CRONOLOGIA OBBLIGATORIO: Ogni riferimento temporale DEVE allinearsi con Sez."
+      },
+      {
+        "candidateId": "bible-candidate-000000000979be7e",
+        "targetType": "knowledge_state",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - knowledge_state 5",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "target_type_false_positive_by_rule",
+        "content": "Il suo viso, di forma ovale o leggermente allungata, è tormentato da una fastidiosa acne giovanile – un paesaggio di brufoli rossi e infiammati, con qualche cicatrice, concentrata principalmente su fronte e guance."
+      },
+      {
+        "candidateId": "bible-candidate-000000000979bedb",
+        "targetType": "knowledge_state",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - knowledge_state 8",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "target_type_false_positive_by_rule",
+        "content": "Indossa occhiali dalla montatura spessa, rotonda, forse un po' datata (ad esempio, in metallo nero o tartaruga scura), che accentuano la sua aria da “secchione”."
+      },
+      {
+        "candidateId": "bible-candidate-000000000ef107d2",
+        "targetType": "secret",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - secret 9",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "target_type_false_positive_by_rule",
+        "content": "Il suo abbigliamento è costituito da abiti larghi e informi, scelti più per nascondere il corpo che per vestirlo: felpe con cappuccio oversize (spesso di colori scuri o spenti come il grigio), jeans comodi e un po' sformati, e scarpe da gin"
+      },
+      {
+        "candidateId": "bible-candidate-0000000025be06e2",
+        "targetType": "knowledge_state",
+        "label": "Fase Iniziale (Umano – Adolescente, Pre-29/09/2020) - knowledge_state 10",
+        "sectionKey": "2.1.1.1.1",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "target_type_false_positive_by_rule",
+        "content": "Emana un'aura generale di perenne disagio e bassa autostima, tipica dell'emarginato timido e introverso."
+      },
+      {
+        "candidateId": "bible-candidate-00000000220f85ef",
+        "targetType": "knowledge_state",
+        "label": "Durante la Trasformazione Fisica (30/09/2020 – 05/12/2020) - knowledge_state 9",
+        "sectionKey": "2.1.1.1.2",
+        "disposition": "C_rejected_false_positive_candidate",
+        "reason": "target_type_false_positive_by_rule",
+        "content": "Inizialmente, per mascherare questo cambiamento e per abitudine, indossa occhiali con lenti neutre, ma poi li abbandona, lasciando i suoi nuovi occhi spesso liberi."
+      }
+    ],
+    "high_semantic_overlap_existing_canonical": [
+      {
+        "candidateId": "bible-candidate-0000000064f52c41",
+        "targetType": "world_rule",
+        "label": "Forma Angelica (25/02/2021 – Festa Carnevale)",
+        "sectionKey": "2.1.1.1.3",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "859d5f81-5788-4b99-986c-65b716e8463e",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.1.3",
+          "score": 1
+        },
+        "content": "2.1.1.1.3\tForma Angelica (25/02/2021 – Festa Carnevale)\nNella sua piena manifestazione arcangelica, la figura umana di Gabriele viene trasfigurata, conservando i tratti somatici di base ma elevati a una perfezione quasi divina, più simmetri"
+      },
+      {
+        "candidateId": "bible-candidate-000000004d756be3",
+        "targetType": "world_rule",
+        "label": "Poteri Angelici (Manifestazioni Graduali)",
+        "sectionKey": "2.1.1.12",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "3f5f734a-e8c8-499e-818e-63aaab280226",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.12",
+          "score": 1
+        },
+        "content": "2.1.1.12\tPoteri Angelici (Manifestazioni Graduali)\nCONTROLLO ATTIVAZIONE OBBLIGATORIO: Ogni potere ha trigger emotivi specifici documentati in Sez. 4.\nSEQUENZA MANIFESTAZIONI COMPLETE:\nFase 1 - Risveglio Iniziale:\n•\t29/09/2020 NOTTE: Prima "
+      },
+      {
+        "candidateId": "bible-candidate-00000000170b2f28",
+        "targetType": "world_rule",
+        "label": "Piume angeliche",
+        "sectionKey": "2.1.1.16.3",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "2ee5f40d-7648-47bd-8ad2-f2cda44b1c36",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.16.3",
+          "score": 1
+        },
+        "content": "2.1.1.16.3\tPiume angeliche\nInizialmente segni inquietanti della sua trasformazione inspiegabile; poi, dopo la reintegrazione, diventano un simbolo latente della sua vera natura; infine, le due piume lasciate a Lisa e Trevor sono un ricordo "
+      },
+      {
+        "candidateId": "bible-candidate-0000000001d8dd58",
+        "targetType": "theme",
+        "label": "Coerenza Con Altri Personaggi",
+        "sectionKey": "2.1.1.21.1",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "01665bbb-0ec1-435c-a7a4-a925e9fc3e85",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.21.1",
+          "score": 1
+        },
+        "content": "2.1.1.21.1\tCoerenza Con Altri Personaggi\n•\tCon Lisa (Sez. 2.1.2):\no\tRelazione deve seguire pattern: idealizzazione → ferita → riconciliazione → intimità → separazione → rivelazione → unione\no\tSolo Lisa può percepire manifestazioni luminose "
+      },
+      {
+        "candidateId": "bible-candidate-000000003ec40ef0",
+        "targetType": "theme",
+        "label": "Coerenza Temporale Critica",
+        "sectionKey": "2.1.1.21.2",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "80f889fc-2d7b-44e8-bb2a-f4ff75963640",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.21.2",
+          "score": 1
+        },
+        "content": "2.1.1.21.2\tCoerenza Temporale Critica\n•\t29/09/2020: Desiderio Catalizzatore + Prima Piuma (trigger assoluto)\n•\t05/10/2020: Vista perfetta + occhi verdi (scoperta traumatica)\n•\t05/12/2020: Reintegrazione piume (completamento metamorfosi fisi"
+      },
+      {
+        "candidateId": "bible-candidate-000000005f293e32",
+        "targetType": "theme",
+        "label": "Coerenza Tematica Obbligatoria",
+        "sectionKey": "2.1.1.21.3",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "high_semantic_overlap_existing_canonical",
+        "target": {
+          "id": "7ab90a33-f43d-4fe7-a870-0694b17a15cc",
+          "type": "bible_section",
+          "label": "bibbia-gabriele-2025::2.1.1.21.3",
+          "score": 1
+        },
+        "content": "2.1.1.21.3\tCoerenza Tematica Obbligatoria\n•\tIncarnare “Dualità e Molteplicità dell'Essere” (Sez. 1.5.1.1)\n•\tRappresentare “Identità in Metamorfosi” (Sez. 1.5.2.1)\n•\tGuidare “Amore come Forza Cosmica Trasformativa” (Sez. 1.5.1.3)\n•\tRisolvere"
+      }
+    ],
+    "same_content_multiple_target_types_requires_type_selection": [
+      {
+        "candidateId": "bible-candidate-000000005b3337a8",
+        "targetType": "symbol",
+        "label": "Occhiali - symbol 2",
+        "sectionKey": "2.1.1.16.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Inizialmente simbolo della sua miopia e del suo status di “nerd”; poi, con lenti neutre, diventano una maschera per nascondere i cambiamenti e un tentativo di aggrapparsi a una normalità percepita."
+      },
+      {
+        "candidateId": "bible-candidate-00000000557ca6ec",
+        "targetType": "symbol",
+        "label": "Scultura dei cigni - symbol 2",
+        "sectionKey": "2.1.1.16.2",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Simbolo del suo amore puro e idealizzato per Lisa, del suo talento artistico nascosto e della sua capacità di creare bellezza anche nella sofferenza."
+      },
+      {
+        "candidateId": "bible-candidate-00000000487fdb32",
+        "targetType": "symbol",
+        "label": "Piume angeliche - symbol 2",
+        "sectionKey": "2.1.1.16.3",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Inizialmente segni inquietanti della sua trasformazione inspiegabile; poi, dopo la reintegrazione, diventano un simbolo latente della sua vera natura; infine, le due piume lasciate a Lisa e Trevor sono un ricordo tangibile del suo sacrifici"
+      },
+      {
+        "candidateId": "bible-candidate-0000000067067a9e",
+        "targetType": "character_goal",
+        "label": "Il Diario Personale - character_goal 21",
+        "sectionKey": "2.1.1.16.4",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "La rivelazione della natura angelica rappresenta un trauma troppo grande per essere elaborato per iscritto, e Gabriele sviluppa paranoia per la sicurezza: teme che il diario possa essere letto da qualcuno e mettere in pericolo le persone a "
+      },
+      {
+        "candidateId": "bible-candidate-000000003be1c1db",
+        "targetType": "character_goal",
+        "label": "Personalità Iniziale - character_goal 4",
+        "sectionKey": "2.1.1.3",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Sognatore, desidera un cambiamento radicale e l'accettazione."
+      },
+      {
+        "candidateId": "bible-candidate-0000000013431128",
+        "targetType": "symbol",
+        "label": "Microfono della Radio “Leonardo On Air” - symbol 2",
+        "sectionKey": "2.1.2.12.1",
+        "disposition": "E_conflict_requires_author_resolution",
+        "reason": "same_content_multiple_target_types_requires_type_selection",
+        "content": "Simbolo della sua voce pubblica e del potere comunicativo, rappresenta sia la sua posizione sociale che la sua evoluzione verso l'autenticità comunicativa."
+      }
+    ],
+    "same_type_label_existing_canonical": [
+      {
+        "candidateId": "bible-candidate-00000000713e67bb",
+        "targetType": "world_rule",
+        "label": "REGOLE CELESTI",
+        "sectionKey": "3.3.4",
+        "disposition": "B_merged_into_existing_canonical_candidate",
+        "reason": "same_type_label_existing_canonical",
+        "target": {
+          "id": "571bf7dc-911f-46d5-b6bf-32b835d56eed",
+          "type": "world_rule",
+          "label": "Regole celesti"
+        },
+        "content": "3.3.4\tREGOLE CELESTI\nL'esistenza angelica è governata da leggi divine fondamentali per il mantenimento dell'Ordine Divino e dell'equilibrio cosmico:"
+      }
+    ]
+  },
+  "conflicts": [
+    {
+      "candidateId": "bible-candidate-000000005b3337a8",
+      "targetType": "symbol",
+      "label": "Occhiali - symbol 2",
+      "sectionKey": "2.1.1.16.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "artifact",
+        "bible_claim",
+        "secret",
+        "symbol"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente simbolo della sua miopia e del suo status di “nerd”; poi, con lenti neutre, diventano una maschera per nascondere i cambiamenti e un tentativo di aggrapparsi a una normalità percepita."
+    },
+    {
+      "candidateId": "bible-candidate-00000000557ca6ec",
+      "targetType": "symbol",
+      "label": "Scultura dei cigni - symbol 2",
+      "sectionKey": "2.1.1.16.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "secret",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Simbolo del suo amore puro e idealizzato per Lisa, del suo talento artistico nascosto e della sua capacità di creare bellezza anche nella sofferenza."
+    },
+    {
+      "candidateId": "bible-candidate-00000000487fdb32",
+      "targetType": "symbol",
+      "label": "Piume angeliche - symbol 2",
+      "sectionKey": "2.1.1.16.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Inizialmente segni inquietanti della sua trasformazione inspiegabile; poi, dopo la reintegrazione, diventano un simbolo latente della sua vera natura; infine, le due piume lasciate a Lisa e Trevor sono un ricordo tangibile del suo sacrificio, della sua essenza e uno scudo contro l'oblio divino."
+    },
+    {
+      "candidateId": "bible-candidate-0000000067067a9e",
+      "targetType": "character_goal",
+      "label": "Il Diario Personale - character_goal 21",
+      "sectionKey": "2.1.1.16.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "character_wound",
+        "knowledge_state",
+        "revelation"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "La rivelazione della natura angelica rappresenta un trauma troppo grande per essere elaborato per iscritto, e Gabriele sviluppa paranoia per la sicurezza: teme che il diario possa essere letto da qualcuno e mettere in pericolo le persone a cui vuole bene."
+    },
+    {
+      "candidateId": "bible-candidate-000000003be1c1db",
+      "targetType": "character_goal",
+      "label": "Personalità Iniziale - character_goal 4",
+      "sectionKey": "2.1.1.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Sognatore, desidera un cambiamento radicale e l'accettazione."
+    },
+    {
+      "candidateId": "bible-candidate-0000000013431128",
+      "targetType": "symbol",
+      "label": "Microfono della Radio “Leonardo On Air” - symbol 2",
+      "sectionKey": "2.1.2.12.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power",
+        "symbol"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Simbolo della sua voce pubblica e del potere comunicativo, rappresenta sia la sua posizione sociale che la sua evoluzione verso l'autenticità comunicativa."
+    },
+    {
+      "candidateId": "bible-candidate-000000000ce9bc74",
+      "targetType": "symbol",
+      "label": "Piuma Angelica - symbol 2",
+      "sectionKey": "2.1.2.12.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Ricordo tangibile di Gabriel e protezione contro l'oblio divino, simbolo del loro legame trascendente e custode della memoria impossibile."
+    },
+    {
+      "candidateId": "bible-candidate-00000000083330d1",
+      "targetType": "symbol",
+      "label": "Foulard della Nonna - symbol 3",
+      "sectionKey": "2.1.2.12.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "4.3.6), simbolo di continuità generazionale e catalizzatore di eventi soprannaturali."
+    },
+    {
+      "candidateId": "bible-candidate-0000000070b291a3",
+      "targetType": "precognitive_data",
+      "label": "Futuro (Post-Romanzo) - precognitive_data 5",
+      "sectionKey": "2.1.2.19",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "precognitive_data",
+        "secret"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Affetto comune per Gabriele e condivisione segreto sulla sua vera natura li porteranno a superare divergenze, trasformando legame in solida amicizia duratura."
+    },
+    {
+      "candidateId": "bible-candidate-000000001cff1739",
+      "targetType": "precognitive_data",
+      "label": "Personalità Iniziale - precognitive_data 6",
+      "sectionKey": "2.1.2.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_belief",
+        "knowledge_state",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "La sua “visione superficiale” degli emarginati non è una convinzione radicata, ma più una conseguenza della pressione sociale e del suo legame con Cristiano, un meccanismo di difesa o di conformismo."
+    },
+    {
+      "candidateId": "bible-candidate-00000000472535bd",
+      "targetType": "character_belief",
+      "label": "Personalità Iniziale - character_belief 6",
+      "sectionKey": "2.1.2.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_belief",
+        "knowledge_state",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "La sua “visione superficiale” degli emarginati non è una convinzione radicata, ma più una conseguenza della pressione sociale e del suo legame con Cristiano, un meccanismo di difesa o di conformismo."
+    },
+    {
+      "candidateId": "bible-candidate-000000002f578d58",
+      "targetType": "precognitive_data",
+      "label": "Crescita Personale Duratura - precognitive_data 2",
+      "sectionKey": "2.2.1.12.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• Superamento Visione Binaria: Accettazione complessità e sfumature mondo"
+    },
+    {
+      "candidateId": "bible-candidate-000000006866ed20",
+      "targetType": "symbol",
+      "label": "Destino Specifico Della Piuma: Timing - symbol 5",
+      "sectionKey": "2.2.1.12.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "symbol"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• ATTO SIMBOLICO: Affida la piuma, simbolo della solidità della loro amicizia a Gabriele."
+    },
+    {
+      "candidateId": "bible-candidate-0000000076a9f667",
+      "targetType": "character_belief",
+      "label": "Doppia Identità: SpeedyGonzy - character_belief 12",
+      "sectionKey": "2.2.1.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_belief"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• Attacco personale Gabriele: “IL BRUTTO ANATROCCOLO SI CREDE CIGNO?” (04/11/2020 - Sez."
+    },
+    {
+      "candidateId": "bible-candidate-0000000052893ddd",
+      "targetType": "precognitive_data",
+      "label": "Visione Mondo Binaria (Corazza Protettiva) - precognitive_data 2",
+      "sectionKey": "2.2.1.3.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• \"Noi\" (Emarginati): Vittime incomprese del sistema, moralmente superiori"
+    },
+    {
+      "candidateId": "bible-candidate-0000000052893dfc",
+      "targetType": "precognitive_data",
+      "label": "Visione Mondo Binaria (Corazza Protettiva) - precognitive_data 3",
+      "sectionKey": "2.2.1.3.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• \"Loro\" (Popolari): Corrotti, superficiali, ipocriti (incarnati da Cristiano e inizialmente Lisa)"
+    },
+    {
+      "candidateId": "bible-candidate-0000000052893e1b",
+      "targetType": "precognitive_data",
+      "label": "Visione Mondo Binaria (Corazza Protettiva) - precognitive_data 4",
+      "sectionKey": "2.2.1.3.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• Funzione Psicologica: Semplificazione che protegge dalla complessità emotiva dolorosa"
+    },
+    {
+      "candidateId": "bible-candidate-00000000659f337b",
+      "targetType": "precognitive_data",
+      "label": "Valori Core (In Ordine di Priorità) - precognitive_data 5",
+      "sectionKey": "2.2.1.5.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "faction",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Autonomia Identitaria: Diritto di mantenere la propria visione del mondo"
+    },
+    {
+      "candidateId": "bible-candidate-000000007099ad78",
+      "targetType": "symbol",
+      "label": "Con Lisa (Antagonismo Ideologico → Alleanza Forzata) - symbol 4",
+      "sectionKey": "2.2.1.6.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "o Lisa = simbolo “sistema falso” che corrompe Gabriele"
+    },
+    {
+      "candidateId": "bible-candidate-000000001e025402",
+      "targetType": "symbol",
+      "label": "Funzioni Specifiche - symbol 4",
+      "sectionKey": "2.2.2.1.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Simbolo Sistema Gerarchico: Incarnazione delle dinamiche di potere liceali tossiche"
+    },
+    {
+      "candidateId": "bible-candidate-000000001ef96508",
+      "targetType": "precognitive_data",
+      "label": "Visione Di Sé Distorta - precognitive_data 2",
+      "sectionKey": "2.2.2.10.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "faction",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Dal suo punto di vista distorto, non si percepisce come “il cattivo”, ma come qualcuno che difende ciò che ritiene suo di diritto (la sua posizione, la sua ragazza, il suo rispetto) da minacce esterne (Gabriele, SpeedyGonzy) che cercano di sovvertire l'ordine stabilito e di sminuirlo."
+    },
+    {
+      "candidateId": "bible-candidate-000000001ef964e9",
+      "targetType": "precognitive_data",
+      "label": "Visione Di Sé Distorta - precognitive_data 3",
+      "sectionKey": "2.2.2.10.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Le sue azioni, per quanto deprecabili, sono spesso una reazione scomposta alla paura di perdere ciò che definisce la sua identità."
+    },
+    {
+      "candidateId": "bible-candidate-0000000006a80fb2",
+      "targetType": "character_goal",
+      "label": "Contraddizioni Interne (che alimentano il ciclo tossico): - character_goal 5",
+      "sectionKey": "2.2.2.12.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Incapacità riceverlo: Vuole essere amato ma può solo controllare"
+    },
+    {
+      "candidateId": "bible-candidate-000000000a6d34a7",
+      "targetType": "precognitive_data",
+      "label": "Motivazioni Interne e Psicologia Profonda - precognitive_data 5",
+      "sectionKey": "2.2.2.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "VISIONE DEL MONDO: Gerarchica rigida dove ogni rapporto è di dominio/sottomissione"
+    },
+    {
+      "candidateId": "bible-candidate-00000000595bf7f4",
+      "targetType": "symbol",
+      "label": "Fase 4 - Collasso Multiplo (04/11/2020) - symbol 3",
+      "sectionKey": "2.2.2.8.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Rottura definitiva Lisa: perdita simbolo status"
+    },
+    {
+      "candidateId": "bible-candidate-000000007e3c9adb",
+      "targetType": "symbol",
+      "label": "Uniforme Da Basket - symbol 3",
+      "sectionKey": "2.2.2.9.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• EVOLUZIONE: Da simbolo potere a ricordo di quello che era"
+    },
+    {
+      "candidateId": "bible-candidate-00000000551e1925",
+      "targetType": "symbol",
+      "label": "Fischietto Da Capitano - symbol 4",
+      "sectionKey": "2.2.2.9.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "symbol"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "• DESTINO: Passaggio forzato a Gabriele = simbolo sconfitta"
+    },
+    {
+      "candidateId": "bible-candidate-00000000283b7595",
+      "targetType": "character_goal",
+      "label": "Natura Essenziale - character_goal 5",
+      "sectionKey": "2.3.1.4.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Guaritore di Anime: Vuole curare le ferite di entrambi i fratelli"
+    },
+    {
+      "candidateId": "bible-candidate-0000000067a3a7a6",
+      "targetType": "character_goal",
+      "label": "con Michael (Fratello traumatizzato da comprendere) - character_goal 4",
+      "sectionKey": "2.3.1.5.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "character_wound"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Protezione Emotiva: Vuole evitare a Michael il dolore straziante di rivivere la perdita"
+    },
+    {
+      "candidateId": "bible-candidate-000000001ae9f775",
+      "targetType": "character_goal",
+      "label": "Ruolo Di Ponte Emotivo - character_goal 4",
+      "sectionKey": "2.3.1.5.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "motif"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Guaritore di Fratture: Vuole sanare le ferite lasciate dalla perdita di Lucifer"
+    },
+    {
+      "candidateId": "bible-candidate-000000007e274511",
+      "targetType": "character_goal",
+      "label": "Prima Apparizione (Cap. 29: Fratello di Luce - 17/12/2020) - character_goal 6",
+      "sectionKey": "2.3.1.6.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Obiettivo Primario: Risveglio consapevolezza + avvertimento pericolo Michael"
+    },
+    {
+      "candidateId": "bible-candidate-00000000757874e5",
+      "targetType": "character_goal",
+      "label": "Seconda Apparizione (Cap. 32: L’Ultimatum Celeste - 06/02/2021) - character_goal 6",
+      "sectionKey": "2.3.1.6.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Obiettivo Cruciale: Innescare il pieno risveglio dei ricordi di Gabriel - fondamentale secondo leggi celesti che Gabriel recuperi interamente essenza angelica prima del ritorno"
+    },
+    {
+      "candidateId": "bible-candidate-000000002cd10887",
+      "targetType": "character_belief",
+      "label": "Meccanismi Psicologici Sviluppati - character_belief 3",
+      "sectionKey": "2.3.2.6.6",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_belief",
+        "character_wound"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Rigidità Come Amore Distorto: Crede che l'inflessibilità protegga i fratelli rimasti da tentazioni distruttive"
+    },
+    {
+      "candidateId": "bible-candidate-000000006ab68470",
+      "targetType": "symbol",
+      "label": "Ruoli Specifici - symbol 5",
+      "sectionKey": "2.4.2.1.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Simbolo inerzia: Rappresenta l'incapacità di crescita personale e iniziativa autonoma"
+    },
+    {
+      "candidateId": "bible-candidate-00000000468559e4",
+      "targetType": "symbol",
+      "label": "Assenza Oggetti Personali Significativi - symbol 2",
+      "sectionKey": "2.4.2.8.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Nessun simbolo individuale: Tutto deriva dall'associazione con Cristiano"
+    },
+    {
+      "candidateId": "bible-candidate-00000000068888dc",
+      "targetType": "symbol",
+      "label": "Funzione Narrativa Primaria - symbol 2",
+      "sectionKey": "2.4.3.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "motif",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "Secondo scagnozzo di Cristiano che evolve da seguace leale a traditore vendicativo, catalizzatore dell'ingresso di Gabriele nella squadra di basket e simbolo della reazione orgogliosa al tradimento subito."
+    },
+    {
+      "candidateId": "bible-candidate-0000000066e5a119",
+      "targetType": "symbol",
+      "label": "Abbigliamento Caratteristico - symbol 5",
+      "sectionKey": "2.4.3.2.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "faction",
+        "motif",
+        "power",
+        "symbol"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "• Simbolismo: Abbandono simbolico dell'estetica del gruppo dominante"
+    },
+    {
+      "candidateId": "bible-candidate-0000000021dcfaa7",
+      "targetType": "precognitive_data",
+      "label": "Tratti Dominanti Pre-Tradimento - precognitive_data 2",
+      "sectionKey": "2.4.3.3.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "faction",
+        "motif",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "• Lealtà atletica: Fedeltà basata su condivisione valori sportivi e rispetto gerarchia"
+    },
+    {
+      "candidateId": "bible-candidate-000000003e6622e1",
+      "targetType": "precognitive_data",
+      "label": "Background Relazionale con Laura - precognitive_data 2",
+      "sectionKey": "2.4.3.4.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Relazione autentica iniziata in seconda superiore, basata su attrazione reciproca e condivisione dello status di \"coppia popolare\"."
+    },
+    {
+      "candidateId": "bible-candidate-000000006fa18a03",
+      "targetType": "precognitive_data",
+      "label": "Esempi Linguaggio Tecnico Sportivo - precognitive_data 4",
+      "sectionKey": "2.4.3.6.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Terminologia specialistica: Uso corretto di termini come \"tempo di reazione\", \"coordinazione inter-muscolare\", \"visione periferica\""
+    },
+    {
+      "candidateId": "bible-candidate-000000000ab2e4a4",
+      "targetType": "character_goal",
+      "label": "DINAMICHE SPECIFICHE - character_goal 3",
+      "sectionKey": "2.4.3.7.6",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "motif"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Stefano offre: Status atletico, protezione da approcci indesiderati, accesso a eventi sportivi"
+    },
+    {
+      "candidateId": "bible-candidate-00000000679d45c5",
+      "targetType": "symbol",
+      "label": "Uniforme Sportiva/Attrezzatura Atletica - symbol 3",
+      "sectionKey": "2.4.3.8.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "faction",
+        "motif",
+        "symbol"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "• Costume nuoto della squadra regionale: Simbolo di eccellenza individuale pre-gruppo Cristiano"
+    },
+    {
+      "candidateId": "bible-candidate-00000000679d4568",
+      "targetType": "symbol",
+      "label": "Uniforme Sportiva/Attrezzatura Atletica - symbol 6",
+      "sectionKey": "2.4.3.8.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "EVOLUZIONE: Da simbolo di lealtà a Cristiano a strumento di valutazione indipendente del talento"
+    },
+    {
+      "candidateId": "bible-candidate-000000002c1c91dd",
+      "targetType": "symbol",
+      "label": "Funzione Narrativa Primaria - symbol 2",
+      "sectionKey": "2.4.4.1.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "faction",
+        "motif",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "Traditrice del gruppo amiche di Lisa, catalizzatore del collasso delle relazioni stabili e simbolo del tradimento per opportunismo sociale."
+    },
+    {
+      "candidateId": "bible-candidate-00000000085baebf",
+      "targetType": "character_goal",
+      "label": "Cristiano (Obiettivo Strategico → Partner Tossico) - character_goal 2",
+      "sectionKey": "2.4.4.10.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "motif",
+        "power"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "NATURA: Attrazione per potere e status, non amore genuino"
+    },
+    {
+      "candidateId": "bible-candidate-00000000085baede",
+      "targetType": "character_goal",
+      "label": "Cristiano (Obiettivo Strategico → Partner Tossico) - character_goal 3",
+      "sectionKey": "2.4.4.10.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "motif"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "STRATEGIA CONQUISTA: Sfruttamento momenti vulnerabilità durante crisi con Lisa"
+    },
+    {
+      "candidateId": "bible-candidate-00000000085baefd",
+      "targetType": "character_goal",
+      "label": "Cristiano (Obiettivo Strategico → Partner Tossico) - character_goal 4",
+      "sectionKey": "2.4.4.10.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "motif"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "DINAMICA RELAZIONE: Laura fornisce validazione ego, Cristiano fornisce status"
+    },
+    {
+      "candidateId": "bible-candidate-00000000085baf1c",
+      "targetType": "character_goal",
+      "label": "Cristiano (Obiettivo Strategico → Partner Tossico) - character_goal 5",
+      "sectionKey": "2.4.4.10.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "motif",
+        "revelation"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "EVOLUZIONE: Alleanza opportunistica che rivela natura superficiale entrambi"
+    },
+    {
+      "candidateId": "bible-candidate-00000000119eb615",
+      "targetType": "symbol",
+      "label": "Uniforme Cheerleader - symbol 3",
+      "sectionKey": "2.4.4.11.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "EVOLUZIONE: Da simbolo innocenza a emblema falsità"
+    },
+    {
+      "candidateId": "bible-candidate-000000007b958fb2",
+      "targetType": "symbol",
+      "label": "Fotografie Gruppo Amiche - symbol 2",
+      "sectionKey": "2.4.4.11.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "faction",
+        "motif",
+        "symbol"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "PRE-TRADIMENTO: Simbolo apparente unità e lealtà"
+    },
+    {
+      "candidateId": "bible-candidate-000000000ca2ed6f",
+      "targetType": "precognitive_data",
+      "label": "Timeline Dettagliata Tradimento Sincronizzata con Declino Cristiano - precognitive_data 24",
+      "sectionKey": "2.4.4.5.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "precognitive_data",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "o Azione Laura: Supporto pubblico, condivisione isolamento sociale"
+    },
+    {
+      "candidateId": "bible-candidate-0000000068e69428",
+      "targetType": "precognitive_data",
+      "label": "Registro Comunicativo Pre-Tradimento - precognitive_data 2",
+      "sectionKey": "2.4.4.6.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Con Lisa: Linguaggio da amica intima, condivisione segreti, supporto apparente"
+    },
+    {
+      "candidateId": "bible-candidate-0000000045d51721",
+      "targetType": "precognitive_data",
+      "label": "Timeline Stagnazione Caratteriale - precognitive_data 5",
+      "sectionKey": "2.4.5.5.1",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "motif",
+        "precognitive_data",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "o Equilibrio stabile basato su divisione funzioni: Lisa (comando), Elena (istituzionale), Laura (aggressiva), Federica (sociale)"
+    },
+    {
+      "candidateId": "bible-candidate-0000000027a95d34",
+      "targetType": "precognitive_data",
+      "label": "Esempi Caratterizzanti E Pattern Operativi - precognitive_data 20",
+      "sectionKey": "2.4.5.6.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Successo sociale: Amplificazione comportamenti vincenti, condivisione strategica successo"
+    },
+    {
+      "candidateId": "bible-candidate-000000005a609930",
+      "targetType": "character_goal",
+      "label": "Gabriele Rinaldi (Target Mancato → Catalizzatore Gelosia) - character_goal 2",
+      "sectionKey": "2.4.5.7.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "knowledge_state",
+        "motif",
+        "revelation"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "NATURA: Obiettivo di conquista strategica che diventa strumento involontario per rivelare dinamiche nascoste MOTIVAZIONE: Combinazione attrazione fisica + opportunità status sociale + desiderio di \"battere\" Lisa MECCANISMI TRIGGER GELOSIA SPECIFICI:"
+    },
+    {
+      "candidateId": "bible-candidate-000000002238d067",
+      "targetType": "precognitive_data",
+      "label": "Laura Mancini (Ex-Alleata → Rivalità Aperta) - precognitive_data 2",
+      "sectionKey": "2.4.5.7.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "faction",
+        "motif",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "NATURA: Principale alleata strategica nel quartetto fino a tradimento che rompe equilibrio gruppo DINAMICHE PRE-SCANDALO: Partnership funzionale per conquiste e gossip, divisione territoriale dei target POST-SCANDALO (04/11/2020):"
+    },
+    {
+      "candidateId": "bible-candidate-000000001cc220e4",
+      "targetType": "precognitive_data",
+      "label": "Passato - precognitive_data 7",
+      "sectionKey": "2.5.1.2.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Non malvagi ma limitati dalla propria visione del mondo."
+    },
+    {
+      "candidateId": "bible-candidate-0000000036f7b386",
+      "targetType": "character_goal",
+      "label": "Relazioni Chiave - character_goal 15",
+      "sectionKey": "2.5.1.2.7",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "knowledge_state"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Paradosso finale: ottengono \"successo sociale\" desiderato attraverso valori che inizialmente non riconoscevano."
+    },
+    {
+      "candidateId": "bible-candidate-0000000077bae478",
+      "targetType": "precognitive_data",
+      "label": "Personalità - precognitive_data 3",
+      "sectionKey": "2.5.2.4.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "precognitive_data"
+      ],
+      "duplicateGroupSize": 2,
+      "content": "Approccio metodico ma privo dell'entusiasmo e della visione che caratterizzavano Lisa."
+    },
+    {
+      "candidateId": "bible-candidate-0000000013b82b25",
+      "targetType": "symbol",
+      "label": "Funzione Narrativa - symbol 3",
+      "sectionKey": "2.5.2.5.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Contrasto simbolico con l'ambiente più permissivo che emergerà dopo la sua trasformazione (Tema: \"Gerarchie Sociali in Trasformazione\")."
+    },
+    {
+      "candidateId": "bible-candidate-000000002c7024c7",
+      "targetType": "symbol",
+      "label": "Eredità Finale - symbol 2",
+      "sectionKey": "2.6.2.1.6",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Riceve la prima piuma angelica (quella di Trevor) come tesoro di famiglia, simbolo della meraviglia e della fede nell'impossibile."
+    },
+    {
+      "candidateId": "bible-candidate-00000000052c5b05",
+      "targetType": "symbol",
+      "label": "Eredità Finale - symbol 2",
+      "sectionKey": "2.6.5.8",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "symbol"
+      ],
+      "duplicateGroupSize": 6,
+      "content": "Riceve il ciondolo con la foto di Gabriele e Lisa giovani e la seconda piuma angelica (quella di Lisa), simbolo della profondità del legame e della responsabilità di custodire la verità completa."
+    },
+    {
+      "candidateId": "bible-candidate-00000000052c5b62",
+      "targetType": "symbol",
+      "label": "Eredità Finale - symbol 5",
+      "sectionKey": "2.6.5.8",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "symbol"
+      ],
+      "duplicateGroupSize": 6,
+      "content": "Riceve il ciondolo con la foto di Gabriele e Lisa giovani e la seconda piuma angelica (quella di Lisa), simbolo della profondità del legame e della responsabilità di custodire la verità completa."
+    },
+    {
+      "candidateId": "bible-candidate-000000000d944e8d",
+      "targetType": "symbol",
+      "label": "LUOGHI SPECIFICI RICORRENTI - symbol 4",
+      "sectionKey": "3.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "secret",
+        "symbol"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Simbolo della riscoperta del suo mondo interiore e del suo talento nascosto."
+    },
+    {
+      "candidateId": "bible-candidate-000000005b0a82f1",
+      "targetType": "symbol",
+      "label": "LUOGHI SPECIFICI RICORRENTI - symbol 15",
+      "sectionKey": "3.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Spazio simbolo della sua efficienza, della sua voce influente e della sua popolarità iniziale, nonché cuore delle comunicazioni ufficiali e della vita musicale del liceo."
+    },
+    {
+      "candidateId": "bible-candidate-000000005b0a7fcb",
+      "targetType": "symbol",
+      "label": "LUOGHI SPECIFICI RICORRENTI - symbol 20",
+      "sectionKey": "3.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "motif",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Simbolo di una connessione più profonda, di una \"fuga\" dalla realtà quotidiana e di uno sguardo verso l'infinito."
+    },
+    {
+      "candidateId": "bible-candidate-000000000e051e09",
+      "targetType": "character_goal",
+      "label": "Non Interferenza e Manifestazione Controllata - character_goal 2",
+      "sectionKey": "3.3.4.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "power"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "L'intervento diretto e massiccio nel piano terreno, o l'uso manifesto e incontrollato di poteri angelici, è scoraggiato o proibito in quanto può creare squilibri energetici, alterare il libero arbitrio umano e attirare l'attenzione indesiderata delle gerarchie celesti superiori."
+    },
+    {
+      "candidateId": "bible-candidate-0000000015f4dc46",
+      "targetType": "symbol",
+      "label": "PIUME ANGELICHE - symbol 3",
+      "sectionKey": "3.3.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Simbolo della natura angelica di Gabriele e poi ricordo tangibile per Lisa e Trevor."
+    },
+    {
+      "candidateId": "bible-candidate-0000000059599bc0",
+      "targetType": "symbol",
+      "label": "SCULTURA DEI CIGNI(CREAZIONE INFUSA DI POTERE ANGELICO) - symbol 8",
+      "sectionKey": "3.3.6",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power",
+        "symbol"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "La scultura diventa così un simbolo potente non solo del suo amore per Lisa e del suo talento, ma anche della sua connessione latente con il soprannaturale e della bellezza intrinseca della sua anima."
+    },
+    {
+      "candidateId": "bible-candidate-000000005a697a14",
+      "targetType": "character_trait",
+      "label": "CAP. 4: LA NASCITA DEI CIGNI (DAL 04/09/2020 AL 25/09/2020 - FLASH FORWARD) - character_trait 4",
+      "sectionKey": "4.1.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_trait",
+        "secret",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "• Mattina scuola (distratto), pomeriggio garage (concentrato)"
+    },
+    {
+      "candidateId": "bible-candidate-00000000557d9e17",
+      "targetType": "precognitive_data",
+      "label": "CAP. 4: LA NASCITA DEI CIGNI (DAL 04/09/2020 AL 25/09/2020 - FLASH FORWARD) - precognitive_data 10",
+      "sectionKey": "4.1.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "precognitive_data",
+        "secret",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "• Descrizione visione artistica: due creature che si riconoscono, si cercano"
+    },
+    {
+      "candidateId": "bible-candidate-00000000557d9dd9",
+      "targetType": "precognitive_data",
+      "label": "CAP. 4: LA NASCITA DEI CIGNI (DAL 04/09/2020 AL 25/09/2020 - FLASH FORWARD) - precognitive_data 12",
+      "sectionKey": "4.1.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "precognitive_data",
+        "secret",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "• Commitment totale: abbandono schizzi precedenti per seguire visione"
+    },
+    {
+      "candidateId": "bible-candidate-0000000040155323",
+      "targetType": "character_goal",
+      "label": "CAP. 6: UN COMPLEANNO AMARO - character_goal 6",
+      "sectionKey": "4.1.7",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "secret",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "• Festa di Compleanno Rovinata: Nonostante i tentativi dei genitori, Gabriele scoppia a piangere al momento delle candeline, desiderando solo che le cose cambino e di essere accettato."
+    },
+    {
+      "candidateId": "bible-candidate-0000000034c718a8",
+      "targetType": "character_goal",
+      "label": "CAP. 13: LA SECONDA OCCASIONE - character_goal 5",
+      "sectionKey": "4.2.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "knowledge_state",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "• Proposta di Lisa: Lisa, sentendosi più leggera dopo le scuse e spinta dal desiderio genuino di rimediare al torto fatto, propone a Gabriele di uscire davvero domenica, non per il premio, ma perché vuole conoscerlo meglio e fare la cosa giusta."
+    },
+    {
+      "candidateId": "bible-candidate-00000000576efccd",
+      "targetType": "symbol",
+      "label": "CAP. 28: LA VERA IDENTITÀ DI SPEEDYGONZY - symbol 10",
+      "sectionKey": "4.3.10",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Distruzione del Laptop: Con un atto di violenza fisica, Cristiano distrugge il portatile di Trevor, simbolo del suo blog e della sua voce, sotto gli occhi disperati e impotenti di quest'ultimo."
+    },
+    {
+      "candidateId": "bible-candidate-0000000062a40b3c",
+      "targetType": "character_belief",
+      "label": "CAP. 23: SPEEDYGONZY COLPISCE ANCORA - character_belief 6",
+      "sectionKey": "4.3.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_belief",
+        "knowledge_state",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "o Il primo (\"IL BRUTTO ANATROCCOLO SI CREDE CIGNO?...\") è un attacco diretto e personale a Gabriele: deride la sua trasformazione fisica, insinua che sia superficiale e falsa, usa dettagli intimi della loro passata amicizia per ferirlo e umiliarlo."
+    },
+    {
+      "candidateId": "bible-candidate-0000000021494032",
+      "targetType": "precognitive_data",
+      "label": "CAP. 23: SPEEDYGONZY COLPISCE ANCORA - precognitive_data 8",
+      "sectionKey": "4.3.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "knowledge_state",
+        "precognitive_data",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "(Nota: Trevor scrive il primo articolo per ferire Gabriele ma volendogli comunque ancora bene nella sua visione il secondo articolo sposta l’attenzione della massa da lui altrove… così da raggiungere l’obiettivo di colpirlo senza ferirlo gravemente."
+    },
+    {
+      "candidateId": "bible-candidate-0000000010a948ea",
+      "targetType": "character_goal",
+      "label": "CAP. 23: SPEEDYGONZY COLPISCE ANCORA - character_goal 8",
+      "sectionKey": "4.3.5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "knowledge_state",
+        "precognitive_data",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "(Nota: Trevor scrive il primo articolo per ferire Gabriele ma volendogli comunque ancora bene nella sua visione il secondo articolo sposta l’attenzione della massa da lui altrove… così da raggiungere l’obiettivo di colpirlo senza ferirlo gravemente."
+    },
+    {
+      "candidateId": "bible-candidate-0000000038e9447a",
+      "targetType": "character_goal",
+      "label": "CAP. 25: IL RUGGITO DEL LEONE - character_goal 12",
+      "sectionKey": "4.3.7",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Intervento Miracoloso – Parte I (Cucciolo): Gabriele si inginocchia accanto al cucciolo, lo prende tra le braccia e desidera con tutto se stesso riportarlo alla vita."
+    },
+    {
+      "candidateId": "bible-candidate-000000001a3eb847",
+      "targetType": "symbol",
+      "label": "EPILOGO - symbol 7",
+      "sectionKey": "4.4.10",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "o Le chiede di custodirla con cura insieme al ricordo della storia di Gabriele, come un tesoro di famiglia, un simbolo di speranza e della magia che può celarsi nella realtà."
+    },
+    {
+      "candidateId": "bible-candidate-000000002817258c",
+      "targetType": "precognitive_data",
+      "label": "CAP. 31: ECHI DAL PASSATO CELESTE - precognitive_data 8",
+      "sectionKey": "4.4.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "precognitive_data",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Superman, Wonder Woman) e cercando di infondergli una visione positiva e \"figa\" della sua condizione."
+    },
+    {
+      "candidateId": "bible-candidate-0000000059bc45e5",
+      "targetType": "character_belief",
+      "label": "CAP. 31: ECHI DAL PASSATO CELESTE - character_belief 16",
+      "sectionKey": "4.4.2",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_belief",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "o Esprime la sua profonda delusione perché credeva che Gabriele fosse diverso e più sensibile."
+    },
+    {
+      "candidateId": "bible-candidate-000000002341a494",
+      "targetType": "symbol",
+      "label": "CAP. 32: L’ULTIMATUM CELESTE - symbol 15",
+      "sectionKey": "4.4.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "narrative_constraint",
+        "revelation",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 6,
+      "content": "Gli rivela la storia del suo legame millenario con l'anima di Lisa, di come l'abbia seguita per \"1000 anni\" (termine simbolico per eoni) attraverso le incarnazioni, del loro amore proibito dalle leggi celesti e della sua sofferenza nel non essere mai riuscito a essere veramente felice con lei sulla "
+    },
+    {
+      "candidateId": "bible-candidate-00000000424916be",
+      "targetType": "character_goal",
+      "label": "CAP. 33: IL PALAZZO DI GHIACCIO - character_goal 11",
+      "sectionKey": "4.4.4",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "o Gabriele, vedendo la disperazione di Lisa, rassegnato a consegnarsi a Michael per proteggere Lisa, Trevor e tutti gli umani a cui vuole bene e motivato dal desiderio di un ultimo gesto significativo nei confronti di Lisa, le offre il suo aiuto e le sue rassicurazioni."
+    },
+    {
+      "candidateId": "bible-candidate-00000000441ce4ad",
+      "targetType": "symbol",
+      "label": "CAP. 38: IL DONO DELLA VITA UMANA - symbol 6",
+      "sectionKey": "4.4.9",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "knowledge_state",
+        "power",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 5,
+      "content": "In questa notte carica di significato simbolico, mentre Lisa è nuovamente immersa nella sua preghiera più profonda, assiste a un chiaro segno divino nel cielo notturno (una scia luminosa particolarmente intensa o una stella cadente insolita), che accende in lei una flebile speranza."
+    },
+    {
+      "candidateId": "bible-candidate-000000003f7fbe1c",
+      "targetType": "symbol",
+      "label": "CAP. 38: IL DONO DELLA VITA UMANA - symbol 18",
+      "sectionKey": "4.4.9",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "symbol",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 4,
+      "content": "Quindi, unendo i loro intenti e i loro poteri (magari attraverso un gesto simbolico come unire le mani o rivolgere insieme lo sguardo al Cielo), e con Gabriele come fulcro, emanano una potente ma controllata onda di energia divina."
+    },
+    {
+      "candidateId": "bible-candidate-000000004a01c4c9",
+      "targetType": "precognitive_data",
+      "label": "GESTIONE DELLE INCONGRUENZE (NOTA DI LAVORAZIONE) - precognitive_data 2",
+      "sectionKey": "4.5.10",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "precognitive_data",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "Durante la stesura della Bibbia e la successiva revisione del romanzo, è fondamentale identificare e risolvere eventuali incongruenze presenti nei documenti di partenza."
+    },
+    {
+      "candidateId": "bible-candidate-000000001fa690e4",
+      "targetType": "character_goal",
+      "label": "PRESERVARE IL MISTERO - character_goal 3",
+      "sectionKey": "4.5.3",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "character_goal",
+        "timeline_event"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "L'obiettivo è mantenere il colpo di scena finale, che si concretizza nell'Epilogo (5.4.10) attraverso l'intuizione di Elea."
+    },
+    {
+      "candidateId": "bible-candidate-000000005ad15a4b",
+      "targetType": "symbol",
+      "label": "GLOSSARIO - symbol 18",
+      "sectionKey": "5",
+      "reason": "same_content_multiple_target_types_requires_type_selection",
+      "duplicateTargetTypes": [
+        "bible_claim",
+        "power",
+        "symbol"
+      ],
+      "duplicateGroupSize": 3,
+      "content": "• Palazzo di Ghiaccio: La creazione magica di Gabriele per la festa di Carnevale, simbolo del suo potere e del suo addio."
+    }
+  ],
+  "nextSteps": [
+    "Validare questa classificazione con galaxy-task-validator.",
+    "Applicare prima C/D non canonici solo se motivazioni e campioni sono approvati.",
+    "Gestire E come blocchi da risolvere: nessun finale finche restano E.",
+    "Commit A/B solo con piani mirati che creano/aggiornano archi specializzati e zero related_to."
+  ]
+}

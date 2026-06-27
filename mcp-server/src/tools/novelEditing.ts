@@ -487,22 +487,13 @@ export function registerNovelEditingTools(server: McpServer): void {
       annotations: { title: 'Novel attach generated image', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     async ({ sessionId, imagePath, mime, label, visualBriefId, imagePromptId }) => {
-      try {
-        await getSession(sessionId);
-        const image = await kg.upsertNode({
-          type: 'generated_image',
-          label: `${sessionId}::image::${stableHash(imagePath, 12)}`,
-          content: label ?? imagePath,
-          metadata: { sessionId, imagePath, mime: mime ?? 'image/png', label, canonStatus: 'proposal' },
-          provenance: { source: 'novel_attach_generated_image', sessionId },
-        });
-        const asset = await kg.attachAsset(image.node.id, { path: imagePath, mime: mime ?? 'image/png', label: label ?? 'generated image' });
-        await linkIfNode(image.node.id, visualBriefId, 'derived_from', { sessionId }, { source: 'novel_attach_generated_image', sessionId });
-        await linkIfNode(image.node.id, imagePromptId, 'derived_from', { sessionId }, { source: 'novel_attach_generated_image', sessionId });
-        return toolStructured({ ok: true, image: image.node, asset });
-      } catch (err) {
-        return toolError('NOVEL_ATTACH_GENERATED_IMAGE_FAILED', `novel_attach_generated_image failed: ${String(err)}`, { sessionId, imagePath });
-      }
+      void sessionId;
+      void imagePath;
+      void mime;
+      void label;
+      void visualBriefId;
+      void imagePromptId;
+      return toolError('NOVEL_ATTACH_GENERATED_IMAGE_DISABLED', 'Filesystem image attachment is disabled in this project.');
     },
   );
 }

@@ -1,7 +1,4 @@
 import crypto from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import express, { type Request, type Response } from 'express';
@@ -23,25 +20,9 @@ const EMBEDDED_FALLBACK_INSTRUCTIONS = `# Rete Neurale Romanzo Gabriele MCP
 
 Use kg_recall before writing. Do not invent canon. Keep provenance on every node and relation.`;
 
-function resolveInstructionsPath(rawPath: string): string {
-  if (path.isAbsolute(rawPath)) return rawPath;
-  const here = path.dirname(fileURLToPath(import.meta.url));
-  return path.resolve(here, rawPath);
-}
-
 function loadInstructions(): string {
   const raw = process.env.MCP_INSTRUCTIONS;
   if (raw?.trim()) return raw;
-  const candidates = [process.env.MCP_INSTRUCTIONS_PATH, config.mcpInstructionsPath, '../instructions.md'].filter((p): p is string => Boolean(p));
-  for (const candidate of candidates) {
-    const resolved = resolveInstructionsPath(candidate);
-    try {
-      const text = fs.readFileSync(resolved, 'utf8');
-      if (text.trim()) return text;
-    } catch {
-      // continue
-    }
-  }
   return EMBEDDED_FALLBACK_INSTRUCTIONS;
 }
 
@@ -212,7 +193,7 @@ async function readinessBody() {
     kg.pingNeo4j().then(() => true).catch(() => false),
     checkDataPath(),
   ]);
-  const healthy = neo4jConnected && storage.readable;
+  const healthy = neo4jConnected;
   return { healthy, body: { status: healthy ? 'ok' : 'degraded', ...versionInfo(), neo4j: { connected: neo4jConnected }, storage } };
 }
 

@@ -1,6 +1,3 @@
-import { constants } from 'node:fs';
-import fs from 'node:fs/promises';
-
 function normalizeAppEnv(raw: string | undefined): 'production' | 'staging' | 'development' {
   const value = (raw ?? '').trim().toLowerCase();
   if (value === 'production' || value === 'prod') return 'production';
@@ -18,8 +15,6 @@ export const config = {
   port: intFromEnv('MCP_PORT', 3002),
   backendUrl: (process.env.BACKEND_URL || 'http://localhost:3001').replace(/\/+$/, ''),
   mcpSharedSecret: process.env.MCP_SHARED_SECRET || '',
-  dataPath: process.env.PROJECT_BASE_PATH || '/data',
-  mcpInstructionsPath: process.env.MCP_INSTRUCTIONS_PATH || './instructions.md',
   mcpSseKeepaliveMs: intFromEnv('MCP_SSE_KEEPALIVE_MS', 25_000),
   sessionTtlMs: intFromEnv('MCP_SESSION_TTL_MS', 30 * 60 * 1000),
   sessionCleanupIntervalMs: intFromEnv('MCP_SESSION_CLEANUP_INTERVAL_MS', 5 * 60 * 1000),
@@ -61,21 +56,6 @@ export function validateConfig(): string[] {
   return errors;
 }
 
-export async function checkDataPath(): Promise<{ path: string; mounted: boolean; readable: boolean; writable: boolean }> {
-  const path = config.dataPath;
-  let readable = false;
-  let writable = false;
-  try {
-    await fs.access(path, constants.R_OK);
-    readable = true;
-  } catch {
-    readable = false;
-  }
-  try {
-    await fs.access(path, constants.W_OK);
-    writable = true;
-  } catch {
-    writable = false;
-  }
-  return { path, mounted: readable || writable, readable, writable };
+export function checkDataPath(): { path: string; mounted: boolean; readable: boolean; writable: boolean; disabled: boolean } {
+  return { path: '', mounted: false, readable: false, writable: false, disabled: true };
 }

@@ -17,7 +17,7 @@ app.use('/api/v2/documents', documentsRouter);
 app.use('/api/v2/admin', adminRouter);
 
 app.get('/api/config', (_req, res) => {
-  res.json({ projectId: config.projectId, projectBasePath: config.projectBasePath });
+  res.json({ projectId: config.projectId, filesystemStorage: 'disabled' });
 });
 
 app.get('/healthz', (_req, res) => {
@@ -37,7 +37,7 @@ app.get('/readyz', async (_req, res) => {
     kg.pingNeo4j().then(() => true).catch(() => false),
     checkDataPath(),
   ]);
-  const healthy = neo4jConnected && storage.readable && storage.writable;
+  const healthy = neo4jConnected;
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'ok' : 'degraded',
     server: 'romanzo-gabriele-neural-server',
@@ -54,7 +54,7 @@ app.get('/health', async (_req, res) => {
     kg.pingNeo4j().then(() => true).catch(() => false),
     checkDataPath(),
   ]);
-  const healthy = neo4jConnected && storage.readable && storage.writable;
+  const healthy = neo4jConnected;
   res.status(healthy ? 200 : 503).json({ status: healthy ? 'ok' : 'degraded', neo4j: { connected: neo4jConnected }, storage });
 });
 

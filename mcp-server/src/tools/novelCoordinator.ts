@@ -429,7 +429,7 @@ Obbiettivo: Preparare e arricchire l'ingestion per [${type.toUpperCase()}] (${ta
 Istruzioni per l'Esecutore:
 1. RICHIAMA IL CONTESTO ESISTENTE: Prima di proporre modifiche o scrivere testo, usa 'novel_recall_context' o 'kg_recall' per caricare personaggi, tratti psicologici, segreti, regole del mondo e vincoli narrativi.
 2. CREA ASSOCIAZIONI E RELAZIONI SPECIFICHE: Evita di utilizzare la relazione generica 'related_to'. Associa i nodi usando archi semantici canonici (es. 'appears_in', 'changes_state', 'precedes', 'constrains', 'has_theme', 'about', 'sets_up'). Collega dinamiche relazionali a ENTRAMBI i personaggi partecipanti.
-3. ESEGUI VERIFICA PRELIMINARE (DRY-RUN): Prima di considerare finito il lavoro, invoca 'novel_verify_ingestion_threshold' con dryRun/read-only per calcolare il punteggio di threshold e ottenere la lista dei blocker.
+3. ESEGUI VERIFICA PRELIMINARE READ-ONLY: Prima di considerare finito il lavoro, invoca 'novel_verify_ingestion_threshold' per calcolare il punteggio di threshold e ottenere la lista dei blocker.
 4. RISOLVI I BLOCKER:
    - Se ci sono duplicati canonical, esegui la deduplica/consolidamento.
    - Se mancano relazioni verso personaggi o temi, aggiungi archi 'appears_in' o 'has_theme'/'about'.

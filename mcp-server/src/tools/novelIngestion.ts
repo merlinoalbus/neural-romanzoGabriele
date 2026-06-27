@@ -44,7 +44,6 @@ const outlineEntryZ = z.object({
 const ingestSummaryZ = z.object({
   sourceId: z.string(),
   sourceType: z.string(),
-  dryRun: z.boolean(),
   entries: z.number(),
   nodesPlanned: z.number(),
   edgesPlanned: z.number(),
@@ -156,24 +155,6 @@ async function writeOutlinePlan(plan: OutlinePlan, input: { title?: string; cont
   return { outline: rootWrite.node, document: documentResult.document, nas: documentResult.nas, nodesWritten, edgesWritten };
 }
 
-function dryRunResponse(plan: OutlinePlan) {
-  return {
-    ok: true,
-    dryRun: true,
-    summary: {
-      sourceId: plan.sourceId,
-      sourceType: plan.sourceType,
-      dryRun: true,
-      entries: plan.entries.length,
-      nodesPlanned: plan.nodes.length + 1,
-      edgesPlanned: plan.edges.length + 1,
-      nodesWritten: 0,
-      edgesWritten: 0,
-    },
-    entries: plan.entries.map(outlineEntryPreview),
-  };
-}
-
 export function registerNovelIngestionTools(server: McpServer): void {
   server.registerTool(
     'novel_ingest_outline',
@@ -184,11 +165,9 @@ export function registerNovelIngestionTools(server: McpServer): void {
         sourceId: z.string(),
         title: z.string().optional(),
         content: z.string(),
-        dryRun: z.boolean().optional(),
       },
       outputSchema: {
         ok: z.boolean(),
-        dryRun: z.boolean().optional(),
         summary: ingestSummaryZ.optional(),
         outline: nodeZ.optional(),
         document: nodeZ.optional(),
@@ -198,19 +177,16 @@ export function registerNovelIngestionTools(server: McpServer): void {
       },
       annotations: { title: 'Novel ingest outline', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ sourceId, title, content, dryRun }) => {
+    async ({ sourceId, title, content }) => {
       try {
         if (!content.trim()) throw new Error('invalid_outline: content is required');
         const plan = buildOutlinePlan({ sourceId, title, content, sourceType: NOVEL_SOURCE_TYPES.outline });
-        if (dryRun) return toolStructured(dryRunResponse(plan));
         const written = await writeOutlinePlan(plan, { title, content, toolName: 'novel_ingest_outline' });
         return toolStructured({
           ok: true,
-          dryRun: false,
           summary: {
             sourceId: plan.sourceId,
             sourceType: plan.sourceType,
-            dryRun: false,
             entries: plan.entries.length,
             nodesPlanned: plan.nodes.length + 1,
             edgesPlanned: plan.edges.length + 1,
@@ -237,11 +213,9 @@ export function registerNovelIngestionTools(server: McpServer): void {
         sourceId: z.string(),
         title: z.string().optional(),
         content: z.string(),
-        dryRun: z.boolean().optional(),
       },
       outputSchema: {
         ok: z.boolean(),
-        dryRun: z.boolean().optional(),
         summary: ingestSummaryZ.optional(),
         outline: nodeZ.optional(),
         document: nodeZ.optional(),
@@ -251,19 +225,16 @@ export function registerNovelIngestionTools(server: McpServer): void {
       },
       annotations: { title: 'Novel ingest bible', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ sourceId, title, content, dryRun }) => {
+    async ({ sourceId, title, content }) => {
       try {
         if (!content.trim()) throw new Error('invalid_bible: content is required');
         const plan = buildOutlinePlan({ sourceId, title, content, sourceType: NOVEL_SOURCE_TYPES.bible });
-        if (dryRun) return toolStructured(dryRunResponse(plan));
         const written = await writeOutlinePlan(plan, { title, content, toolName: 'novel_ingest_bible' });
         return toolStructured({
           ok: true,
-          dryRun: false,
           summary: {
             sourceId: plan.sourceId,
             sourceType: plan.sourceType,
-            dryRun: false,
             entries: plan.entries.length,
             nodesPlanned: plan.nodes.length + 1,
             edgesPlanned: plan.edges.length + 1,

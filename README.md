@@ -60,7 +60,7 @@ npm.cmd run build --prefix frontend
 
 ```bash
 cp .env.example .env
-# modificare NEO4J_PASSWORD, MCP_SHARED_SECRET, NAS_PROJECT_PATH e porte host
+# modificare NEO4J_PASSWORD, MCP_SHARED_SECRET e porte host
 docker compose up -d --build
 ```
 
@@ -70,9 +70,9 @@ Il frontend viene servito da `FE_HOST_PORT`; il backend legge Neo4j in sola lett
 
 Tool generici mantenuti:
 
-- Nodi: `kg_add_node`, `kg_upsert_node`, `kg_upsert_nodes`, `kg_update_node`, `kg_delete_node`
+- Nodi: `kg_add_node`, `kg_upsert_node`, `kg_upsert_nodes`, `kg_update_node`, `kg_delete_node`, `kg_delete_nodes`
 - Archi: `kg_link`, `kg_link_bulk`, `kg_unlink`
-- Asset: `kg_attach_asset`
+- Asset: `kg_attach_asset` resta registrato per compatibilita, ma la registrazione da filesystem e disabilitata.
 - Retrieval: `kg_get_node`, `kg_search`, `kg_neighbors`, `kg_recall`, `kg_stats`
 - Retrieval vettoriale: `kg_embedding_status`, `kg_backfill_embeddings`, `kg_semantic_search`
 - Manutenzione: `kg_audit_global`, `kg_repair`

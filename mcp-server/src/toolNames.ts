@@ -7,6 +7,7 @@ export const MCP_TOOL_NAMES = {
   kg_upsert_nodes: 'kg_upsert_nodes',
   kg_update_node: 'kg_update_node',
   kg_delete_node: 'kg_delete_node',
+  kg_delete_nodes: 'kg_delete_nodes',
   kg_link: 'kg_link',
   kg_link_bulk: 'kg_link_bulk',
   kg_unlink: 'kg_unlink',

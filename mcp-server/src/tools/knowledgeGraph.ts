@@ -60,7 +60,6 @@ const bulkSummaryZ = z.object({
   created: z.number(),
   merged: z.number(),
   failed: z.number(),
-  dryRun: z.boolean(),
 });
 
 const bulkNodeResultZ = z.object({
@@ -78,6 +77,19 @@ const bulkEdgeResultZ = z.object({
   status: z.enum(['created', 'merged', 'failed']),
   edgeId: z.string().optional(),
   reason: z.string().optional(),
+});
+
+const bulkDeleteNodeSummaryZ = z.object({
+  received: z.number(),
+  unique: z.number(),
+  deleted: z.number(),
+  notFound: z.number(),
+  dryRun: z.boolean(),
+});
+
+const bulkDeleteNodeResultZ = z.object({
+  id: z.string(),
+  status: z.enum(['planned', 'deleted', 'not_found']),
 });
 
 const statsShape = {
@@ -185,18 +197,17 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
     'kg_upsert_nodes',
     {
       title: 'KG upsert nodes bulk',
-      description: 'Creates or merges many nodes. Use dryRun=true to validate without writing.',
+      description: 'Creates or merges many nodes.',
       inputSchema: {
         nodes: z.array(nodeInputZ).min(1).max(1000),
         continueOnError: z.boolean().optional(),
-        dryRun: z.boolean().optional(),
       },
       outputSchema: { ok: z.boolean(), summary: bulkSummaryZ.optional(), results: z.array(bulkNodeResultZ).optional(), error: errorObj },
       annotations: { title: 'KG upsert nodes bulk', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ nodes, continueOnError, dryRun }) => {
+    async ({ nodes, continueOnError }) => {
       try {
-        const { summary, results } = await kg.upsertNodes(nodes, { continueOnError, dryRun });
+        const { summary, results } = await kg.upsertNodes(nodes, { continueOnError });
         return toolStructured({ ok: true, summary, results });
       } catch (err) {
         return toolError('KG_UPSERT_NODES_FAILED', `kg_upsert_nodes failed: ${String(err)}`, { count: nodes.length });
@@ -250,6 +261,33 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
   );
 
   server.registerTool(
+    'kg_delete_nodes',
+    {
+      title: 'KG delete nodes',
+      description: 'Deletes many graph nodes by id and detaches connected relationships. Use dryRun=true to preview.',
+      inputSchema: {
+        ids: z.array(z.string().min(1)).min(1).max(1000),
+        dryRun: z.boolean().optional(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        summary: bulkDeleteNodeSummaryZ.optional(),
+        results: z.array(bulkDeleteNodeResultZ).optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'KG delete nodes', readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ ids, dryRun }) => {
+      try {
+        const result = await kg.deleteNodes(ids, { dryRun });
+        return toolStructured({ ok: true, ...result });
+      } catch (err) {
+        return toolError('KG_DELETE_NODES_FAILED', `kg_delete_nodes failed: ${String(err)}`, { count: ids.length, dryRun });
+      }
+    },
+  );
+
+  server.registerTool(
     'kg_link',
     {
       title: 'KG link',
@@ -271,18 +309,17 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
     'kg_link_bulk',
     {
       title: 'KG link bulk',
-      description: 'Creates or merges many directed edges. Use dryRun=true to validate nodes and relation kinds without writing.',
+      description: 'Creates or merges many directed edges.',
       inputSchema: {
         edges: z.array(edgeInputZ).min(1).max(1000),
         continueOnError: z.boolean().optional(),
-        dryRun: z.boolean().optional(),
       },
       outputSchema: { ok: z.boolean(), summary: bulkSummaryZ.optional(), results: z.array(bulkEdgeResultZ).optional(), error: errorObj },
       annotations: { title: 'KG link bulk', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ edges, continueOnError, dryRun }) => {
+    async ({ edges, continueOnError }) => {
       try {
-        const { summary, results } = await kg.linkBulk(edges, { continueOnError, dryRun });
+        const { summary, results } = await kg.linkBulk(edges, { continueOnError });
         return toolStructured({ ok: true, summary, results });
       } catch (err) {
         return toolError('KG_LINK_BULK_FAILED', `kg_link_bulk failed: ${String(err)}`, { count: edges.length });
@@ -314,7 +351,7 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
     'kg_attach_asset',
     {
       title: 'KG attach asset',
-      description: 'Registers a file path already present on the data volume and attaches it to a node.',
+      description: 'Disabled: filesystem asset registration is not allowed in this project.',
       inputSchema: { nodeId: z.string(), path: z.string(), mime: z.string().optional(), label: z.string().optional() },
       outputSchema: { ok: z.boolean(), asset: assetZ.optional(), error: errorObj },
       annotations: { title: 'KG attach asset', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
@@ -409,16 +446,14 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
     'kg_backfill_embeddings',
     {
       title: 'KG backfill embeddings',
-      description: 'Generates real vector embeddings for graph nodes. Dry-run by default; pass dryRun=false to write vectors and ensure the Neo4j vector index.',
+      description: 'Generates real vector embeddings for graph nodes and ensures the Neo4j vector index.',
       inputSchema: {
-        dryRun: z.boolean().optional(),
         limit: z.number().int().positive().optional(),
         type: z.string().optional(),
         missingOnly: z.boolean().optional(),
       },
       outputSchema: {
         ok: z.boolean(),
-        dryRun: z.boolean().optional(),
         runtime: embeddingRuntimeStatusZ.optional(),
         graph: graphEmbeddingStatusZ.optional(),
         candidates: z.array(embeddingCandidateZ).optional(),
@@ -431,8 +466,7 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
       },
       annotations: { title: 'KG backfill embeddings', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ dryRun, limit, type, missingOnly }) => {
-      const isDryRun = dryRun !== false;
+    async ({ limit, type, missingOnly }) => {
       const settings = getEmbeddingSettings();
       const runtime = embeddingRuntimeStatus(settings);
       if (!runtime.configured) {
@@ -440,21 +474,6 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
       }
       try {
         const candidates = await kg.listEmbeddingCandidates({ limit, type, missingOnly });
-        const planned = candidates.map((node) => {
-          const text = embeddingText(node);
-          return { id: node.id, type: node.type, label: node.label, textHash: kg.embeddingTextHash(text), status: 'planned' as const };
-        });
-        if (isDryRun) {
-          return toolStructured({
-            ok: true,
-            dryRun: true,
-            runtime,
-            graph: await kg.embeddingStatus(),
-            candidates: planned,
-            summary: { selected: planned.length, embedded: 0, failed: 0 },
-          });
-        }
-
         const results: Array<z.infer<typeof embeddingCandidateZ>> = [];
         let embedded = 0;
         let failed = 0;
@@ -484,7 +503,6 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
         }
         return toolStructured({
           ok: failed === 0,
-          dryRun: false,
           runtime,
           graph: await kg.embeddingStatus(),
           candidates: results,
@@ -514,7 +532,7 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
       try {
         const graph = await kg.embeddingStatus();
         if (!graph.vectorIndexExists || graph.embeddedNodes === 0) {
-          return toolError('KG_EMBEDDINGS_NOT_READY', 'Semantic search requires a populated Neo4j vector index. Run kg_backfill_embeddings with dryRun=false first.', {
+          return toolError('KG_EMBEDDINGS_NOT_READY', 'Semantic search requires a populated Neo4j vector index. Run kg_backfill_embeddings first.', {
             vectorIndexName: graph.vectorIndexName,
             vectorIndexExists: graph.vectorIndexExists,
             embeddedNodes: graph.embeddedNodes,
@@ -580,11 +598,10 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
     'kg_repair',
     {
       title: 'KG repair',
-      description: 'Deterministic graph cleanup. Dry-run by default; pass dryRun=false to apply.',
-      inputSchema: { dryRun: z.boolean().optional() },
+      description: 'Deterministic graph cleanup. Applies repairs directly.',
+      inputSchema: {},
       outputSchema: {
         ok: z.boolean(),
-        dryRun: z.boolean().optional(),
         redundantRelatedToRetired: z.number().optional(),
         junkEdgesRemoved: z.number().optional(),
         orphanAssetsRemoved: z.number().optional(),
@@ -603,9 +620,9 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
       },
       annotations: { title: 'KG repair', readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     },
-    async ({ dryRun }) => {
+    async () => {
       try {
-        return toolStructured({ ok: true, ...(await kg.repair({ dryRun })) });
+        return toolStructured({ ok: true, ...(await kg.repair()) });
       } catch (err) {
         return toolError('KG_REPAIR_FAILED', `kg_repair failed: ${String(err)}`);
       }

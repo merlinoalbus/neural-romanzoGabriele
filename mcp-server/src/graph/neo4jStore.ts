@@ -66,7 +66,6 @@ export interface BulkSummary {
   created: number;
   merged: number;
   failed: number;
-  dryRun: boolean;
 }
 
 export interface BulkNodeResult {
@@ -84,6 +83,19 @@ export interface BulkEdgeResult {
   status: 'created' | 'merged' | 'failed';
   edgeId?: string;
   reason?: string;
+}
+
+export interface BulkDeleteNodeResult {
+  id: string;
+  status: 'planned' | 'deleted' | 'not_found';
+}
+
+export interface BulkDeleteNodeSummary {
+  received: number;
+  unique: number;
+  deleted: number;
+  notFound: number;
+  dryRun: boolean;
 }
 
 export interface DocumentChunkInput {
@@ -540,6 +552,57 @@ export async function deleteNode(id: string): Promise<boolean> {
   return records.length ? toInt(records[0].get('c')) > 0 : false;
 }
 
+export async function deleteNodes(
+  ids: string[],
+  opts: { dryRun?: boolean } = {},
+): Promise<{ summary: BulkDeleteNodeSummary; results: BulkDeleteNodeResult[] }> {
+  const dryRun = opts.dryRun ?? false;
+  const uniqueIds = [...new Set(ids.map((id) => id.trim()).filter(Boolean))];
+  if (!uniqueIds.length) {
+    return {
+      summary: { received: ids.length, unique: 0, deleted: 0, notFound: 0, dryRun },
+      results: [],
+    };
+  }
+
+  const existingRows = await run(
+    `MATCH (n:Entity {projectId:$pid})
+     WHERE n.id IN $ids
+     RETURN n.id AS id`,
+    { pid: pid(), ids: uniqueIds },
+  );
+  const existingIds = new Set(existingRows.map((record) => String(record.get('id'))));
+
+  if (!dryRun && existingIds.size) {
+    await run(
+      `MATCH (n:Entity {projectId:$pid})
+       WHERE n.id IN $ids
+       OPTIONAL MATCH (n)-[:HAS_ASSET]->(asset:Asset {projectId:$pid})
+       WITH n, collect(asset) AS assets
+       FOREACH (asset IN assets | DETACH DELETE asset)
+       WITH collect(n) AS nodes
+       FOREACH (node IN nodes | DETACH DELETE node)`,
+      { pid: pid(), ids: [...existingIds] },
+    );
+  }
+
+  const results = uniqueIds.map((id) => ({
+    id,
+    status: existingIds.has(id) ? (dryRun ? 'planned' : 'deleted') : 'not_found',
+  }) satisfies BulkDeleteNodeResult);
+  const notFound = results.filter((result) => result.status === 'not_found').length;
+  return {
+    summary: {
+      received: ids.length,
+      unique: uniqueIds.length,
+      deleted: dryRun ? 0 : existingIds.size,
+      notFound,
+      dryRun,
+    },
+    results,
+  };
+}
+
 async function getEdgeByKey(fromId: string, toId: string, kind: string): Promise<GraphEdge | null> {
   const records = await run(
     `MATCH (a:Entity {id:$fromId, projectId:$pid})-[r:REL {kind:$kind}]->(b:Entity {id:$toId, projectId:$pid})
@@ -624,9 +687,8 @@ export async function unlink(fromId: string, toId: string, kind: string): Promis
 
 export async function upsertNodes(
   nodes: NodeInput[],
-  opts: { continueOnError?: boolean; dryRun?: boolean } = {},
+  opts: { continueOnError?: boolean } = {},
 ): Promise<{ summary: BulkSummary; results: BulkNodeResult[] }> {
-  const dryRun = opts.dryRun ?? false;
   const continueOnError = opts.continueOnError ?? true;
   const results: BulkNodeResult[] = [];
   let created = 0;
@@ -641,28 +703,22 @@ export async function upsertNodes(
     }
     try {
       const existing = await getNodeByTypeLabel(input.type.trim(), input.label.trim());
-      if (dryRun) {
-        if (existing) merged++; else created++;
-        results.push({ type: input.type, label: input.label, status: existing ? 'merged' : 'created', nodeId: existing?.id });
-      } else {
-        const written = await upsertNode(input);
-        if (written.created) created++; else merged++;
-        results.push({ type: input.type, label: input.label, status: written.created ? 'created' : 'merged', nodeId: written.node.id });
-      }
+      const written = await upsertNode(input);
+      if (written.created) created++; else merged++;
+      results.push({ type: input.type, label: input.label, status: existing ? 'merged' : 'created', nodeId: written.node.id });
     } catch (err) {
       failed++;
       results.push({ type: input.type, label: input.label, status: 'failed', reason: String(err) });
       if (!continueOnError) break;
     }
   }
-  return { summary: { received: nodes.length, created, merged, failed, dryRun }, results };
+  return { summary: { received: nodes.length, created, merged, failed }, results };
 }
 
 export async function linkBulk(
   edges: EdgeInput[],
-  opts: { continueOnError?: boolean; dryRun?: boolean } = {},
+  opts: { continueOnError?: boolean } = {},
 ): Promise<{ summary: BulkSummary; results: BulkEdgeResult[] }> {
-  const dryRun = opts.dryRun ?? false;
   const continueOnError = opts.continueOnError ?? true;
   const results: BulkEdgeResult[] = [];
   let created = 0;
@@ -675,44 +731,22 @@ export async function linkBulk(
       const to = await getNodeById(input.toId);
       if (!from || !to) throw new Error('node_not_found');
       const existing = await getEdgeByKey(input.fromId, input.toId, input.kind);
-      if (dryRun) {
-        if (existing) merged++; else created++;
-        results.push({ fromId: input.fromId, toId: input.toId, kind: input.kind, status: existing ? 'merged' : 'created', edgeId: existing?.id });
-      } else {
-        const written = await link(input);
-        if (existing) merged++; else created++;
-        results.push({ fromId: input.fromId, toId: input.toId, kind: input.kind, status: existing ? 'merged' : 'created', edgeId: written.id });
-      }
+      const written = await link(input);
+      if (existing) merged++; else created++;
+      results.push({ fromId: input.fromId, toId: input.toId, kind: input.kind, status: existing ? 'merged' : 'created', edgeId: written.id });
     } catch (err) {
       failed++;
       results.push({ fromId: input.fromId, toId: input.toId, kind: input.kind, status: 'failed', reason: String(err) });
       if (!continueOnError) break;
     }
   }
-  return { summary: { received: edges.length, created, merged, failed, dryRun }, results };
+  return { summary: { received: edges.length, created, merged, failed }, results };
 }
 
 export async function attachAsset(nodeId: string, asset: { path: string; mime?: string; label?: string }): Promise<GraphAsset> {
-  if (!asset.path.trim()) throw new Error('invalid_asset: path is required');
-  if (!(await getNodeById(nodeId))) throw new Error(`node_not_found: ${nodeId}`);
-  const records = await run(
-    `MATCH (n:Entity {id:$nodeId, projectId:$pid})
-     MERGE (asset:Asset {projectId:$pid, nodeId:$nodeId, path:$path})
-     ON CREATE SET asset.id=$id, asset.createdAt=$createdAt
-     SET asset.mime=$mime, asset.label=$label
-     MERGE (n)-[:HAS_ASSET]->(asset)
-     RETURN asset`,
-    {
-      nodeId,
-      pid: pid(),
-      path: asset.path.trim(),
-      id: uuid(),
-      createdAt: nowIso(),
-      mime: asset.mime ?? '',
-      label: asset.label ?? '',
-    },
-  );
-  return assetFrom(records[0].get('asset'));
+  void nodeId;
+  void asset;
+  throw new Error('filesystem_asset_registration_disabled');
 }
 
 export async function getAssets(nodeId: string): Promise<GraphAsset[]> {
@@ -1015,7 +1049,6 @@ export async function auditGlobal(): Promise<GlobalAudit> {
 }
 
 export interface RepairResult {
-  dryRun: boolean;
   redundantRelatedToRetired: number;
   junkEdgesRemoved: number;
   orphanAssetsRemoved: number;
@@ -1032,13 +1065,11 @@ export interface RepairResult {
   };
 }
 
-export async function repair(opts: { dryRun?: boolean } = {}): Promise<RepairResult> {
-  const dryRun = opts.dryRun ?? true;
+export async function repair(): Promise<RepairResult> {
   const audit = await auditGlobal();
   const nonRelPhysicalEdges = await listNonRelPhysicalEdges();
   const nonRelPhysicalEdgePlan = summarizeNonRelPhysicalEdgeRepair(nonRelPhysicalEdges);
   const result: RepairResult = {
-    dryRun,
     redundantRelatedToRetired: audit.redundantRelatedTo,
     junkEdgesRemoved: audit.nonCanonicalKinds.reduce((sum, row) => sum + row.count, 0),
     orphanAssetsRemoved: audit.orphanAssets,
@@ -1047,20 +1078,18 @@ export async function repair(opts: { dryRun?: boolean } = {}): Promise<RepairRes
     unresolvedNonRelPhysicalEdges: nonRelPhysicalEdgePlan.unresolved,
     nonRelPhysicalEdgePlan,
   };
-  if (!dryRun) {
-    if (nonRelPhysicalEdgePlan.unresolved > 0) {
-      throw new Error(`repair_blocked: ${nonRelPhysicalEdgePlan.unresolved} unresolved non-REL physical edges`);
-    }
-    await run(
-      `MATCH (a:Entity {projectId:$pid})-[r:REL {kind:'related_to'}]->(b:Entity {projectId:$pid})
-       WHERE EXISTS { (a)-[typed:REL]-(b) WHERE typed.kind <> 'related_to' }
-       DELETE r`,
-      { pid: pid() },
-    );
-    await run('MATCH (:Entity {projectId:$pid})-[r:REL]->(:Entity {projectId:$pid}) WHERE NOT r.kind IN $allowed DELETE r', { pid: pid(), allowed: KG_KINDS_LIST });
-    await run('MATCH (a:Asset {projectId:$pid}) WHERE NOT (:Entity {projectId:$pid})-[:HAS_ASSET]->(a) DETACH DELETE a', { pid: pid() });
-    result.nonRelPhysicalEdgeApply = await applyNonRelPhysicalEdgeRepair(nonRelPhysicalEdges);
+  if (nonRelPhysicalEdgePlan.unresolved > 0) {
+    throw new Error(`repair_blocked: ${nonRelPhysicalEdgePlan.unresolved} unresolved non-REL physical edges`);
   }
+  await run(
+    `MATCH (a:Entity {projectId:$pid})-[r:REL {kind:'related_to'}]->(b:Entity {projectId:$pid})
+     WHERE EXISTS { (a)-[typed:REL]-(b) WHERE typed.kind <> 'related_to' }
+     DELETE r`,
+    { pid: pid() },
+  );
+  await run('MATCH (:Entity {projectId:$pid})-[r:REL]->(:Entity {projectId:$pid}) WHERE NOT r.kind IN $allowed DELETE r', { pid: pid(), allowed: KG_KINDS_LIST });
+  await run('MATCH (a:Asset {projectId:$pid}) WHERE NOT (:Entity {projectId:$pid})-[:HAS_ASSET]->(a) DETACH DELETE a', { pid: pid() });
+  result.nonRelPhysicalEdgeApply = await applyNonRelPhysicalEdgeRepair(nonRelPhysicalEdges);
   return result;
 }
 

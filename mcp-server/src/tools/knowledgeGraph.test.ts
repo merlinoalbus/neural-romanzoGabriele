@@ -28,6 +28,17 @@ test('knowledge graph embedding tools are registered with correct safety annotat
   assert.equal(semanticSearch.annotations?.destructiveHint, false);
 });
 
+test('bulk delete node tool is registered as destructive and idempotent', () => {
+  const server = new McpServer({ name: 'test', version: '1.0.0' });
+  registerKnowledgeGraphTools(server);
+
+  const bulkDelete = registeredTool(server, 'kg_delete_nodes');
+
+  assert.equal(bulkDelete.annotations?.readOnlyHint, false);
+  assert.equal(bulkDelete.annotations?.destructiveHint, true);
+  assert.equal(bulkDelete.annotations?.idempotentHint, true);
+});
+
 test('embedding runtime tools fail clearly when provider is not configured', async (t: TestContext) => {
   if (embeddingRuntimeStatus().configured) {
     t.skip('Embeddings provider is configured in this environment.');

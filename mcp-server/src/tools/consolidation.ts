@@ -8,13 +8,10 @@ export function registerConsolidationTools(server: McpServer): void {
     'kg_run_consolidation',
     {
       title: 'Run consolidation and inference',
-      description: 'Executes semantic node consolidation and relational inference. Run with dryRun=true (default) to preview changes.',
-      inputSchema: {
-        dryRun: z.boolean().optional(),
-      },
+      description: 'Executes semantic node consolidation and relational inference.',
+      inputSchema: {},
       outputSchema: {
         ok: z.boolean(),
-        dryRun: z.boolean(),
         mergedNodes: z.array(
           z.object({
             target: z.object({ id: z.string(), type: z.string(), label: z.string() }),
@@ -39,10 +36,9 @@ export function registerConsolidationTools(server: McpServer): void {
       },
       annotations: { title: 'Run consolidation and inference', readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     },
-    async ({ dryRun }) => {
+    async () => {
       try {
-        const isDryRun = dryRun !== false;
-        const report = await runConsolidation(isDryRun);
+        const report = await runConsolidation(false);
         return toolStructured(report as unknown as Record<string, unknown>);
       } catch (err) {
         return toolError('KG_CONSOLIDATION_FAILED', `kg_run_consolidation failed: ${String(err)}`);

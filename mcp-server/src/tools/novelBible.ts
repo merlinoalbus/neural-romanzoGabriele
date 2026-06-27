@@ -65,7 +65,6 @@ const bibleSectionPreviewZ = z.object({
 const ingestBibleSectionsSummaryZ = z.object({
   sourceId: z.string(),
   sourceType: z.string(),
-  dryRun: z.boolean(),
   sectionsReceived: z.number(),
   nodesPlanned: z.number(),
   edgesPlanned: z.number(),
@@ -111,7 +110,6 @@ const bibleCandidateZ = z.object({
 
 const candidateSummaryZ = z.object({
   sourceId: z.string().optional(),
-  dryRun: z.boolean(),
   sectionsScanned: z.number(),
   candidatesPlanned: z.number(),
   candidatesWritten: z.number(),
@@ -680,11 +678,9 @@ export function registerNovelBibleTools(server: McpServer): void {
         sourceId: z.string(),
         title: z.string().optional(),
         sections: z.array(bibleSectionInputZ).min(1).max(1000),
-        dryRun: z.boolean().optional(),
       },
       outputSchema: {
         ok: z.boolean(),
-        dryRun: z.boolean().optional(),
         summary: ingestBibleSectionsSummaryZ.optional(),
         root: nodeZ.optional(),
         sections: z.array(nodeZ).optional(),
@@ -693,31 +689,21 @@ export function registerNovelBibleTools(server: McpServer): void {
       },
       annotations: { title: 'Novel ingest bible sections', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ sourceId, title, sections, dryRun }) => {
+    async ({ sourceId, title, sections }) => {
       try {
         const plan = buildBibleSectionsPlan({ sourceId, title, sections });
         const summary = {
           sourceId: plan.sourceId,
           sourceType: plan.sourceType,
-          dryRun: Boolean(dryRun),
           sectionsReceived: sections.length,
           nodesPlanned: plan.sections.length + 1,
           edgesPlanned: plan.edges.length,
           nodesWritten: 0,
           edgesWritten: 0,
         };
-        if (dryRun) {
-          return toolStructured({
-            ok: true,
-            dryRun: true,
-            summary,
-            plannedSections: plan.sections.map(previewBibleSection),
-          });
-        }
         const written = await writeBibleSectionsPlan(plan);
         return toolStructured({
           ok: true,
-          dryRun: false,
           summary: { ...summary, nodesWritten: written.nodesWritten, edgesWritten: written.edgesWritten },
           root: written.root,
           sections: written.sections,
@@ -740,11 +726,9 @@ export function registerNovelBibleTools(server: McpServer): void {
         limit: z.number().int().positive().optional(),
         granularity: z.enum(BIBLE_CANDIDATE_GRANULARITIES).optional(),
         families: z.array(z.enum(BIBLE_CANDIDATE_FAMILIES)).optional(),
-        dryRun: z.boolean().optional(),
       },
       outputSchema: {
         ok: z.boolean(),
-        dryRun: z.boolean().optional(),
         summary: candidateSummaryZ.optional(),
         candidates: z.array(bibleCandidateZ).optional(),
         batch: nodeZ.optional(),
@@ -753,7 +737,7 @@ export function registerNovelBibleTools(server: McpServer): void {
       },
       annotations: { title: 'Novel extract bible candidates', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ sourceId, sectionKeys, limit, granularity, families, dryRun }) => {
+    async ({ sourceId, sectionKeys, limit, granularity, families }) => {
       try {
         const sections = await listBibleSectionsForExtraction({ sourceId, sectionKeys, limit });
         const candidates = sections.flatMap((section) =>
@@ -764,16 +748,13 @@ export function registerNovelBibleTools(server: McpServer): void {
         );
         const summary = {
           sourceId,
-          dryRun: Boolean(dryRun),
           sectionsScanned: sections.length,
           candidatesPlanned: candidates.length,
           candidatesWritten: 0,
         };
-        if (dryRun) return toolStructured({ ok: true, dryRun: true, summary, candidates });
         const written = await writeExtractedCandidates(sourceId, sections, candidates);
         return toolStructured({
           ok: true,
-          dryRun: false,
           summary: { ...summary, candidatesWritten: written.candidateNodes.length },
           candidates,
           batch: written.batch,
@@ -793,11 +774,9 @@ export function registerNovelBibleTools(server: McpServer): void {
       inputSchema: {
         candidateIds: z.array(z.string()).optional(),
         candidates: z.array(bibleCandidateZ).optional(),
-        dryRun: z.boolean().optional(),
       },
       outputSchema: {
         ok: z.boolean(),
-        dryRun: z.boolean().optional(),
         summary: candidateSummaryZ.optional(),
         committedNodes: z.array(nodeZ).optional(),
         committedEdges: z.array(z.unknown()).optional(),
@@ -807,7 +786,7 @@ export function registerNovelBibleTools(server: McpServer): void {
       },
       annotations: { title: 'Novel commit bible candidates', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ candidateIds, candidates, dryRun }) => {
+    async ({ candidateIds, candidates }) => {
       try {
         if (!candidateIds?.length && !candidates?.length) return toolError('NOVEL_COMMIT_CANDIDATES_BAD_INPUT', 'Provide candidateIds or candidates.');
         const loaded: Array<{ node?: kg.GraphNode; candidate: BibleCandidate }> = [];
@@ -824,14 +803,12 @@ export function registerNovelBibleTools(server: McpServer): void {
           return toolError('NOVEL_COMMIT_CANDIDATES_INVALID', 'One or more candidates are invalid.', { errors: validationErrors });
         }
         const summary = {
-          dryRun: Boolean(dryRun),
           sectionsScanned: 0,
           candidatesPlanned: loaded.length,
           candidatesWritten: 0,
           candidatesCommitted: 0,
           edgesCommitted: 0,
         };
-        if (dryRun) return toolStructured({ ok: true, dryRun: true, summary });
         const missingEvidenceSections = await missingEvidenceSectionsForBatch(loaded);
         if (missingEvidenceSections.length) {
           return toolError('NOVEL_COMMIT_CANDIDATES_MISSING_EVIDENCE_SECTIONS', 'One or more candidates reference missing Bible evidence sections.', { missingEvidenceSections });
@@ -872,7 +849,6 @@ export function registerNovelBibleTools(server: McpServer): void {
         }
         return toolStructured({
           ok: true,
-          dryRun: false,
           summary: {
             ...summary,
             candidatesCommitted: committedNodes.length + committedEdges.length,

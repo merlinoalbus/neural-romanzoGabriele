@@ -34,7 +34,6 @@ COPY mcp-server/instructions.md ./dist/instructions.md
 
 ENV NODE_ENV=production
 ENV MCP_PORT=3002
-ENV PROJECT_BASE_PATH=/data
 
 EXPOSE 3002
 USER appuser

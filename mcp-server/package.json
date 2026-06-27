@@ -10,8 +10,7 @@
     "dev": "tsx watch --env-file=../.env src/index.ts",
     "typecheck": "tsc --noEmit --project tsconfig.json",
     "lint": "eslint src",
-    "test": "node --import tsx --test \"src/**/*.test.ts\"",
-    "smoke": "node scripts/smoke.mjs"
+    "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",

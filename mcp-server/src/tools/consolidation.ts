@@ -38,7 +38,7 @@ export function registerConsolidationTools(server: McpServer): void {
     },
     async () => {
       try {
-        const report = await runConsolidation(false);
+        const report = await runConsolidation();
         return toolStructured(report as unknown as Record<string, unknown>);
       } catch (err) {
         return toolError('KG_CONSOLIDATION_FAILED', `kg_run_consolidation failed: ${String(err)}`);

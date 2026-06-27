@@ -4,131 +4,36 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { registerNovelBibleTools } from './novelBible.js';
 
 function registeredTool(server: McpServer, name: string) {
-  const tools = (server as unknown as { _registeredTools?: Record<string, { handler?: (input: unknown) => Promise<unknown> }> })._registeredTools;
+  const tools = (server as unknown as { _registeredTools?: Record<string, RegisteredTool> })._registeredTools;
   const tool = tools?.[name];
   assert.ok(tool?.handler, `Missing registered tool ${name}`);
   return tool;
 }
 
-test('novel_ingest_bible_sections dryRun plans sections without graph writes', async () => {
+type RegisteredTool = {
+  annotations?: Record<string, unknown>;
+  handler?: (input: unknown) => Promise<unknown>;
+  inputSchema?: {
+    def?: { shape?: Record<string, unknown> | (() => Record<string, unknown>) };
+    _def?: { shape?: Record<string, unknown> | (() => Record<string, unknown>) };
+  };
+};
+
+function inputSchemaKeys(tool: RegisteredTool): string[] {
+  const shapeValue = tool.inputSchema?.def?.shape ?? tool.inputSchema?._def?.shape;
+  const shape = typeof shapeValue === 'function' ? shapeValue() : shapeValue;
+  return Object.keys(shape ?? {});
+}
+
+test('novel bible write tools do not expose dryRun inputs', () => {
   const server = new McpServer({ name: 'test', version: '1.0.0' });
   registerNovelBibleTools(server);
-  const tool = registeredTool(server, 'novel_ingest_bible_sections');
 
-  const response = await tool.handler!({
-    sourceId: 'bibbia-gabriele',
-    dryRun: true,
-    sections: [
-      { sectionId: '1', heading: 'Logline', text: 'Testo logline.', order: 1, path: ['Logline'] },
-      { sectionId: '1.1', heading: 'Tema', text: 'Testo tema.', order: 2, path: ['Logline', 'Tema'] },
-    ],
-  });
-
-  const structured = response as { structuredContent?: Record<string, unknown> };
-  assert.equal(structured.structuredContent?.ok, true);
-  assert.equal(structured.structuredContent?.dryRun, true);
-  assert.deepEqual(structured.structuredContent?.summary, {
-    sourceId: 'bibbia-gabriele',
-    sourceType: 'novel_bible',
-    dryRun: true,
-    sectionsReceived: 2,
-    nodesPlanned: 3,
-    edgesPlanned: 3,
-    nodesWritten: 0,
-    edgesWritten: 0,
-  });
-  assert.equal(Array.isArray(structured.structuredContent?.plannedSections), true);
-});
-
-test('novel_commit_bible_candidates dryRun validates inline candidates before graph writes', async () => {
-  const server = new McpServer({ name: 'test', version: '1.0.0' });
-  registerNovelBibleTools(server);
-  const tool = registeredTool(server, 'novel_commit_bible_candidates');
-
-  const response = await tool.handler!({
-    dryRun: true,
-    candidates: [
-      {
-        candidateId: 'candidate-theme-identita',
-        candidateKind: 'node',
-        targetType: 'theme',
-        label: 'Identita',
-        content: 'Tema identitario.',
-        evidence: { sourceId: 'bibbia-gabriele', sectionKey: '2.3.1' },
-        confidence: 0.82,
-        rationale: 'Sezione tematica validata.',
-        metadata: {},
-      },
-    ],
-  });
-
-  const structured = response as { structuredContent?: Record<string, unknown> };
-  assert.equal(structured.structuredContent?.ok, true);
-  assert.equal(structured.structuredContent?.dryRun, true);
-  assert.deepEqual(structured.structuredContent?.summary, {
-    dryRun: true,
-    sectionsScanned: 0,
-    candidatesPlanned: 1,
-    candidatesWritten: 0,
-    candidatesCommitted: 0,
-    edgesCommitted: 0,
-  });
-});
-
-test('novel_commit_bible_candidates dryRun accepts node and edge candidates in one batch', async () => {
-  const server = new McpServer({ name: 'test', version: '1.0.0' });
-  registerNovelBibleTools(server);
-  const tool = registeredTool(server, 'novel_commit_bible_candidates');
-
-  const response = await tool.handler!({
-    dryRun: true,
-    candidates: [
-      {
-        candidateId: 'candidate-character-gabriele',
-        candidateKind: 'node',
-        targetType: 'character',
-        label: 'Gabriele',
-        content: 'Personaggio principale.',
-        evidence: { sourceId: 'bibbia-gabriele', sectionKey: '3.1' },
-        confidence: 0.9,
-        rationale: 'Personaggio validato.',
-        metadata: {},
-      },
-      {
-        candidateId: 'candidate-theme-identita',
-        candidateKind: 'node',
-        targetType: 'theme',
-        label: 'Identita',
-        content: 'Tema identitario.',
-        evidence: { sourceId: 'bibbia-gabriele', sectionKey: '2.3.1' },
-        confidence: 0.82,
-        rationale: 'Tema validato.',
-        metadata: {},
-      },
-      {
-        candidateId: 'candidate-edge-theme',
-        candidateKind: 'edge',
-        relationKind: 'has_theme',
-        from: { type: 'character', label: 'Gabriele' },
-        to: { type: 'theme', label: 'Identita' },
-        evidence: { sourceId: 'bibbia-gabriele', sectionKey: '2.3.1' },
-        confidence: 0.8,
-        rationale: 'Gabriele porta il tema identitario.',
-        metadata: {},
-      },
-    ],
-  });
-
-  const structured = response as { structuredContent?: Record<string, unknown> };
-  assert.equal(structured.structuredContent?.ok, true);
-  assert.deepEqual(structured.structuredContent?.summary, {
-    dryRun: true,
-    sectionsScanned: 0,
-    candidatesPlanned: 3,
-    candidatesWritten: 0,
-    candidatesCommitted: 0,
-    edgesCommitted: 0,
-  });
+  for (const name of ['novel_ingest_bible_sections', 'novel_extract_bible_candidates', 'novel_commit_bible_candidates']) {
+    const tool = registeredTool(server, name) as RegisteredTool;
+    assert.equal(inputSchemaKeys(tool).includes('dryRun'), false, `${name} must not expose dryRun`);
+    assert.equal(tool.annotations?.readOnlyHint, false, `${name} must be write-capable`);
+  }
 });
 
 test('novel_commit_bible_candidates rejects candidates without evidence', async () => {
@@ -137,7 +42,6 @@ test('novel_commit_bible_candidates rejects candidates without evidence', async 
   const tool = registeredTool(server, 'novel_commit_bible_candidates');
 
   const response = await tool.handler!({
-    dryRun: true,
     candidates: [
       {
         candidateId: 'candidate-invalid',

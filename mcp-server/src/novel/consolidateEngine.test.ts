@@ -34,13 +34,15 @@ test('runConsolidation merges duplicate nodes based on normalized labels inside 
     return [];
   };
 
-  const report = await runConsolidation(true, mockQueryRunner as any);
+  const report = await runConsolidation(mockQueryRunner as any);
 
   assert.ok(report.ok);
   assert.equal(report.mergedNodes.length, 2);
   assert.equal(report.mergedNodes.find((merge) => merge.target.type === 'character')?.target.id, 'char-1');
   assert.equal(report.mergedNodes.find((merge) => merge.target.type === 'faction')?.target.id, 'fac-1');
   assert.ok(seenParams.every((params) => params.projectId === 'romanzo-gabriele'));
+  assert.ok(seenParams.some((params) => params.duplicateId === 'char-2'));
+  assert.ok(seenParams.some((params) => params.duplicateId === 'fac-2'));
 });
 
 test('runConsolidation merges explicit duplicates driven by metadata', async () => {
@@ -56,7 +58,7 @@ test('runConsolidation merges explicit duplicates driven by metadata', async () 
     return [];
   };
 
-  const report = await runConsolidation(true, mockQueryRunner as any);
+  const report = await runConsolidation(mockQueryRunner as any);
 
   assert.ok(report.ok);
   assert.equal(report.mergedNodes.length, 1);
@@ -107,7 +109,7 @@ test('runConsolidation infers and deduplicates relationships through REL.kind qu
     return [];
   };
 
-  const report = await runConsolidation(true, mockQueryRunner as any);
+  const report = await runConsolidation(mockQueryRunner as any);
 
   assert.ok(report.ok);
   assert.equal(report.inferredEdges.length, 1);
@@ -150,7 +152,7 @@ test('runConsolidation writes inferred edges as REL relationships only', async (
     return [];
   };
 
-  const report = await runConsolidation(false, mockQueryRunner as any);
+  const report = await runConsolidation(mockQueryRunner as any);
 
   assert.equal(report.inferredEdges.length, 1);
   assert.ok(seenCyphers.some((cypher) => cypher.includes('MERGE (from)-[r:REL {kind: $kind}]->(to)')));

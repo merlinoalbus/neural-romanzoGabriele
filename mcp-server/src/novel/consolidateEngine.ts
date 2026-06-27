@@ -4,7 +4,6 @@ import { runQuery as runQueryRaw, type GraphNode } from '../graph/neo4jStore.js'
 
 export interface ConsolidationReport {
   ok: boolean;
-  dryRun: boolean;
   mergedNodes: {
     target: { id: string; type: string; label: string };
     merged: { id: string; type: string; label: string };
@@ -167,7 +166,7 @@ async function writeInferredEdge(runQuery: QueryRunner, projectId: string, edge:
   );
 }
 
-export async function runConsolidation(dryRun = true, runQuery = runQueryRaw): Promise<ConsolidationReport> {
+export async function runConsolidation(runQuery = runQueryRaw): Promise<ConsolidationReport> {
   const projectId = config.projectId;
   const initialNodesRes = await runQuery('MATCH (n:Entity {projectId: $projectId}) RETURN count(n) as count', { projectId });
   const initialEdgesRes = await runQuery(
@@ -223,55 +222,53 @@ export async function runConsolidation(dryRun = true, runQuery = runQueryRaw): P
     for (const duplicate of group.slice(1)) pushUniqueMerge(mergePlans, mergedNodes, target, duplicate);
   }
 
-  if (!dryRun) {
-    for (const { target, duplicate } of mergePlans) {
-      const content = target.content || duplicate.content;
-      const metadata = mergeMetadata(target.metadata, duplicate.metadata);
-      const provenance = mergeMetadata(target.provenance, duplicate.provenance);
+  for (const { target, duplicate } of mergePlans) {
+    const content = target.content || duplicate.content;
+    const metadata = mergeMetadata(target.metadata, duplicate.metadata);
+    const provenance = mergeMetadata(target.provenance, duplicate.provenance);
 
-      await runQuery(
-        `MATCH (t:Entity {id: $targetId, projectId: $projectId})
-         SET t.content = $content, t.metadata = $metadata, t.provenance = $provenance, t.updatedAt = $updatedAt`,
-        {
-          projectId,
-          targetId: target.id,
-          content,
-          metadata: JSON.stringify(metadata),
-          provenance: JSON.stringify(provenance),
-          updatedAt: new Date().toISOString(),
-        },
-      );
+    await runQuery(
+      `MATCH (t:Entity {id: $targetId, projectId: $projectId})
+       SET t.content = $content, t.metadata = $metadata, t.provenance = $provenance, t.updatedAt = $updatedAt`,
+      {
+        projectId,
+        targetId: target.id,
+        content,
+        metadata: JSON.stringify(metadata),
+        provenance: JSON.stringify(provenance),
+        updatedAt: new Date().toISOString(),
+      },
+    );
 
-      await runQuery(
-        `MATCH (d:Entity {id: $duplicateId, projectId: $projectId})-[r:REL]->(other:Entity {projectId: $projectId})
-         MATCH (t:Entity {id: $targetId, projectId: $projectId})
-         MERGE (t)-[newR:REL {kind: r.kind}]->(other)
-         ON CREATE SET newR.id = $id,
-                       newR.weight = r.weight,
-                       newR.metadata = r.metadata,
-                       newR.provenance = r.provenance,
-                       newR.createdAt = r.createdAt
-         ON MATCH SET newR.weight = CASE WHEN coalesce(newR.weight, 0) < coalesce(r.weight, 1) THEN r.weight ELSE newR.weight END
-         DETACH DELETE r`,
-        { projectId, duplicateId: duplicate.id, targetId: target.id, id: crypto.randomUUID() },
-      );
+    await runQuery(
+      `MATCH (d:Entity {id: $duplicateId, projectId: $projectId})-[r:REL]->(other:Entity {projectId: $projectId})
+       MATCH (t:Entity {id: $targetId, projectId: $projectId})
+       MERGE (t)-[newR:REL {kind: r.kind}]->(other)
+       ON CREATE SET newR.id = $id,
+                     newR.weight = r.weight,
+                     newR.metadata = r.metadata,
+                     newR.provenance = r.provenance,
+                     newR.createdAt = r.createdAt
+       ON MATCH SET newR.weight = CASE WHEN coalesce(newR.weight, 0) < coalesce(r.weight, 1) THEN r.weight ELSE newR.weight END
+       DETACH DELETE r`,
+      { projectId, duplicateId: duplicate.id, targetId: target.id, id: crypto.randomUUID() },
+    );
 
-      await runQuery(
-        `MATCH (other:Entity {projectId: $projectId})-[r:REL]->(d:Entity {id: $duplicateId, projectId: $projectId})
-         MATCH (t:Entity {id: $targetId, projectId: $projectId})
-         MERGE (other)-[newR:REL {kind: r.kind}]->(t)
-         ON CREATE SET newR.id = $id,
-                       newR.weight = r.weight,
-                       newR.metadata = r.metadata,
-                       newR.provenance = r.provenance,
-                       newR.createdAt = r.createdAt
-         ON MATCH SET newR.weight = CASE WHEN coalesce(newR.weight, 0) < coalesce(r.weight, 1) THEN r.weight ELSE newR.weight END
-         DETACH DELETE r`,
-        { projectId, duplicateId: duplicate.id, targetId: target.id, id: crypto.randomUUID() },
-      );
+    await runQuery(
+      `MATCH (other:Entity {projectId: $projectId})-[r:REL]->(d:Entity {id: $duplicateId, projectId: $projectId})
+       MATCH (t:Entity {id: $targetId, projectId: $projectId})
+       MERGE (other)-[newR:REL {kind: r.kind}]->(t)
+       ON CREATE SET newR.id = $id,
+                     newR.weight = r.weight,
+                     newR.metadata = r.metadata,
+                     newR.provenance = r.provenance,
+                     newR.createdAt = r.createdAt
+       ON MATCH SET newR.weight = CASE WHEN coalesce(newR.weight, 0) < coalesce(r.weight, 1) THEN r.weight ELSE newR.weight END
+       DETACH DELETE r`,
+      { projectId, duplicateId: duplicate.id, targetId: target.id, id: crypto.randomUUID() },
+    );
 
-      await runQuery('MATCH (d:Entity {id: $duplicateId, projectId: $projectId}) DETACH DELETE d', { projectId, duplicateId: duplicate.id });
-    }
+    await runQuery('MATCH (d:Entity {id: $duplicateId, projectId: $projectId}) DETACH DELETE d', { projectId, duplicateId: duplicate.id });
   }
 
   const inferredFactionEdges = await runQuery(
@@ -450,9 +447,7 @@ export async function runConsolidation(dryRun = true, runQuery = runQueryRaw): P
 
   const uniqueEdges = uniqueInferredEdges(inferredEdges.values());
 
-  if (!dryRun) {
-    for (const edge of uniqueEdges) await writeInferredEdge(runQuery, projectId, edge);
-  }
+  for (const edge of uniqueEdges) await writeInferredEdge(runQuery, projectId, edge);
 
   const finalNodesRes = await runQuery('MATCH (n:Entity {projectId: $projectId}) RETURN count(n) as count', { projectId });
   const finalEdgesRes = await runQuery(
@@ -462,7 +457,6 @@ export async function runConsolidation(dryRun = true, runQuery = runQueryRaw): P
 
   return {
     ok: true,
-    dryRun,
     mergedNodes,
     inferredEdges: uniqueEdges.map(compactEdge),
     stats: {

@@ -470,13 +470,17 @@ function nodeMatchesBibleSection(node: kg.GraphNode, sourceId: string, sectionKe
 function classifyParagraphStatus(input: {
   section: kg.GraphNode | null;
   directTextEmpty: boolean;
-  candidates: kg.GraphNode[];
+  pendingCandidates: kg.GraphNode[];
   residualCanonicalClaims: kg.GraphNode[];
 }): z.infer<typeof paragraphStatusValueZ> {
   if (!input.section) return 'blocked';
   if (!input.directTextEmpty) return 'content_section';
-  if (input.candidates.length === 0 && input.residualCanonicalClaims.length === 0) return 'header_only';
+  if (input.pendingCandidates.length === 0 && input.residualCanonicalClaims.length === 0) return 'header_only';
   return 'requires_claim_cleanup';
+}
+
+function isPendingBibleCandidate(candidate: kg.GraphNode): boolean {
+  return String(candidate.metadata.status ?? 'pending') === 'pending';
 }
 
 function recommendationForParagraph(status: z.infer<typeof paragraphStatusValueZ>): z.infer<typeof bibleParagraphReconciliationPacketZ>['recommendedWorkflowBranch'] {
@@ -521,10 +525,12 @@ export async function buildBibleParagraphStatus(sourceId: string, sectionKey: st
     .filter((claim) => claim.metadata.requiresReview === true || claim.type === 'bible_claim')
     .filter((claim) => nodeMatchesBibleSection(claim, normalizedSourceId, normalizedSectionKey));
   const directTextEmpty = section ? metadataBoolean(section.metadata.directTextEmpty) : true;
-  const paragraphStatus = classifyParagraphStatus({ section, directTextEmpty, candidates, residualCanonicalClaims });
+  const pendingCandidates = candidates.filter(isPendingBibleCandidate);
+  const paragraphStatus = classifyParagraphStatus({ section, directTextEmpty, pendingCandidates, residualCanonicalClaims });
   const blockingFindings: string[] = [];
   if (!section) blockingFindings.push('missing_bible_section');
-  if (paragraphStatus === 'requires_claim_cleanup') blockingFindings.push('residual_canonical_claims_require_review');
+  if (pendingCandidates.length > 0) blockingFindings.push('pending_candidates_require_reconciliation');
+  if (residualCanonicalClaims.length > 0) blockingFindings.push('residual_canonical_claims_require_review');
   return {
     sourceId: normalizedSourceId,
     sectionKey: normalizedSectionKey,
@@ -532,7 +538,7 @@ export async function buildBibleParagraphStatus(sourceId: string, sectionKey: st
     section: section ?? undefined,
     directTextEmpty,
     candidates,
-    candidate_pending_count: candidates.filter((candidate) => String(candidate.metadata.status ?? 'pending') === 'pending').length,
+    candidate_pending_count: pendingCandidates.length,
     residualCanonicalClaims,
     residualCanonicalClaims_count: residualCanonicalClaims.length,
     blockingFindings,

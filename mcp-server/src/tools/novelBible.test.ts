@@ -123,6 +123,16 @@ test('novel bible local packet implementation avoids global candidate scans', as
   assert.equal(source.includes('kg.getBibleCandidateByIdOrLabel'), true);
 });
 
+test('novel bible paragraph status classifies header-only from pending candidates only', async () => {
+  const source = await import('node:fs/promises').then((fs) => fs.readFile(new URL('./novelBible.ts', import.meta.url), 'utf8'));
+
+  assert.equal(source.includes('pendingCandidates: kg.GraphNode[]'), true);
+  assert.equal(source.includes('input.pendingCandidates.length === 0 && input.residualCanonicalClaims.length === 0'), true);
+  assert.equal(source.includes('const pendingCandidates = candidates.filter(isPendingBibleCandidate);'), true);
+  assert.equal(source.includes('candidate_pending_count: pendingCandidates.length'), true);
+  assert.equal(source.includes("if (paragraphStatus === 'requires_claim_cleanup') blockingFindings.push('residual_canonical_claims_require_review');"), false);
+});
+
 test('novel_get_bible_ontology returns mapping contract without graph access', async () => {
   const server = new McpServer({ name: 'test', version: '1.0.0' });
   registerNovelBibleTools(server);

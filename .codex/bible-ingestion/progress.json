@@ -1,9 +1,9 @@
 {
   "sourceId": "bibbia-gabriele-2025",
-  "lastCompletedParagraph": null,
-  "lastCompletedPage": null,
-  "lastCompletedAt": null,
-  "currentParagraph": null,
-  "candidatePending": null,
+  "lastCompletedParagraph": "2.1.1.5",
+  "lastCompletedPage": "2.1.1.5",
+  "lastCompletedAt": "2026-06-29T22:07:58.4752121+02:00",
+  "currentParagraph": "2.1.1.5.1",
+  "candidatePending": 0,
   "notes": []
 }

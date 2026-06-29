@@ -10,6 +10,15 @@ Compito:
 costruire la queue dei paragrafi da .codex/bible-ingestion/paragraph-index.tsv,
 incrociandola con progress.json e con lo stato live MCP/Neo4j.
 
+Tool MCP obbligatorio:
+- usa novel_bible_paragraph_status per lo stato locale del paragrafo.
+- non usare novel_bible_coverage_report globale per decidere un gate locale.
+
+Divieto assoluto:
+- non usare docker exec, cypher-shell, driver Neo4j diretto, browser Neo4j o query Cypher dirette.
+- tutte le letture del grafo devono passare solo da tool MCP autorizzati.
+- se un tool MCP fallisce, usa un tool MCP locale/filtrato autorizzato; se non disponibile, rispondi INCOMPLETE/BLOCKED.
+
 Unita di avanzamento:
 il paragrafo, identificato da outlineNumber/titolo/pagina.
 

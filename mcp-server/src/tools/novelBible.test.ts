@@ -68,12 +68,59 @@ test('novel bible coverage and context packet tools are registered as read-only'
   const ontologyTool = registeredTool(server, 'novel_get_bible_ontology') as { annotations?: Record<string, unknown> };
   const mappingTool = registeredTool(server, 'novel_get_bible_mapping_packet') as { annotations?: Record<string, unknown> };
   const coverageTool = registeredTool(server, 'novel_bible_coverage_report') as { annotations?: Record<string, unknown> };
+  const paragraphStatusTool = registeredTool(server, 'novel_bible_paragraph_status') as { annotations?: Record<string, unknown> };
+  const paragraphPacketTool = registeredTool(server, 'novel_bible_paragraph_reconciliation_packet') as { annotations?: Record<string, unknown> };
+  const structuralClaimTool = registeredTool(server, 'novel_bible_structural_claim_packet') as { annotations?: Record<string, unknown> };
+  const candidatePacketTool = registeredTool(server, 'novel_bible_candidate_packet') as { annotations?: Record<string, unknown> };
+  const validationPacketTool = registeredTool(server, 'novel_bible_validation_packet') as { annotations?: Record<string, unknown> };
+  const postwriteStatusTool = registeredTool(server, 'novel_bible_postwrite_status') as { annotations?: Record<string, unknown> };
+  const progressEligibilityTool = registeredTool(server, 'novel_bible_progress_eligibility') as { annotations?: Record<string, unknown> };
+  const checkpointSummaryTool = registeredTool(server, 'novel_bible_checkpoint_summary') as { annotations?: Record<string, unknown> };
   const contextTool = registeredTool(server, 'novel_get_chapter_context_packet') as { annotations?: Record<string, unknown> };
 
   assert.equal(ontologyTool.annotations?.readOnlyHint, true);
   assert.equal(mappingTool.annotations?.readOnlyHint, true);
   assert.equal(coverageTool.annotations?.readOnlyHint, true);
+  assert.equal(paragraphStatusTool.annotations?.readOnlyHint, true);
+  assert.equal(paragraphPacketTool.annotations?.readOnlyHint, true);
+  assert.equal(structuralClaimTool.annotations?.readOnlyHint, true);
+  assert.equal(candidatePacketTool.annotations?.readOnlyHint, true);
+  assert.equal(validationPacketTool.annotations?.readOnlyHint, true);
+  assert.equal(postwriteStatusTool.annotations?.readOnlyHint, true);
+  assert.equal(progressEligibilityTool.annotations?.readOnlyHint, true);
+  assert.equal(checkpointSummaryTool.annotations?.readOnlyHint, true);
   assert.equal(contextTool.annotations?.readOnlyHint, true);
+});
+
+test('novel bible paragraph-scoped tools expose scoped inputs', () => {
+  const server = new McpServer({ name: 'test', version: '1.0.0' });
+  registerNovelBibleTools(server);
+
+  for (const name of [
+    'novel_bible_paragraph_status',
+    'novel_bible_paragraph_reconciliation_packet',
+    'novel_bible_structural_claim_packet',
+    'novel_bible_validation_packet',
+    'novel_bible_postwrite_status',
+    'novel_bible_progress_eligibility',
+  ]) {
+    const tool = registeredTool(server, name) as RegisteredTool;
+    const keys = inputSchemaKeys(tool);
+    assert.equal(keys.includes('sourceId'), true, `${name} must require sourceId`);
+    assert.equal(keys.includes('sectionKey'), true, `${name} must require sectionKey`);
+  }
+
+  const candidatePacketTool = registeredTool(server, 'novel_bible_candidate_packet') as RegisteredTool;
+  assert.deepEqual(inputSchemaKeys(candidatePacketTool).sort(), ['candidateId', 'sourceId']);
+});
+
+test('novel bible local packet implementation avoids global candidate scans', async () => {
+  const source = await import('node:fs/promises').then((fs) => fs.readFile(new URL('./novelBible.ts', import.meta.url), 'utf8'));
+
+  assert.equal(source.includes('listBibleCandidatesForSource(normalizedSourceId, 1000)'), false);
+  assert.equal(source.includes('listBibleCandidatesForSource(sourceId, 1000)'), false);
+  assert.equal(source.includes('kg.listBibleCandidatesBySection'), true);
+  assert.equal(source.includes('kg.getBibleCandidateByIdOrLabel'), true);
 });
 
 test('novel_get_bible_ontology returns mapping contract without graph access', async () => {

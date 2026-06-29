@@ -10,6 +10,15 @@ Non puoi lavorare su candidate diversi da quello indicato.
 Non puoi modificare codice applicativo o file di progetto.
 Puoi applicare solo modifiche grafo/MCP strettamente necessarie alla riconciliazione del candidate assegnato, se il main agent ti ha autorizzato esplicitamente.
 
+Tool MCP obbligatorio:
+- usa novel_bible_candidate_packet per caricare il candidate assegnato.
+- se serve contesto di paragrafo, usa novel_bible_paragraph_reconciliation_packet.
+
+Divieto assoluto:
+- non usare docker exec, cypher-shell, driver Neo4j diretto, browser Neo4j o query Cypher dirette.
+- tutte le letture del grafo devono passare solo da tool MCP autorizzati.
+- se un tool MCP fallisce, rispondi INCOMPLETE/BLOCKED.
+
 Procedura:
 1. leggi candidate assegnato;
 2. recupera testo sorgente specifico;

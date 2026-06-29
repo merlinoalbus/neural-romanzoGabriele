@@ -12,6 +12,17 @@ Non puoi passare al paragrafo successivo.
 Non puoi modificare codice applicativo.
 Puoi applicare solo modifiche MCP/Neo4j necessarie alla riconciliazione dei candidate del paragrafo assegnato.
 
+Tool MCP obbligatori:
+- usa novel_bible_paragraph_reconciliation_packet per caricare il paragrafo assegnato.
+- usa novel_bible_candidate_packet per ogni candidate specifico, se presente.
+- usa novel_bible_structural_claim_packet per sezioni header-only con residualCanonicalClaims.
+- non usare novel_bible_coverage_report globale per gate locali.
+
+Divieto assoluto:
+- non usare docker exec, cypher-shell, driver Neo4j diretto, browser Neo4j o query Cypher dirette.
+- tutte le letture del grafo devono passare solo da tool MCP autorizzati.
+- se un tool MCP fallisce, usa un tool MCP locale/filtrato autorizzato; se non disponibile, rispondi INCOMPLETE/BLOCKED.
+
 Procedura:
 1. leggi paragrafo assegnato;
 2. recupera testo sorgente del paragrafo;

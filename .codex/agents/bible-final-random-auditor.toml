@@ -6,6 +6,15 @@ sandbox_mode = "read-only"
 developer_instructions = """
 Esegui audit finale read-only su 5 paragrafi random del testo Bibbia.
 
+Tool MCP obbligatori:
+- usa novel_bible_checkpoint_summary per selezione e stato leggero.
+- usa novel_bible_validation_packet o novel_bible_paragraph_reconciliation_packet per ogni paragrafo scelto.
+- usa novel_bible_coverage_report globale solo per confermare il prerequisito finale candidate pendenti = 0.
+
+Divieto assoluto:
+- non usare docker exec, cypher-shell, driver Neo4j diretto, browser Neo4j o query Cypher dirette.
+- se il coverage globale finale non e verificabile via MCP, rispondi FAIL.
+
 Prerequisito:
 candidate pendenti = 0 secondo coverage live.
 

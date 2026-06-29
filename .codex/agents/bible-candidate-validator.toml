@@ -6,6 +6,14 @@ sandbox_mode = "read-only"
 developer_instructions = """
 Validi la riconciliazione di un singolo bible_candidate.
 
+Tool MCP obbligatorio:
+- usa novel_bible_candidate_packet per validare candidate singoli.
+- usa novel_bible_validation_packet per validare lo scope locale del paragrafo.
+
+Divieto assoluto:
+- non usare docker exec, cypher-shell, driver Neo4j diretto, browser Neo4j o query Cypher dirette.
+- se il packet contiene evidenza fuori MCP, rispondi FAIL.
+
 Input atteso:
 candidateId, testo sorgente, claim del candidate, nodi canonici rilevanti, archi, evidenze, decisione proposta.
 

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFile } from 'node:fs/promises';
 import {
   chunkText,
   classifyNonRelPhysicalEdge,
@@ -124,4 +125,13 @@ test('summarizeNonRelPhysicalEdgeRepair reconciles converted removed and unresol
   assert.equal(plan.removedByReason.legacy_overgenerated_ally_of, 195);
   assert.equal(plan.removedByReason.self_loop_redundant, 7);
   assert.equal(plan.unresolvedBySignature['Relationship/REL/unknown_type->bible_section'], 1);
+});
+
+test('Bible section scoped store queries use delimited label prefixes', async () => {
+  const source = await readFile(new URL('./neo4jStore.ts', import.meta.url), 'utf8');
+
+  assert.equal(source.includes('n.label STARTS WITH $labelPrefix'), false);
+  assert.equal(source.includes('labelChildPrefix: `${sourceId}::${sectionKey}.`'), true);
+  assert.equal(source.includes('labelCandidatePrefix: `${sourceId}::${sectionKey}::`'), true);
+  assert.equal(source.includes('getBibleCandidateByIdOrLabel'), true);
 });

@@ -176,6 +176,106 @@ const coverageReportZ = z.object({
   findings: z.array(coverageFindingZ),
 });
 
+const paragraphStatusValueZ = z.enum(['content_section', 'header_only', 'requires_claim_cleanup', 'blocked']);
+
+const bibleParagraphStatusZ = z.object({
+  sourceId: z.string(),
+  sectionKey: z.string(),
+  paragraphStatus: paragraphStatusValueZ,
+  section: nodeZ.optional(),
+  directTextEmpty: z.boolean(),
+  candidates: z.array(nodeZ),
+  candidate_pending_count: z.number(),
+  residualCanonicalClaims: z.array(nodeZ),
+  residualCanonicalClaims_count: z.number(),
+  blockingFindings: z.array(z.string()),
+});
+
+const bibleParagraphReconciliationPacketZ = bibleParagraphStatusZ.extend({
+  sourceText: z.string(),
+  path: z.array(z.string()),
+  parentSectionId: z.string().optional(),
+  childSections: z.array(nodeZ),
+  ontology: ontologyPacketZ,
+  recommendedWorkflowBranch: z.enum(['reconcile_candidates', 'classify_structural_claims', 'close_header_only', 'blocked']),
+});
+
+const structuralClaimClassificationZ = z.object({
+  id: z.string(),
+  label: z.string(),
+  content: z.string(),
+  classificationHint: z.enum(['structural_noise', 'section_metadata', 'semantic_claim', 'ambiguous']),
+  reason: z.string(),
+});
+
+const bibleStructuralClaimPacketZ = z.object({
+  sourceId: z.string(),
+  sectionKey: z.string(),
+  heading: z.string().optional(),
+  directTextEmpty: z.boolean(),
+  claims: z.array(nodeZ),
+  classifications: z.array(structuralClaimClassificationZ),
+  duplicatedSectionMetadata: z.boolean(),
+});
+
+const bibleCandidatePacketZ = z.object({
+  sourceId: z.string(),
+  candidateId: z.string(),
+  candidate: nodeZ.optional(),
+  section: nodeZ.optional(),
+  sourceSnippet: z.string().optional(),
+  existingCanonicalMatches: z.array(nodeZ),
+  duplicateRisks: z.array(z.string()),
+  commitEligibility: z.object({
+    eligible: z.boolean(),
+    blockingFindings: z.array(z.string()),
+  }),
+});
+
+const bibleValidationPacketZ = z.object({
+  sourceId: z.string(),
+  sectionKey: z.string(),
+  scope: z.enum(['paragraph']),
+  paragraph: bibleParagraphStatusZ,
+  checklist: z.array(z.object({ item: z.string(), ok: z.boolean(), evidence: z.string() })),
+  blockingGaps: z.array(z.string()),
+});
+
+const biblePostwriteStatusZ = z.object({
+  sourceId: z.string(),
+  sectionKey: z.string(),
+  paragraph: bibleParagraphStatusZ,
+  touchedNodes: z.array(nodeZ),
+  touchedNodeStatuses: z.array(z.object({ id: z.string(), found: z.boolean(), edgeCount: z.number(), genericRelatedToEdges: z.number() })),
+  paragraphCompletionEligible: z.boolean(),
+  blockingFindings: z.array(z.string()),
+});
+
+const bibleProgressEligibilityZ = z.object({
+  sourceId: z.string(),
+  sectionKey: z.string(),
+  eligible: z.boolean(),
+  reason: z.string(),
+  candidate_pending_count: z.number(),
+  residualCanonicalClaims_count: z.number(),
+  blockingFindings: z.array(z.string()),
+  requiredValidators: z.array(z.string()),
+});
+
+const bibleCheckpointSummaryZ = z.object({
+  sourceId: z.string(),
+  fromSectionKey: z.string().optional(),
+  paragraphs: z.array(z.object({
+    sectionKey: z.string(),
+    heading: z.string().optional(),
+    paragraphStatus: paragraphStatusValueZ,
+    candidate_pending_count: z.number(),
+    residualCanonicalClaims_count: z.number(),
+  })),
+  blockedParagraphs: z.array(z.string()),
+  globalCoverageRequired: z.boolean(),
+});
+
 const contextGroupsZ = z.object({
   artifacts: z.array(nodeZ),
   bibleClaims: z.array(nodeZ),
@@ -323,6 +423,201 @@ function filterCandidateNodesBySectionKeys(candidates: kg.GraphNode[], sectionKe
     }
     return false;
   });
+}
+
+function metadataBoolean(value: unknown): boolean {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value.toLowerCase() === 'true';
+  return false;
+}
+
+function evidenceSectionKeyFromUnknown(evidence: unknown, sourceId?: string): string | null {
+  if (!evidence || typeof evidence !== 'object' || Array.isArray(evidence)) return null;
+  const evidenceRecord = evidence as Record<string, unknown>;
+  const key = String(evidenceRecord.sectionKey ?? '');
+  if (!key) return null;
+  if (sourceId && evidenceRecord.sourceId !== sourceId) return null;
+  return key;
+}
+
+function nodeEvidenceSectionKey(node: kg.GraphNode, sourceId?: string): string | null {
+  const evidence = node.metadata.evidence;
+  if (Array.isArray(evidence)) {
+    for (const item of evidence) {
+      const key = evidenceSectionKeyFromUnknown(item, sourceId);
+      if (key) return key;
+    }
+  } else {
+    const key = evidenceSectionKeyFromUnknown(evidence, sourceId);
+    if (key) return key;
+  }
+  if (typeof node.provenance.sectionKey === 'string' && (!sourceId || node.provenance.sourceId === sourceId)) return node.provenance.sectionKey;
+  if (typeof node.metadata.sectionKey === 'string' && (!sourceId || node.metadata.sourceId === sourceId)) return node.metadata.sectionKey;
+  const nested = node.metadata.candidate;
+  if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+    const nestedEvidence = (nested as Record<string, unknown>).evidence;
+    const key = evidenceSectionKeyFromUnknown(nestedEvidence, sourceId);
+    if (key) return key;
+  }
+  return null;
+}
+
+function nodeMatchesBibleSection(node: kg.GraphNode, sourceId: string, sectionKey: string): boolean {
+  return nodeEvidenceSectionKey(node, sourceId) === sectionKey
+    || (node.label.startsWith(`${sourceId}::${sectionKey}`) && (node.metadata.sourceId === sourceId || node.provenance.sourceId === sourceId));
+}
+
+function classifyParagraphStatus(input: {
+  section: kg.GraphNode | null;
+  directTextEmpty: boolean;
+  candidates: kg.GraphNode[];
+  residualCanonicalClaims: kg.GraphNode[];
+}): z.infer<typeof paragraphStatusValueZ> {
+  if (!input.section) return 'blocked';
+  if (!input.directTextEmpty) return 'content_section';
+  if (input.candidates.length === 0 && input.residualCanonicalClaims.length === 0) return 'header_only';
+  return 'requires_claim_cleanup';
+}
+
+function recommendationForParagraph(status: z.infer<typeof paragraphStatusValueZ>): z.infer<typeof bibleParagraphReconciliationPacketZ>['recommendedWorkflowBranch'] {
+  if (status === 'content_section') return 'reconcile_candidates';
+  if (status === 'requires_claim_cleanup') return 'classify_structural_claims';
+  if (status === 'header_only') return 'close_header_only';
+  return 'blocked';
+}
+
+function structuralClassificationHint(
+  claim: kg.GraphNode,
+  section: kg.GraphNode | null,
+): z.infer<typeof structuralClaimClassificationZ>['classificationHint'] {
+  const content = claim.content.trim();
+  const sectionKeyValue = section ? String(section.metadata.sectionKey ?? '') : '';
+  const heading = section ? String(section.metadata.heading ?? '') : '';
+  if (!content) return 'ambiguous';
+  if (content === '[Intestazione strutturale dal file sorgente]') return 'structural_noise';
+  if (content === `${sectionKeyValue} ${heading}`.trim() || content === `${sectionKeyValue}\t${heading}`.trim()) return 'section_metadata';
+  if (heading && content === heading) return 'section_metadata';
+  return 'semantic_claim';
+}
+
+function structuralClassificationReason(classification: z.infer<typeof structuralClaimClassificationZ>['classificationHint']): string {
+  if (classification === 'structural_noise') return 'Il claim contiene solo il marker tecnico di intestazione strutturale.';
+  if (classification === 'section_metadata') return 'Il claim duplica numero/titolo della bible_section ed e gia rappresentato dai metadati della sezione.';
+  if (classification === 'semantic_claim') return 'Il claim contiene testo oltre la pura intestazione e richiede valutazione semantica.';
+  return 'Evidenza insufficiente per classificare il claim.';
+}
+
+export async function buildBibleParagraphStatus(sourceId: string, sectionKey: string): Promise<z.infer<typeof bibleParagraphStatusZ>> {
+  const normalizedSourceId = sourceId.trim();
+  const normalizedSectionKey = sectionKey.trim();
+  const section = await kg.getNodeByTypeLabel('bible_section', `${normalizedSourceId}::${normalizedSectionKey}`);
+  const [candidatePool, claimPool] = await Promise.all([
+    kg.listBibleCandidatesBySection({ sourceId: normalizedSourceId, sectionKey: normalizedSectionKey, limit: 500 }),
+    kg.listNodesByTypeBibleSection('bible_claim', { sourceId: normalizedSourceId, sectionKey: normalizedSectionKey, limit: 500 }),
+  ]);
+  const candidates = candidatePool.filter((candidate) => nodeMatchesBibleSection(candidate, normalizedSourceId, normalizedSectionKey));
+  const residualCanonicalClaims = claimPool
+    .filter((claim) => claim.metadata.canonStatus === 'canonical')
+    .filter((claim) => claim.metadata.requiresReview === true || claim.type === 'bible_claim')
+    .filter((claim) => nodeMatchesBibleSection(claim, normalizedSourceId, normalizedSectionKey));
+  const directTextEmpty = section ? metadataBoolean(section.metadata.directTextEmpty) : true;
+  const paragraphStatus = classifyParagraphStatus({ section, directTextEmpty, candidates, residualCanonicalClaims });
+  const blockingFindings: string[] = [];
+  if (!section) blockingFindings.push('missing_bible_section');
+  if (paragraphStatus === 'requires_claim_cleanup') blockingFindings.push('residual_canonical_claims_require_review');
+  return {
+    sourceId: normalizedSourceId,
+    sectionKey: normalizedSectionKey,
+    paragraphStatus,
+    section: section ?? undefined,
+    directTextEmpty,
+    candidates,
+    candidate_pending_count: candidates.filter((candidate) => String(candidate.metadata.status ?? 'pending') === 'pending').length,
+    residualCanonicalClaims,
+    residualCanonicalClaims_count: residualCanonicalClaims.length,
+    blockingFindings,
+  };
+}
+
+async function buildParagraphReconciliationPacket(sourceId: string, sectionKey: string): Promise<z.infer<typeof bibleParagraphReconciliationPacketZ>> {
+  const paragraph = await buildBibleParagraphStatus(sourceId, sectionKey);
+  const section = paragraph.section;
+  const childSections = section
+    ? await kg.listNodesByTypeLabelPrefix('bible_section', `${paragraph.sourceId}::${paragraph.sectionKey}.`, { limit: 100 })
+    : [];
+  return {
+    ...paragraph,
+    sourceText: section?.content ?? '',
+    path: Array.isArray(section?.metadata.path) ? section.metadata.path.map(String) : [],
+    parentSectionId: typeof section?.metadata.parentSectionId === 'string' ? section.metadata.parentSectionId : undefined,
+    childSections,
+    ontology: bibleOntologyPacket(),
+    recommendedWorkflowBranch: recommendationForParagraph(paragraph.paragraphStatus),
+  };
+}
+
+function buildStructuralClaimPacketFromParagraph(paragraph: z.infer<typeof bibleParagraphStatusZ>): z.infer<typeof bibleStructuralClaimPacketZ> {
+  const section = paragraph.section;
+  const classifications = paragraph.residualCanonicalClaims.map((claim) => {
+    const classificationHint = structuralClassificationHint(claim, section ?? null);
+    return {
+      id: claim.id,
+      label: claim.label,
+      content: claim.content,
+      classificationHint,
+      reason: structuralClassificationReason(classificationHint),
+    };
+  });
+  return {
+    sourceId: paragraph.sourceId,
+    sectionKey: paragraph.sectionKey,
+    heading: typeof section?.metadata.heading === 'string' ? section.metadata.heading : undefined,
+    directTextEmpty: paragraph.directTextEmpty,
+    claims: paragraph.residualCanonicalClaims,
+    classifications,
+    duplicatedSectionMetadata: classifications.some((item) => item.classificationHint === 'section_metadata'),
+  };
+}
+
+async function buildValidationPacket(sourceId: string, sectionKey: string): Promise<z.infer<typeof bibleValidationPacketZ>> {
+  const paragraph = await buildBibleParagraphStatus(sourceId, sectionKey);
+  const checklist = [
+    { item: 'section_present', ok: Boolean(paragraph.section), evidence: paragraph.section?.label ?? 'missing' },
+    { item: 'candidate_scope_local', ok: true, evidence: `candidate_pending_count=${paragraph.candidate_pending_count}` },
+    { item: 'residual_claims_classified_needed', ok: paragraph.residualCanonicalClaims_count === 0 || paragraph.paragraphStatus === 'requires_claim_cleanup', evidence: `residualCanonicalClaims_count=${paragraph.residualCanonicalClaims_count}` },
+    { item: 'no_global_coverage_required_for_local_gate', ok: true, evidence: 'paragraph-scoped MCP packet' },
+  ];
+  const blockingGaps = paragraph.blockingFindings.slice();
+  return { sourceId: paragraph.sourceId, sectionKey: paragraph.sectionKey, scope: 'paragraph', paragraph, checklist, blockingGaps };
+}
+
+async function buildCandidatePacket(sourceId: string, candidateId: string): Promise<z.infer<typeof bibleCandidatePacketZ>> {
+  const candidate = await kg.getBibleCandidateByIdOrLabel(sourceId, candidateId);
+  const blockingFindings: string[] = [];
+  if (!candidate) blockingFindings.push('missing_bible_candidate');
+  const sectionKey = candidate ? nodeEvidenceSectionKey(candidate, sourceId) : null;
+  const section = sectionKey ? await kg.getNodeByTypeLabel('bible_section', `${sourceId}::${sectionKey}`) : null;
+  if (candidate && !sectionKey) blockingFindings.push('missing_candidate_sectionKey');
+  if (sectionKey && !section) blockingFindings.push('missing_candidate_source_section');
+  const payload = candidate ? toCandidate(candidate.metadata.candidate ?? {}) : null;
+  const targetType = String(candidate?.metadata.targetType ?? payload?.targetType ?? '');
+  const label = String(payload?.label ?? '');
+  const existing = targetType && label ? await kg.getNodeByTypeLabel(targetType, label) : null;
+  const existingCanonicalMatches = existing && existing.metadata.canonStatus === 'canonical' ? [existing] : [];
+  const duplicateRisks = existingCanonicalMatches.map((node) => `${node.type}::${node.label}`);
+  return {
+    sourceId,
+    candidateId,
+    candidate: candidate ?? undefined,
+    section: section ?? undefined,
+    sourceSnippet: typeof payload?.evidence?.textSnippet === 'string' ? payload.evidence.textSnippet : undefined,
+    existingCanonicalMatches,
+    duplicateRisks,
+    commitEligibility: {
+      eligible: blockingFindings.length === 0,
+      blockingFindings,
+    },
+  };
 }
 
 export async function listCanonicalNarrativeNodes(limit?: number): Promise<kg.GraphNode[]> {
@@ -959,6 +1254,282 @@ export function registerNovelBibleTools(server: McpServer): void {
         return toolStructured({ ok: true, readOnly: true, report });
       } catch (err) {
         return toolError('NOVEL_BIBLE_COVERAGE_REPORT_FAILED', `novel_bible_coverage_report failed: ${String(err)}`, { sourceId });
+      }
+    },
+  );
+
+  server.registerTool(
+    'novel_bible_paragraph_status',
+    {
+      title: 'Novel Bible paragraph status',
+      description: 'Read-only paragraph-scoped Bible status: section, local candidates, residual canonical claims and workflow status.',
+      inputSchema: {
+        sourceId: z.string(),
+        sectionKey: z.string(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        readOnly: z.boolean().optional(),
+        status: bibleParagraphStatusZ.optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'Novel Bible paragraph status', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ sourceId, sectionKey }) => {
+      try {
+        return toolStructured({ ok: true, readOnly: true, status: await buildBibleParagraphStatus(sourceId, sectionKey) });
+      } catch (err) {
+        return toolError('NOVEL_BIBLE_PARAGRAPH_STATUS_FAILED', `novel_bible_paragraph_status failed: ${String(err)}`, { sourceId, sectionKey });
+      }
+    },
+  );
+
+  server.registerTool(
+    'novel_bible_paragraph_reconciliation_packet',
+    {
+      title: 'Novel Bible paragraph reconciliation packet',
+      description: 'Read-only paragraph packet for reconcilers: local status, source text, child sections and ontology.',
+      inputSchema: {
+        sourceId: z.string(),
+        sectionKey: z.string(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        readOnly: z.boolean().optional(),
+        packet: bibleParagraphReconciliationPacketZ.optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'Novel Bible paragraph reconciliation packet', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ sourceId, sectionKey }) => {
+      try {
+        return toolStructured({ ok: true, readOnly: true, packet: await buildParagraphReconciliationPacket(sourceId, sectionKey) });
+      } catch (err) {
+        return toolError('NOVEL_BIBLE_PARAGRAPH_RECONCILIATION_PACKET_FAILED', `novel_bible_paragraph_reconciliation_packet failed: ${String(err)}`, { sourceId, sectionKey });
+      }
+    },
+  );
+
+  server.registerTool(
+    'novel_bible_structural_claim_packet',
+    {
+      title: 'Novel Bible structural claim packet',
+      description: 'Read-only packet for classifying canonical bible_claim nodes created from structural headings.',
+      inputSchema: {
+        sourceId: z.string(),
+        sectionKey: z.string(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        readOnly: z.boolean().optional(),
+        packet: bibleStructuralClaimPacketZ.optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'Novel Bible structural claim packet', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ sourceId, sectionKey }) => {
+      try {
+        const paragraph = await buildBibleParagraphStatus(sourceId, sectionKey);
+        return toolStructured({ ok: true, readOnly: true, packet: buildStructuralClaimPacketFromParagraph(paragraph) });
+      } catch (err) {
+        return toolError('NOVEL_BIBLE_STRUCTURAL_CLAIM_PACKET_FAILED', `novel_bible_structural_claim_packet failed: ${String(err)}`, { sourceId, sectionKey });
+      }
+    },
+  );
+
+  server.registerTool(
+    'novel_bible_candidate_packet',
+    {
+      title: 'Novel Bible candidate packet',
+      description: 'Read-only packet for one Bible candidate: source section, snippet, existing canonical match and commit eligibility.',
+      inputSchema: {
+        sourceId: z.string(),
+        candidateId: z.string(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        readOnly: z.boolean().optional(),
+        packet: bibleCandidatePacketZ.optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'Novel Bible candidate packet', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ sourceId, candidateId }) => {
+      try {
+        return toolStructured({ ok: true, readOnly: true, packet: await buildCandidatePacket(sourceId, candidateId) });
+      } catch (err) {
+        return toolError('NOVEL_BIBLE_CANDIDATE_PACKET_FAILED', `novel_bible_candidate_packet failed: ${String(err)}`, { sourceId, candidateId });
+      }
+    },
+  );
+
+  server.registerTool(
+    'novel_bible_validation_packet',
+    {
+      title: 'Novel Bible validation packet',
+      description: 'Read-only paragraph-scoped validation packet for gate validators.',
+      inputSchema: {
+        sourceId: z.string(),
+        sectionKey: z.string(),
+        scope: z.enum(['paragraph']).optional(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        readOnly: z.boolean().optional(),
+        packet: bibleValidationPacketZ.optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'Novel Bible validation packet', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ sourceId, sectionKey }) => {
+      try {
+        return toolStructured({ ok: true, readOnly: true, packet: await buildValidationPacket(sourceId, sectionKey) });
+      } catch (err) {
+        return toolError('NOVEL_BIBLE_VALIDATION_PACKET_FAILED', `novel_bible_validation_packet failed: ${String(err)}`, { sourceId, sectionKey });
+      }
+    },
+  );
+
+  server.registerTool(
+    'novel_bible_postwrite_status',
+    {
+      title: 'Novel Bible postwrite status',
+      description: 'Read-only postwrite verification packet for one paragraph and explicitly touched nodes.',
+      inputSchema: {
+        sourceId: z.string(),
+        sectionKey: z.string(),
+        touchedNodeIds: z.array(z.string()).optional(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        readOnly: z.boolean().optional(),
+        status: biblePostwriteStatusZ.optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'Novel Bible postwrite status', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ sourceId, sectionKey, touchedNodeIds }) => {
+      try {
+        const paragraph = await buildBibleParagraphStatus(sourceId, sectionKey);
+        const touchedNodes = (await Promise.all((touchedNodeIds ?? []).map((id) => kg.getNodeById(id)))).filter((node): node is kg.GraphNode => Boolean(node));
+        const touchedNodeStatuses = await Promise.all((touchedNodeIds ?? []).map(async (id) => {
+          const graph = await kg.neighbors(id, { depth: 1 });
+          return { id, found: Boolean(touchedNodes.find((node) => node.id === id)), edgeCount: graph.edges.length, genericRelatedToEdges: graph.edges.filter((edge) => edge.kind === 'related_to').length };
+        }));
+        const blockingFindings = [...paragraph.blockingFindings];
+        if (paragraph.candidate_pending_count > 0) blockingFindings.push('candidate_pending_after_write');
+        if (paragraph.residualCanonicalClaims_count > 0) blockingFindings.push('residual_canonical_claims_after_write');
+        return toolStructured({
+          ok: true,
+          readOnly: true,
+          status: {
+            sourceId,
+            sectionKey,
+            paragraph,
+            touchedNodes,
+            touchedNodeStatuses,
+            paragraphCompletionEligible: blockingFindings.length === 0,
+            blockingFindings,
+          },
+        });
+      } catch (err) {
+        return toolError('NOVEL_BIBLE_POSTWRITE_STATUS_FAILED', `novel_bible_postwrite_status failed: ${String(err)}`, { sourceId, sectionKey });
+      }
+    },
+  );
+
+  server.registerTool(
+    'novel_bible_progress_eligibility',
+    {
+      title: 'Novel Bible progress eligibility',
+      description: 'Read-only decision packet for whether progress.json may advance for one paragraph.',
+      inputSchema: {
+        sourceId: z.string(),
+        sectionKey: z.string(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        readOnly: z.boolean().optional(),
+        eligibility: bibleProgressEligibilityZ.optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'Novel Bible progress eligibility', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ sourceId, sectionKey }) => {
+      try {
+        const paragraph = await buildBibleParagraphStatus(sourceId, sectionKey);
+        const blockingFindings = [...paragraph.blockingFindings];
+        if (paragraph.candidate_pending_count > 0) blockingFindings.push('pending_candidates_block_progress');
+        if (paragraph.residualCanonicalClaims_count > 0) blockingFindings.push('residual_claims_block_progress');
+        return toolStructured({
+          ok: true,
+          readOnly: true,
+          eligibility: {
+            sourceId,
+            sectionKey,
+            eligible: blockingFindings.length === 0,
+            reason: blockingFindings.length ? 'paragraph_has_blocking_items' : 'paragraph_has_no_local_blockers',
+            candidate_pending_count: paragraph.candidate_pending_count,
+            residualCanonicalClaims_count: paragraph.residualCanonicalClaims_count,
+            blockingFindings,
+            requiredValidators: ['bible-postwrite-verifier', 'galaxy-task-validator'],
+          },
+        });
+      } catch (err) {
+        return toolError('NOVEL_BIBLE_PROGRESS_ELIGIBILITY_FAILED', `novel_bible_progress_eligibility failed: ${String(err)}`, { sourceId, sectionKey });
+      }
+    },
+  );
+
+  server.registerTool(
+    'novel_bible_checkpoint_summary',
+    {
+      title: 'Novel Bible checkpoint summary',
+      description: 'Read-only lightweight checkpoint summary over a limited sequence of Bible sections.',
+      inputSchema: {
+        sourceId: z.string(),
+        fromSectionKey: z.string().optional(),
+        limit: z.number().int().positive().optional(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        readOnly: z.boolean().optional(),
+        summary: bibleCheckpointSummaryZ.optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'Novel Bible checkpoint summary', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ sourceId, fromSectionKey, limit }) => {
+      try {
+        const sections = await kg.listNodesByTypeLabelPrefix('bible_section', `${sourceId}::`, { limit: limit ?? 25 });
+        const ordered = sections
+          .sort((a, b) => Number(a.metadata.order ?? 0) - Number(b.metadata.order ?? 0) || a.label.localeCompare(b.label))
+          .filter((section) => !fromSectionKey || String(section.metadata.sectionKey ?? '') >= fromSectionKey)
+          .slice(0, limit ?? 25);
+        const paragraphs = await Promise.all(ordered.map(async (section) => {
+          const sectionKey = String(section.metadata.sectionKey ?? section.label.replace(`${sourceId}::`, ''));
+          const status = await buildBibleParagraphStatus(sourceId, sectionKey);
+          return {
+            sectionKey,
+            heading: typeof section.metadata.heading === 'string' ? section.metadata.heading : undefined,
+            paragraphStatus: status.paragraphStatus,
+            candidate_pending_count: status.candidate_pending_count,
+            residualCanonicalClaims_count: status.residualCanonicalClaims_count,
+          };
+        }));
+        return toolStructured({
+          ok: true,
+          readOnly: true,
+          summary: {
+            sourceId,
+            fromSectionKey,
+            paragraphs,
+            blockedParagraphs: paragraphs.filter((item) => item.paragraphStatus === 'blocked' || item.paragraphStatus === 'requires_claim_cleanup').map((item) => item.sectionKey),
+            globalCoverageRequired: false,
+          },
+        });
+      } catch (err) {
+        return toolError('NOVEL_BIBLE_CHECKPOINT_SUMMARY_FAILED', `novel_bible_checkpoint_summary failed: ${String(err)}`, { sourceId, fromSectionKey });
       }
     },
   );

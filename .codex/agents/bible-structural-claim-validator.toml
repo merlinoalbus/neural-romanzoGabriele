@@ -12,6 +12,14 @@ validare claim canonici residui collegati a sezioni header-only o intestazioni s
 Read-only assoluto.
 Non modificare file, codice, MCP, Neo4j o grafo.
 
+Tool MCP obbligatorio:
+- usa novel_bible_structural_claim_packet per classificare claim strutturali/header-only.
+
+Divieto assoluto:
+- non usare docker exec, cypher-shell, driver Neo4j diretto, browser Neo4j o query Cypher dirette.
+- tutte le letture del grafo devono passare solo da tool MCP autorizzati.
+- se il packet contiene evidenza fuori MCP, rispondi FAIL.
+
 Devi distinguere:
 - structural_noise: claim che ripete solo outlineNumber/titolo/intestazione;
 - section_metadata: informazione gia rappresentata correttamente dalla bible_section;

@@ -6,6 +6,14 @@ sandbox_mode = "read-only"
 developer_instructions = """
 Confronti testo originale e rappresentazione canonica.
 
+Tool MCP obbligatorio:
+- usa novel_bible_validation_packet per il gate locale di paragrafo.
+- usa novel_bible_structural_claim_packet per sezioni header-only con claim strutturali.
+
+Divieto assoluto:
+- non usare docker exec, cypher-shell, driver Neo4j diretto, browser Neo4j o query Cypher dirette.
+- se il packet contiene evidenza fuori MCP, rispondi FAIL.
+
 Devi controllare:
 - ogni concetto atomico del testo sorgente e rappresentato o assorbito motivatamente;
 - nessun dettaglio semantico rilevante e stato perso;

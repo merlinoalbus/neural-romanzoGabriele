@@ -814,6 +814,57 @@ export async function listNodesByTypeLabelPrefix(type: string, labelPrefix: stri
   return records.map((record) => nodeFrom(record.get('n')));
 }
 
+export async function listNodesByTypeBibleSection(
+  type: string,
+  input: { sourceId: string; sectionKey: string; limit?: number },
+): Promise<GraphNode[]> {
+  const normalized = type.trim();
+  const sourceId = input.sourceId.trim();
+  const sectionKey = input.sectionKey.trim();
+  if (!normalized || !sourceId || !sectionKey) return [];
+  const limit = clampInt(input.limit, 100, 1, 500);
+  const sectionNeedle = `"sectionKey":"${sectionKey}"`;
+  const sourceNeedle = `"sourceId":"${sourceId}"`;
+  const records = await run(
+    `MATCH (n:Entity {projectId:$pid, type:$type})
+     WHERE n.label = $exactLabel
+       OR n.label STARTS WITH $labelChildPrefix
+       OR n.label STARTS WITH $labelCandidatePrefix
+       OR ((n.metadata CONTAINS $sectionNeedle OR n.provenance CONTAINS $sectionNeedle)
+         AND (n.metadata CONTAINS $sourceNeedle OR n.provenance CONTAINS $sourceNeedle))
+     RETURN n ORDER BY coalesce(n.updatedAt, n.createdAt, ''), n.label LIMIT $limit`,
+    {
+      pid: pid(),
+      type: normalized,
+      exactLabel: `${sourceId}::${sectionKey}`,
+      labelChildPrefix: `${sourceId}::${sectionKey}.`,
+      labelCandidatePrefix: `${sourceId}::${sectionKey}::`,
+      sectionNeedle,
+      sourceNeedle,
+      limit: neo4j.int(limit),
+    },
+  );
+  return records.map((record) => nodeFrom(record.get('n')));
+}
+
+export async function listBibleCandidatesBySection(input: { sourceId: string; sectionKey: string; limit?: number }): Promise<GraphNode[]> {
+  return listNodesByTypeBibleSection('bible_candidate', input);
+}
+
+export async function getBibleCandidateByIdOrLabel(sourceId: string, candidateId: string): Promise<GraphNode | null> {
+  const normalizedSourceId = sourceId.trim();
+  const normalizedCandidateId = candidateId.trim();
+  if (!normalizedSourceId || !normalizedCandidateId) return null;
+  const records = await run(
+    `MATCH (n:Entity {projectId:$pid, type:'bible_candidate'})
+     WHERE (n.id = $candidateId OR n.label = $candidateId)
+       AND (n.metadata CONTAINS $sourceNeedle OR n.provenance CONTAINS $sourceNeedle)
+     RETURN n LIMIT 1`,
+    { pid: pid(), candidateId: normalizedCandidateId, sourceNeedle: `"sourceId":"${normalizedSourceId}"` },
+  );
+  return records.length ? nodeFrom(records[0].get('n')) : null;
+}
+
 export async function neighbors(nodeId: string, opts: { depth?: number; kinds?: string[] } = {}): Promise<{ nodes: GraphNode[]; edges: GraphEdge[] }> {
   const start = await getNodeById(nodeId);
   if (!start) return { nodes: [], edges: [] };

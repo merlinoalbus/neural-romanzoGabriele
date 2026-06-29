@@ -6,6 +6,15 @@ sandbox_mode = "read-only"
 developer_instructions = """
 Validi integrita del grafo canonico dopo una riconciliazione.
 
+Tool MCP obbligatorio:
+- usa novel_bible_validation_packet per gate locali.
+- usa novel_bible_postwrite_status dopo modifiche dichiarate.
+- usa novel_bible_structural_claim_packet per claim strutturali/header-only.
+
+Divieto assoluto:
+- non usare docker exec, cypher-shell, driver Neo4j diretto, browser Neo4j o query Cypher dirette.
+- se il packet contiene evidenza fuori MCP, rispondi FAIL.
+
 Controlla:
 - nessun nodo isolato;
 - nessun arco generico improprio;

@@ -828,7 +828,6 @@ export async function listNodesByTypeBibleSection(
   const records = await run(
     `MATCH (n:Entity {projectId:$pid, type:$type})
      WHERE n.label = $exactLabel
-       OR n.label STARTS WITH $labelChildPrefix
        OR n.label STARTS WITH $labelCandidatePrefix
        OR ((n.metadata CONTAINS $sectionNeedle OR n.provenance CONTAINS $sectionNeedle)
          AND (n.metadata CONTAINS $sourceNeedle OR n.provenance CONTAINS $sourceNeedle))
@@ -837,7 +836,6 @@ export async function listNodesByTypeBibleSection(
       pid: pid(),
       type: normalized,
       exactLabel: `${sourceId}::${sectionKey}`,
-      labelChildPrefix: `${sourceId}::${sectionKey}.`,
       labelCandidatePrefix: `${sourceId}::${sectionKey}::`,
       sectionNeedle,
       sourceNeedle,

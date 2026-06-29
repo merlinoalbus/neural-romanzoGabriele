@@ -25,6 +25,8 @@ Cerca:
 - concetti assorbiti debolmente;
 - evidenze deboli;
 - percorsi non navigabili;
+- nodi canonici isolati o con soli archi tecnici/generici;
+- target di assimilazione senza archi specializzati e semanticamente navigabili;
 - opportunita di collegamento canonico piu preciso.
 
 Output:

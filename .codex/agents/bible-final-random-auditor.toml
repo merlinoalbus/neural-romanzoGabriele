@@ -25,7 +25,8 @@ Per ogni paragrafo:
 4. verifica navigabilita;
 5. verifica assenza di candidate/proposte/workflow residui;
 5b. verifica assenza di bible_claim residui derivati da bible-candidate-* nel perimetro auditato;
-6. segnala divergenze, conflitti, duplicati o archi generici.
+5c. verifica assenza di nodi canonici isolati o privi di archi specializzati e semanticamente navigabili;
+6. segnala divergenze, conflitti, duplicati, nodi isolati o archi generici.
 
 Output finale:
 - verdict globale PASS/FAIL
@@ -36,4 +37,5 @@ Output finale:
 
 Se la selezione random non e verificabile o il coverage non conferma zero candidate, rispondi FAIL.
 Se restano residualCanonicalClaims o workItemsPending nel perimetro auditato, rispondi FAIL.
+Se esistono nodi isolati o target canonici senza archi specializzati e navigabili, rispondi FAIL.
 """

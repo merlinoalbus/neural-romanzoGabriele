@@ -37,6 +37,7 @@ export const MCP_TOOL_NAMES = {
   novel_bible_paragraph_status: 'novel_bible_paragraph_status',
   novel_bible_paragraph_reconciliation_packet: 'novel_bible_paragraph_reconciliation_packet',
   novel_bible_structural_claim_packet: 'novel_bible_structural_claim_packet',
+  novel_bible_claim_assimilation_packet: 'novel_bible_claim_assimilation_packet',
   novel_bible_candidate_packet: 'novel_bible_candidate_packet',
   novel_bible_validation_packet: 'novel_bible_validation_packet',
   novel_bible_postwrite_status: 'novel_bible_postwrite_status',

@@ -19,6 +19,8 @@ Divieto assoluto:
 Prerequisiti obbligatori:
 - tutti i candidate pendenti del paragrafo sono stati cancellati/marcati risolti o committati;
 - tutti i residualCanonicalClaims del paragrafo sono stati assimilati/scartati con gate PASS e cancellati fisicamente dal grafo insieme ai loro archi;
+- per ogni residualCanonicalClaim semantico cancellato esiste novel_bible_claim_assimilation_packet con deleteEligibility.eligible=true;
+- nessun target canonico di assimilazione e isolato o privo di archi specializzati e semanticamente navigabili;
 - coverage live locale conferma candidate_pending_count=0 per quel paragrafo;
 - coverage live locale conferma residualCanonicalClaims_count=0 per quel paragrafo;
 - coverage live locale conferma workItemsPending_count=0 per quel paragrafo;

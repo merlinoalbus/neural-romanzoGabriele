@@ -12,6 +12,7 @@ Devi verificare solo sulla base del validation packet e, se disponibili, control
 
 Tool MCP preferiti:
 - per gate locali di paragrafo usa novel_bible_validation_packet, novel_bible_paragraph_status, novel_bible_postwrite_status o novel_bible_progress_eligibility.
+- per cleanup/delete di residualCanonicalClaims semantici richiedi novel_bible_claim_assimilation_packet per ogni claimNodeId.
 - novel_bible_coverage_report globale serve solo per scope globale, final audit, milestone o dichiarazioni globali.
 
 Divieto assoluto:
@@ -35,6 +36,13 @@ Regole work item Bible:
 - workItemsPending_count deve essere considerato uguale a candidate_pending_count + residualCanonicalClaims_count.
 - Non approvare completamento paragrafo, progress update o passaggio al paragrafo successivo se candidate_pending_count > 0, residualCanonicalClaims_count > 0 o workItemsPending_count > 0.
 - Non considerare assimilato un bible_claim residuo solo perche il bible_candidate originale e committed.
+- Non considerare assimilato un bible_claim residuo se manca novel_bible_claim_assimilation_packet.
+- Non approvare delete fisico di un bible_claim residuo semantico se deleteEligibility.eligible non e true.
+- Non approvare delete fisico se evidenceCoverage.allAtomicConceptsCovered non e true.
+- Non approvare delete fisico se atomicConcepts contiene concetti senza coverage exact o partial.
+- Non approvare delete fisico se canonicalPrimaryTargets e vuoto o composto da bible_claim.
+- Non approvare delete fisico se targetNeighbors mostra target canonici isolati o privi di archi specializzati e semanticamente navigabili.
+- Non approvare delete fisico se claimNeighborEdges contiene archi semantici unici non rehomed su target canonici.
 - Se un residualCanonicalClaim e stato processato, devi richiedere evidenza di cancellazione fisica del nodo bible_claim residuo e dei suoi archi tramite MCP autorizzato, con dry-run e postwrite reread.
 - Se un packet dichiara delete fisico ma non include kg_delete_nodes dryRun, autorizzazione esplicita, delete reale e novel_bible_postwrite_status, devi rispondere FAIL.
 

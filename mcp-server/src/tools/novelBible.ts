@@ -34,6 +34,17 @@ const nodeZ = z.object({
   updatedAt: z.string(),
 });
 
+const edgeZ = z.object({
+  id: z.string(),
+  fromId: z.string(),
+  toId: z.string(),
+  kind: z.string(),
+  weight: z.number(),
+  metadata: jsonObj,
+  provenance: jsonObj,
+  createdAt: z.string(),
+});
+
 const bibleSectionInputZ = z.object({
   sectionId: z.string().optional(),
   heading: z.string(),
@@ -217,6 +228,48 @@ const bibleStructuralClaimPacketZ = z.object({
   claims: z.array(nodeZ),
   classifications: z.array(structuralClaimClassificationZ),
   duplicatedSectionMetadata: z.boolean(),
+});
+
+const bibleClaimAssimilationPacketZ = z.object({
+  sourceId: z.string(),
+  sectionKey: z.string(),
+  claimNodeId: z.string(),
+  claimNode: nodeZ.optional(),
+  sourceSection: nodeZ.optional(),
+  sourceText: z.string(),
+  atomicConcepts: z.array(z.object({
+    index: z.number(),
+    text: z.string(),
+    coveredBy: z.array(z.object({
+      id: z.string(),
+      type: z.string(),
+      label: z.string(),
+      coverage: z.enum(['exact', 'partial', 'evidence_only']),
+      reason: z.string(),
+    })),
+  })),
+  canonicalPrimaryTargets: z.array(nodeZ),
+  canonicalSecondaryTargets: z.array(nodeZ),
+  targetNeighbors: z.array(z.object({
+    targetId: z.string(),
+    nodes: z.array(nodeZ),
+    edges: z.array(edgeZ),
+  })),
+  claimNeighborNodes: z.array(nodeZ),
+  claimNeighborEdges: z.array(edgeZ),
+  evidenceCoverage: z.object({
+    sourceSectionMatches: z.boolean(),
+    claimTextInSource: z.boolean(),
+    allAtomicConceptsCovered: z.boolean(),
+  }),
+  deleteEligibility: z.object({
+    eligible: z.boolean(),
+    reason: z.string(),
+    allowedDeleteNodeIds: z.array(z.string()),
+    requiredPreserveNodeIds: z.array(z.string()),
+  }),
+  orphanRisk: z.array(z.string()),
+  blockingFindings: z.array(z.string()),
 });
 
 const bibleCandidatePacketZ = z.object({
@@ -587,6 +640,207 @@ function buildStructuralClaimPacketFromParagraph(paragraph: z.infer<typeof bible
     claims: paragraph.residualCanonicalClaims,
     classifications,
     duplicatedSectionMetadata: classifications.some((item) => item.classificationHint === 'section_metadata'),
+  };
+}
+
+function normalizeForCoverage(value: string): string {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function coverageTerms(value: string): Set<string> {
+  return new Set(normalizeForCoverage(value).split(/\s+/).filter((term) => term.length >= 4));
+}
+
+function overlapRatio(a: string, b: string): number {
+  const aTerms = coverageTerms(a);
+  const bTerms = coverageTerms(b);
+  if (!aTerms.size || !bTerms.size) return 0;
+  let overlap = 0;
+  for (const term of aTerms) {
+    if (bTerms.has(term)) overlap++;
+  }
+  return overlap / Math.min(aTerms.size, bTerms.size);
+}
+
+function splitAtomicConcepts(content: string): string[] {
+  const text = content.trim();
+  if (!text) return [];
+  const parts = text
+    .split(/(?<=[.!?])\s+|;\s+|\n+/u)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  return parts.length ? parts : [text];
+}
+
+function assimilationCoverage(
+  concept: string,
+  target: kg.GraphNode,
+  sourceId: string,
+  sectionKey: string,
+): { coverage: 'exact' | 'partial' | 'evidence_only'; reason: string } | null {
+  const conceptNorm = normalizeForCoverage(concept);
+  const targetNorm = normalizeForCoverage(`${target.label} ${target.content}`);
+  if (conceptNorm && targetNorm && (targetNorm.includes(conceptNorm) || conceptNorm.includes(targetNorm))) {
+    return { coverage: 'exact', reason: 'Il testo del target canonico contiene integralmente il concetto o viceversa.' };
+  }
+  const ratio = overlapRatio(concept, `${target.label} ${target.content}`);
+  if (ratio >= 0.45) {
+    return { coverage: 'partial', reason: `Sovrapposizione lessicale significativa con il target canonico: ${ratio.toFixed(2)}.` };
+  }
+  if (nodeMatchesBibleSection(target, sourceId, sectionKey)) {
+    return { coverage: 'evidence_only', reason: 'Il target condivide la stessa evidence section, ma non copre testualmente il concetto.' };
+  }
+  return null;
+}
+
+function isTechnicalOrGenericEdge(edge: kg.GraphEdge): boolean {
+  return new Set([
+    'related_to',
+    'derived_from',
+    'sourced_from',
+    'extracted_from',
+    'evidenced_by',
+    'evidence_for',
+    'source_evidence',
+    'belongs_to_section',
+    'part_of',
+  ]).has(edge.kind);
+}
+
+function incidentEdges(nodeId: string, edges: kg.GraphEdge[]): kg.GraphEdge[] {
+  return edges.filter((edge) => edge.fromId === nodeId || edge.toId === nodeId);
+}
+
+async function buildClaimAssimilationPacket(
+  sourceId: string,
+  sectionKey: string,
+  claimNodeId: string,
+): Promise<z.infer<typeof bibleClaimAssimilationPacketZ>> {
+  const normalizedSourceId = sourceId.trim();
+  const normalizedSectionKey = sectionKey.trim();
+  const normalizedClaimNodeId = claimNodeId.trim();
+  const [claimNode, sourceSection] = await Promise.all([
+    kg.getNodeById(normalizedClaimNodeId),
+    kg.getNodeByTypeLabel('bible_section', `${normalizedSourceId}::${normalizedSectionKey}`),
+  ]);
+  const blockingFindings: string[] = [];
+  const orphanRisk: string[] = [];
+  if (!claimNode) blockingFindings.push('missing_claim_node');
+  if (claimNode && claimNode.type !== 'bible_claim') blockingFindings.push('claim_node_type_mismatch');
+  if (!sourceSection) blockingFindings.push('missing_source_section');
+  const sourceSectionMatches = Boolean(claimNode && nodeMatchesBibleSection(claimNode, normalizedSourceId, normalizedSectionKey));
+  if (claimNode && !sourceSectionMatches) blockingFindings.push('claim_section_mismatch');
+
+  const sourceText = sourceSection?.content ?? '';
+  const claimText = claimNode?.content ?? '';
+  const claimTextInSource = Boolean(sourceText.trim() && claimText.trim() && normalizeForCoverage(sourceText).includes(normalizeForCoverage(claimText)));
+  const atomicConceptTexts = splitAtomicConcepts(claimText);
+
+  const canonicalPool = (await listCanonicalNarrativeNodes(250))
+    .filter((node) => node.id !== claimNode?.id)
+    .filter((node) => !['bible_candidate', 'bible_section', 'bible_mapping_batch', 'bible_claim'].includes(node.type));
+
+  const candidateTargets = canonicalPool
+    .map((node) => {
+      const coverages = atomicConceptTexts
+        .map((concept) => assimilationCoverage(concept, node, normalizedSourceId, normalizedSectionKey))
+        .filter((coverage): coverage is NonNullable<typeof coverage> => Boolean(coverage));
+      const best = coverages.find((coverage) => coverage.coverage === 'exact')
+        ?? coverages.find((coverage) => coverage.coverage === 'partial')
+        ?? coverages.find((coverage) => coverage.coverage === 'evidence_only');
+      return { node, best };
+    })
+    .filter((entry) => entry.best);
+
+  const canonicalPrimaryTargets = candidateTargets
+    .filter((entry) => entry.best?.coverage === 'exact' || entry.best?.coverage === 'partial')
+    .map((entry) => entry.node)
+    .slice(0, 20);
+  const canonicalSecondaryTargets = candidateTargets
+    .filter((entry) => entry.best?.coverage === 'evidence_only')
+    .map((entry) => entry.node)
+    .slice(0, 20);
+
+  const atomicConcepts = atomicConceptTexts.map((concept, index) => ({
+    index,
+    text: concept,
+    coveredBy: [...canonicalPrimaryTargets, ...canonicalSecondaryTargets].flatMap((target) => {
+      const coverage = assimilationCoverage(concept, target, normalizedSourceId, normalizedSectionKey);
+      return coverage ? [{ id: target.id, type: target.type, label: target.label, coverage: coverage.coverage, reason: coverage.reason }] : [];
+    }),
+  }));
+
+  const allAtomicConceptsCovered = atomicConcepts.length > 0
+    && atomicConcepts.every((concept) => concept.coveredBy.some((coverage) => coverage.coverage === 'exact' || coverage.coverage === 'partial'));
+  if (!allAtomicConceptsCovered) blockingFindings.push('atomic_concepts_not_fully_assimilated');
+  if (canonicalPrimaryTargets.length === 0) blockingFindings.push('missing_primary_canonical_target');
+
+  const [claimGraph, ...targetGraphs] = await Promise.all([
+    claimNode ? kg.neighbors(claimNode.id, { depth: 1 }) : Promise.resolve({ nodes: [], edges: [] }),
+    ...canonicalPrimaryTargets.map((target) => kg.neighbors(target.id, { depth: 1 })),
+  ]);
+  const targetNeighbors = canonicalPrimaryTargets.map((target, index) => ({
+    targetId: target.id,
+    nodes: targetGraphs[index]?.nodes ?? [],
+    edges: targetGraphs[index]?.edges ?? [],
+  }));
+
+  const isolatedTargets = targetNeighbors
+    .filter((entry) => incidentEdges(entry.targetId, entry.edges).filter((edge) => !isTechnicalOrGenericEdge(edge)).length === 0)
+    .map((entry) => entry.targetId);
+  if (isolatedTargets.length) {
+    blockingFindings.push('canonical_target_missing_specialized_navigable_edges');
+    orphanRisk.push(`canonical targets without specialized navigable edges: ${isolatedTargets.join(', ')}`);
+  }
+
+  const claimSemanticEdges = claimNode
+    ? incidentEdges(claimNode.id, claimGraph.edges).filter((edge) => !isTechnicalOrGenericEdge(edge))
+    : [];
+  if (claimSemanticEdges.length) {
+    blockingFindings.push('claim_has_semantic_edges_requiring_rehome_before_delete');
+    orphanRisk.push(`claim semantic edges requiring rehome: ${claimSemanticEdges.map((edge) => edge.id).join(', ')}`);
+  }
+
+  const requiredPreserveNodeIds = [...new Set([
+    sourceSection?.id,
+    ...canonicalPrimaryTargets.map((node) => node.id),
+    ...canonicalSecondaryTargets.map((node) => node.id),
+    ...claimGraph.nodes.filter((node) => node.id !== claimNode?.id && node.type !== 'bible_candidate').map((node) => node.id),
+  ].filter((id): id is string => Boolean(id)))];
+  const eligible = Boolean(claimNode) && blockingFindings.length === 0;
+  return {
+    sourceId: normalizedSourceId,
+    sectionKey: normalizedSectionKey,
+    claimNodeId: normalizedClaimNodeId,
+    claimNode: claimNode ?? undefined,
+    sourceSection: sourceSection ?? undefined,
+    sourceText,
+    atomicConcepts,
+    canonicalPrimaryTargets,
+    canonicalSecondaryTargets,
+    targetNeighbors,
+    claimNeighborNodes: claimGraph.nodes,
+    claimNeighborEdges: claimGraph.edges,
+    evidenceCoverage: {
+      sourceSectionMatches,
+      claimTextInSource,
+      allAtomicConceptsCovered,
+    },
+    deleteEligibility: {
+      eligible,
+      reason: eligible
+        ? 'Il claim residuo e cancellabile: concetti atomici coperti da target canonici non bible_claim e target connessi da archi specializzati.'
+        : `Delete non autorizzabile: ${blockingFindings.join(', ')}`,
+      allowedDeleteNodeIds: eligible ? [normalizedClaimNodeId] : [],
+      requiredPreserveNodeIds,
+    },
+    orphanRisk,
+    blockingFindings,
   };
 }
 
@@ -1344,6 +1598,33 @@ export function registerNovelBibleTools(server: McpServer): void {
         return toolStructured({ ok: true, readOnly: true, packet: buildStructuralClaimPacketFromParagraph(paragraph) });
       } catch (err) {
         return toolError('NOVEL_BIBLE_STRUCTURAL_CLAIM_PACKET_FAILED', `novel_bible_structural_claim_packet failed: ${String(err)}`, { sourceId, sectionKey });
+      }
+    },
+  );
+
+  server.registerTool(
+    'novel_bible_claim_assimilation_packet',
+    {
+      title: 'Novel Bible claim assimilation packet',
+      description: 'Read-only proof packet before deleting a residual bible_claim: atomic concept coverage, canonical targets, graph cohesion and orphan risk.',
+      inputSchema: {
+        sourceId: z.string(),
+        sectionKey: z.string(),
+        claimNodeId: z.string(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        readOnly: z.boolean().optional(),
+        packet: bibleClaimAssimilationPacketZ.optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'Novel Bible claim assimilation packet', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ sourceId, sectionKey, claimNodeId }) => {
+      try {
+        return toolStructured({ ok: true, readOnly: true, packet: await buildClaimAssimilationPacket(sourceId, sectionKey, claimNodeId) });
+      } catch (err) {
+        return toolError('NOVEL_BIBLE_CLAIM_ASSIMILATION_PACKET_FAILED', `novel_bible_claim_assimilation_packet failed: ${String(err)}`, { sourceId, sectionKey, claimNodeId });
       }
     },
   );

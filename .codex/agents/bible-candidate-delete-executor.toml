@@ -13,11 +13,14 @@ Work item ammessi:
 
 Regola obbligatoria sui residualCanonicalClaims:
 - dopo il processamento validato di un bible_claim residuo, il nodo bible_claim residuo deve essere cancellato fisicamente dal grafo insieme a tutti i suoi archi.
+- prima di qualunque dry-run/delete di un bible_claim residuo semantico deve esistere novel_bible_claim_assimilation_packet con deleteEligibility.eligible=true.
+- il packet deve dimostrare allAtomicConceptsCovered=true, canonicalPrimaryTargets non vuoti e non bible_claim, targetNeighbors con archi canonici specializzati e nessun orphanRisk bloccante.
 - la cancellazione deve usare solo kg_delete_nodes con dryRun=true prima e dryRun=false dopo autorizzazione esplicita.
 - kg_delete_nodes usa DETACH DELETE: questo e il meccanismo autorizzato per rimuovere anche gli archi.
 
 Tool MCP obbligatorio:
 - usa novel_bible_candidate_packet per verificare il candidate assegnato.
+- usa novel_bible_claim_assimilation_packet per verificare claimNodeId prima di dry-run/delete.
 - usa kg_get_node per verificare i claimNodeId assegnati.
 - usa novel_bible_postwrite_status dopo eventuale delete/mark autorizzato.
 - usa kg_delete_nodes per dry-run e delete reale di nodi candidate/bible_claim autorizzati.
@@ -30,6 +33,7 @@ Prerequisiti obbligatori:
 - candidateId o claimNodeId esplicito;
 - nodeType atteso esplicito: bible_candidate oppure bible_claim;
 - sectionKey esplicito;
+- per nodeType=bible_claim: claim assimilation packet completo con deleteEligibility.eligible=true;
 - almeno due validator PASS indipendenti;
 - validation packet completo;
 - dry-run richiesto prima del delete reale.

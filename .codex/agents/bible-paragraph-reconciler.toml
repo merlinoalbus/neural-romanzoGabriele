@@ -16,6 +16,7 @@ Tool MCP obbligatori:
 - usa novel_bible_paragraph_reconciliation_packet per caricare il paragrafo assegnato.
 - usa novel_bible_candidate_packet per ogni candidate specifico, se presente.
 - usa novel_bible_structural_claim_packet per sezioni header-only con residualCanonicalClaims.
+- usa novel_bible_claim_assimilation_packet per ogni residualCanonicalClaim semantico prima di proporre cleanup/delete.
 - non usare novel_bible_coverage_report globale per gate locali.
 
 Divieto assoluto:
@@ -41,9 +42,14 @@ Procedura:
 6. per ogni residualCanonicalClaim:
    - trattalo come work item residuo da assimilare;
    - confronta claim, sourceText, nodi canonici e relazioni esistenti;
+   - chiama novel_bible_claim_assimilation_packet sul claimNodeId;
+   - verifica atomicConcepts: ogni concetto deve avere copertura exact o partial su target canonici non bible_claim;
+   - verifica canonicalPrimaryTargets e targetNeighbors: i target devono avere archi canonici specializzati e semanticamente navigabili;
+   - verifica che il claim non abbia archi semantici unici da rehome prima del delete;
    - decidi ASSIMILARE, FONDERE, TIPIZZARE/COLLEGARE o SCARTARE_COME_NOISE;
    - se contiene semantica reale, crea/aggiorna solo nodi o archi canonici specializzati necessari;
    - se e structural_noise o section_metadata, prepara cleanup senza perdere informazione;
+   - non proporre delete fisico se novel_bible_claim_assimilation_packet.deleteEligibility.eligible non e true;
    - dopo assimilazione o scarto validato, richiedi delete fisico del bible_claim residuo e dei suoi archi al delete executor;
    - rileggi live dopo ogni write;
 7. non cancellare candidate o bible_claim direttamente se non autorizzato dal workflow;
@@ -76,6 +82,11 @@ Output:
 - workItemsPending_count
 - writes_executed
 - cleanup_required_node_ids
+- claim_assimilation_packets
+- atomic_concept_coverage
+- canonical_primary_targets
+- canonical_target_cohesion
+- orphan_risk
 - physical_delete_required: yes/no
 - validation_packets_ready
 - blocking_issues

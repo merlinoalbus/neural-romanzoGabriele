@@ -71,6 +71,7 @@ test('novel bible coverage and context packet tools are registered as read-only'
   const paragraphStatusTool = registeredTool(server, 'novel_bible_paragraph_status') as { annotations?: Record<string, unknown> };
   const paragraphPacketTool = registeredTool(server, 'novel_bible_paragraph_reconciliation_packet') as { annotations?: Record<string, unknown> };
   const structuralClaimTool = registeredTool(server, 'novel_bible_structural_claim_packet') as { annotations?: Record<string, unknown> };
+  const claimAssimilationTool = registeredTool(server, 'novel_bible_claim_assimilation_packet') as { annotations?: Record<string, unknown> };
   const candidatePacketTool = registeredTool(server, 'novel_bible_candidate_packet') as { annotations?: Record<string, unknown> };
   const validationPacketTool = registeredTool(server, 'novel_bible_validation_packet') as { annotations?: Record<string, unknown> };
   const postwriteStatusTool = registeredTool(server, 'novel_bible_postwrite_status') as { annotations?: Record<string, unknown> };
@@ -84,6 +85,7 @@ test('novel bible coverage and context packet tools are registered as read-only'
   assert.equal(paragraphStatusTool.annotations?.readOnlyHint, true);
   assert.equal(paragraphPacketTool.annotations?.readOnlyHint, true);
   assert.equal(structuralClaimTool.annotations?.readOnlyHint, true);
+  assert.equal(claimAssimilationTool.annotations?.readOnlyHint, true);
   assert.equal(candidatePacketTool.annotations?.readOnlyHint, true);
   assert.equal(validationPacketTool.annotations?.readOnlyHint, true);
   assert.equal(postwriteStatusTool.annotations?.readOnlyHint, true);
@@ -112,6 +114,9 @@ test('novel bible paragraph-scoped tools expose scoped inputs', () => {
 
   const candidatePacketTool = registeredTool(server, 'novel_bible_candidate_packet') as RegisteredTool;
   assert.deepEqual(inputSchemaKeys(candidatePacketTool).sort(), ['candidateId', 'sourceId']);
+
+  const claimAssimilationTool = registeredTool(server, 'novel_bible_claim_assimilation_packet') as RegisteredTool;
+  assert.deepEqual(inputSchemaKeys(claimAssimilationTool).sort(), ['claimNodeId', 'sectionKey', 'sourceId']);
 });
 
 test('novel bible local packet implementation avoids global candidate scans', async () => {
@@ -133,6 +138,18 @@ test('novel bible paragraph status classifies header-only from pending candidate
   assert.equal(source.includes('candidate_pending_count: pendingCandidates.length'), true);
   assert.equal(source.includes('workItemsPending_count: workItemsPendingCount'), true);
   assert.equal(source.includes("if (paragraphStatus === 'requires_claim_cleanup') blockingFindings.push('residual_canonical_claims_require_review');"), false);
+});
+
+test('novel bible claim assimilation packet blocks weak residual claim cleanup', async () => {
+  const source = await import('node:fs/promises').then((fs) => fs.readFile(new URL('./novelBible.ts', import.meta.url), 'utf8'));
+
+  assert.equal(source.includes("'novel_bible_claim_assimilation_packet'"), true);
+  assert.equal(source.includes("blockingFindings.push('atomic_concepts_not_fully_assimilated')"), true);
+  assert.equal(source.includes("blockingFindings.push('missing_primary_canonical_target')"), true);
+  assert.equal(source.includes("blockingFindings.push('canonical_target_missing_specialized_navigable_edges')"), true);
+  assert.equal(source.includes("blockingFindings.push('claim_has_semantic_edges_requiring_rehome_before_delete')"), true);
+  assert.equal(source.includes("'bible_candidate', 'bible_section', 'bible_mapping_batch', 'bible_claim'"), true);
+  assert.equal(source.includes('deleteEligibility'), true);
 });
 
 test('novel_get_bible_ontology returns mapping contract without graph access', async () => {

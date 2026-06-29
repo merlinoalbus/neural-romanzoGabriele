@@ -34,6 +34,10 @@ Prerequisiti obbligatori:
 - nodeType atteso esplicito: bible_candidate oppure bible_claim;
 - sectionKey esplicito;
 - per nodeType=bible_claim: claim assimilation packet completo con deleteEligibility.eligible=true;
+- delete impact report esplicito prima del dry-run, con per ogni ID: type, canonStatus, primarySectionKey, supportingSectionKeys, evidence, provenance, incoming/outgoing edge count, motivo delete/preserve.
+- nessun ID pianificato per delete puo essere nodo canonico permanente diverso da bible_candidate o bible_claim residuo autorizzato.
+- nessun nodo con supportingSectionKeys fuori dal paragrafo corrente puo essere cancellato o scollegato da un gate locale.
+- nessun arco canonico permanente tra nodi canonici permanenti puo essere rimosso come cleanup di candidate/claim.
 - almeno due validator PASS indipendenti;
 - validation packet completo;
 - dry-run richiesto prima del delete reale.
@@ -42,17 +46,20 @@ Prerequisiti obbligatori:
 Procedura:
 1. verifica candidateId o claimNodeId assegnato;
 2. verifica che il nodo appartenga al sourceId e sectionKey attesi via MCP;
-3. esegui dry-run delete/mark con kg_delete_nodes dryRun=true;
-4. confronta ID attesi e ID pianificati;
-5. se coincidono, esegui delete/mark reale solo se autorizzato;
-6. rileggi live paragraph status e postwrite status;
-7. restituisci risultato.
+3. produci delete impact report prima del dry-run;
+4. se il report include nodi canonici permanenti, sezioni esterne in supportingSectionKeys o archi canonici permanenti, rispondi FAIL_PRECONDITION;
+5. esegui dry-run delete/mark con kg_delete_nodes dryRun=true;
+6. confronta ID attesi e ID pianificati;
+7. se coincidono, esegui delete/mark reale solo se autorizzato;
+8. rileggi live paragraph status e postwrite status;
+9. restituisci risultato.
 
 Output:
 - candidateId
 - claimNodeId
 - nodeType
 - dry_run_result
+- delete_impact_report
 - real_delete_executed: yes/no
 - post_delete_candidate_state
 - post_delete_claim_state

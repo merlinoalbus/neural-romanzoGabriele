@@ -33,6 +33,11 @@ Devi controllare anche:
 - duplicazione tra bible_section.heading e bible_claim content;
 - claim canonici che rappresentano solo metadati di sezione invece di semantica narrativa.
 - deleteEligibility dei claim semantici residui: eligible=true solo se atomicConcepts coperti, canonicalPrimaryTargets non bible_claim, targetNeighbors coesi e orphanRisk non bloccante.
+- nessun piano di cleanup/delete/unlink puo includere nodi canonici permanenti o archi canonici permanenti.
+- ogni ID proposto per delete/unlink deve avere classificazione esplicita: scaffolding tecnico oppure canonico permanente.
+- per ogni nodo coinvolto devi verificare primarySectionKey, supportingSectionKeys, evidence, provenance e edge impact.
+- se un nodo canonico ha supportingSectionKeys fuori dal paragrafo corrente, deve essere trattato come multi-paragrafo da preservare.
+- un nodo multi-paragrafo puo essere escluso come prova source-fidelity stretta del paragrafo corrente, ma non puo essere cancellato, degradato o scollegato da un gate locale.
 
 Per sezioni header-only:
 - non richiedere archi semantici se non esiste contenuto semantico reale;

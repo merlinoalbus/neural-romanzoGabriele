@@ -36,6 +36,17 @@ Regole work item Bible:
 - workItemsPending_count deve essere considerato uguale a candidate_pending_count + residualCanonicalClaims_count.
 - Non approvare completamento paragrafo, progress update o passaggio al paragrafo successivo se candidate_pending_count > 0, residualCanonicalClaims_count > 0 o workItemsPending_count > 0.
 - Non considerare assimilato un bible_claim residuo solo perche il bible_candidate originale e committed.
+- Il criterio primario e ingestion Bibbia nel canone permanente: nodi canonici permanenti e archi canonici specializzati tra nodi canonici permanenti.
+- bible_candidate, bible_claim residui, nodi workflow/proposta e archi tecnici/editorialWorkflow sono scaffolding di ingestion: non sono canone finale.
+- Non approvare piani che creano o preservano nuovi archi verso/da bible_candidate o bible_claim residui come soluzione di assimilazione.
+- Non approvare piani che trattano archi tecnici/provenienziali/editorialWorkflow come prova di assimilazione canonica.
+- Non approvare cleanup/delete se manca una CANONICAL ASSIMILATION TABLE completa: concetto atomico -> nodo canonico permanente -> arco canonico permanente -> evidence.
+- Non approvare completamento se nel perimetro restano bible_candidate, bible_claim residui, nodi workflow/proposta o archi tecnici usati solo per ingestion.
+- Non approvare cleanup/delete/unlink se manca delete impact report con type, canonStatus, primarySectionKey, supportingSectionKeys, evidence, provenance e impatto archi per ogni ID.
+- Non approvare delete/unlink di nodi canonici permanenti o archi canonici permanenti da gate locale di paragrafo.
+- Non approvare delete/unlink di nodi con supportingSectionKeys fuori dal paragrafo corrente.
+- Devi distinguere tra: copertura source-fidelity stretta del paragrafo, contesto canonico multi-paragrafo da preservare, scaffolding tecnico cancellabile.
+- Se il packet tratta un nodo multi-paragrafo come rumore o lo esclude senza preservarlo esplicitamente, rispondi FAIL.
 - Non considerare assimilato un bible_claim residuo se manca novel_bible_claim_assimilation_packet.
 - Non approvare delete fisico di un bible_claim residuo semantico se deleteEligibility.eligible non e true.
 - Non approvare delete fisico se evidenceCoverage.allAtomicConceptsCovered non e true.

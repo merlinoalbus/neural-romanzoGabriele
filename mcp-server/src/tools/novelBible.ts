@@ -701,6 +701,11 @@ function assimilationCoverage(
 function isTechnicalOrGenericEdge(edge: kg.GraphEdge): boolean {
   return new Set([
     'related_to',
+    'applies_to',
+    'approves',
+    'revises',
+    'supersedes',
+    'validates',
     'derived_from',
     'sourced_from',
     'extracted_from',
@@ -710,6 +715,15 @@ function isTechnicalOrGenericEdge(edge: kg.GraphEdge): boolean {
     'belongs_to_section',
     'part_of',
   ]).has(edge.kind);
+}
+
+function isCanonicalNarrativeEdge(edge: kg.GraphEdge, nodesById: Map<string, kg.GraphNode>): boolean {
+  if (isTechnicalOrGenericEdge(edge)) return false;
+  const from = nodesById.get(edge.fromId);
+  const to = nodesById.get(edge.toId);
+  if (!from || !to) return false;
+  return !['bible_candidate', 'bible_claim', 'bible_section', 'bible_mapping_batch'].includes(from.type)
+    && !['bible_candidate', 'bible_claim', 'bible_section', 'bible_mapping_batch'].includes(to.type);
 }
 
 function incidentEdges(nodeId: string, edges: kg.GraphEdge[]): kg.GraphEdge[] {
@@ -791,7 +805,10 @@ async function buildClaimAssimilationPacket(
   }));
 
   const isolatedTargets = targetNeighbors
-    .filter((entry) => incidentEdges(entry.targetId, entry.edges).filter((edge) => !isTechnicalOrGenericEdge(edge)).length === 0)
+    .filter((entry) => {
+      const nodesById = new Map(entry.nodes.map((node) => [node.id, node]));
+      return incidentEdges(entry.targetId, entry.edges).filter((edge) => isCanonicalNarrativeEdge(edge, nodesById)).length === 0;
+    })
     .map((entry) => entry.targetId);
   if (isolatedTargets.length) {
     blockingFindings.push('canonical_target_missing_specialized_navigable_edges');
@@ -799,7 +816,10 @@ async function buildClaimAssimilationPacket(
   }
 
   const claimSemanticEdges = claimNode
-    ? incidentEdges(claimNode.id, claimGraph.edges).filter((edge) => !isTechnicalOrGenericEdge(edge))
+    ? incidentEdges(claimNode.id, claimGraph.edges).filter((edge) => {
+      const nodesById = new Map(claimGraph.nodes.map((node) => [node.id, node]));
+      return isCanonicalNarrativeEdge(edge, nodesById);
+    })
     : [];
   if (claimSemanticEdges.length) {
     blockingFindings.push('claim_has_semantic_edges_requiring_rehome_before_delete');

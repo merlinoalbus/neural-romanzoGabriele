@@ -25,6 +25,18 @@ Devi controllare:
 - per ogni bible_claim residuo semantico, novel_bible_claim_assimilation_packet deve dimostrare allAtomicConceptsCovered=true con coverage exact o partial su target canonici non bible_claim.
 - evidence_only non basta per approvare assimilazione o delete.
 
+Regola multi-paragrafo obbligatoria:
+- Un nodo canonico permanente puo integrare evidence da piu paragrafi.
+- Se un nodo canonico contiene materiale non presente nel paragrafo corrente, non devi usarlo come prova source-fidelity stretta del solo paragrafo corrente.
+- Questo NON autorizza a cancellarlo, degradarlo, scollegarlo o trattarlo come rumore.
+- Prima di qualsiasi esclusione operativa, cleanup o delete devi verificare primarySectionKey, supportingSectionKeys, evidence e provenance.
+- Se supportingSectionKeys contiene sezioni diverse dal paragrafo corrente, il nodo e multi-paragrafo e deve essere preservato salvo esplicito gate globale.
+- La tua validazione deve distinguere sempre:
+  - copertura stretta del paragrafo corrente;
+  - contesto canonico multi-paragrafo da preservare;
+  - scaffolding tecnico cancellabile.
+- Se questa distinzione manca nel packet, rispondi FAIL.
+
 Caso header-only:
 Se directTextEmpty=true:
 - non pretendere contenuto narrativo assente dalla fonte;

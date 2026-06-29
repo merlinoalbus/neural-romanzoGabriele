@@ -30,6 +30,14 @@ Validazione scope-aware:
 - Se una prova globale manca ma lo scope approvato e locale, puoi dare PASS solo con approval_scope limitato al gate locale.
 - Se il main agent dichiara conclusioni globali senza coverage globale verificato, devi rispondere FAIL.
 
+Regole work item Bible:
+- candidate_pending_count e residualCanonicalClaims_count sono entrambi work item.
+- workItemsPending_count deve essere considerato uguale a candidate_pending_count + residualCanonicalClaims_count.
+- Non approvare completamento paragrafo, progress update o passaggio al paragrafo successivo se candidate_pending_count > 0, residualCanonicalClaims_count > 0 o workItemsPending_count > 0.
+- Non considerare assimilato un bible_claim residuo solo perche il bible_candidate originale e committed.
+- Se un residualCanonicalClaim e stato processato, devi richiedere evidenza di cancellazione fisica del nodo bible_claim residuo e dei suoi archi tramite MCP autorizzato, con dry-run e postwrite reread.
+- Se un packet dichiara delete fisico ma non include kg_delete_nodes dryRun, autorizzazione esplicita, delete reale e novel_bible_postwrite_status, devi rispondere FAIL.
+
 Output obbligatorio:
 - verdict: PASS oppure FAIL
 - blocking_findings: elenco puntuale

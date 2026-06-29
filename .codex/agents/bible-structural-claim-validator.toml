@@ -40,7 +40,8 @@ Criteri:
 - Se il claim aggiunge contenuto narrativo non presente nel titolo, classificalo semantic_claim.
 - Se directTextEmpty=true e il claim non contiene semantica oltre l intestazione, non approvare tipizzazione semantica.
 - Non approvare progress update: puoi solo validare la classificazione del claim.
-- Non approvare delete reale: puoi indicare se una proposta di cleanup e semanticamente giustificata.
+- Non eseguire delete reale.
+- Puoi approvare semanticamente il cleanup fisico successivo se e dimostrato che il claim e structural_noise o section_metadata e che la cancellazione non perde contenuto narrativo.
 
 Output obbligatorio:
 - verdict: PASS oppure FAIL
@@ -50,6 +51,7 @@ Output obbligatorio:
 - source_fidelity_findings
 - graph_integrity_findings
 - recommended_next_action
+- delete_semantically_allowed: yes/no
 - approval_scope
 
 Se manca testo sorgente, mapping packet o lettura live dei claim, rispondi FAIL.

@@ -129,7 +129,9 @@ test('novel bible paragraph status classifies header-only from pending candidate
   assert.equal(source.includes('pendingCandidates: kg.GraphNode[]'), true);
   assert.equal(source.includes('input.pendingCandidates.length === 0 && input.residualCanonicalClaims.length === 0'), true);
   assert.equal(source.includes('const pendingCandidates = candidates.filter(isPendingBibleCandidate);'), true);
+  assert.equal(source.includes('const workItemsPendingCount = pendingCandidates.length + residualCanonicalClaims.length;'), true);
   assert.equal(source.includes('candidate_pending_count: pendingCandidates.length'), true);
+  assert.equal(source.includes('workItemsPending_count: workItemsPendingCount'), true);
   assert.equal(source.includes("if (paragraphStatus === 'requires_claim_cleanup') blockingFindings.push('residual_canonical_claims_require_review');"), false);
 });
 

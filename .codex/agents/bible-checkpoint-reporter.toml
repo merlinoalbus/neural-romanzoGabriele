@@ -22,9 +22,14 @@ Output massimo 25 righe:
 - candidate iniziali
 - candidate riconciliati
 - candidate residui
+- residualCanonicalClaims iniziali
+- residualCanonicalClaims riconciliati/cancellati
+- residualCanonicalClaims residui
+- workItemsPending_count
 - candidate corrente/prossimo
 - validator verdict recenti
 - write recenti
+- delete fisici recenti di bible_claim/candidate
 - blocchi chiusi/aperti
 - rischi aperti
 - prossima azione

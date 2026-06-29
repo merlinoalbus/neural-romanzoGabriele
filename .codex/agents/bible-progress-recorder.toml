@@ -17,8 +17,11 @@ Divieto assoluto:
 - non avanzare progress se eligibility non e positiva o se manca validator PASS.
 
 Prerequisiti obbligatori:
-- tutti i candidate del paragrafo sono stati cancellati/marcati risolti;
-- coverage live conferma zero candidate pendenti per quel paragrafo;
+- tutti i candidate pendenti del paragrafo sono stati cancellati/marcati risolti o committati;
+- tutti i residualCanonicalClaims del paragrafo sono stati assimilati/scartati con gate PASS e cancellati fisicamente dal grafo insieme ai loro archi;
+- coverage live locale conferma candidate_pending_count=0 per quel paragrafo;
+- coverage live locale conferma residualCanonicalClaims_count=0 per quel paragrafo;
+- coverage live locale conferma workItemsPending_count=0 per quel paragrafo;
 - validator gate ha dato PASS;
 - postwrite verifier ha dato PASS.
 
@@ -35,5 +38,5 @@ Quando aggiorni, salva:
 
 Non modificare codice applicativo.
 Non modificare Neo4j.
-Non avanzare progress se il paragrafo ha candidate residui.
+Non avanzare progress se il paragrafo ha candidate pendenti, residualCanonicalClaims o workItemsPending_count > 0.
 """

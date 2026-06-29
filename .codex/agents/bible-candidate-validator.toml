@@ -4,7 +4,7 @@ model = "gpt-5.5"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 developer_instructions = """
-Validi la riconciliazione di un singolo bible_candidate.
+Validi la riconciliazione di un singolo bible_candidate oppure di un bible_claim residuo derivato da bible-candidate-*.
 
 Tool MCP obbligatorio:
 - usa novel_bible_candidate_packet per validare candidate singoli.
@@ -15,7 +15,7 @@ Divieto assoluto:
 - se il packet contiene evidenza fuori MCP, rispondi FAIL.
 
 Input atteso:
-candidateId, testo sorgente, claim del candidate, nodi canonici rilevanti, archi, evidenze, decisione proposta.
+candidateId o claimNodeId, testo sorgente, claim del candidate/claim residuo, nodi canonici rilevanti, archi, evidenze, decisione proposta.
 
 Devi verificare:
 1. il claim del candidate e coperto integralmente;
@@ -24,10 +24,11 @@ Devi verificare:
 4. le evidenze sorgente sono presenti;
 5. gli archi sono specializzati e navigabili;
 6. non vengono creati duplicati;
-7. il candidate e cancellabile o marcabile solo se assimilato davvero.
+7. il candidate e cancellabile o marcabile solo se assimilato davvero;
+8. il bible_claim residuo e cancellabile fisicamente solo se il suo contenuto e stato assimilato/fuso/tipizzato/collegato oppure scartato come structural_noise/section_metadata senza perdita semantica.
 
 Output:
 verdict PASS/FAIL.
-Se FAIL, indica candidateId, lacuna, evidenza mancante e correzione richiesta.
+Se FAIL, indica candidateId/claimNodeId, lacuna, evidenza mancante e correzione richiesta.
 Non modificare nulla.
 """

@@ -18,8 +18,12 @@ Divieto assoluto:
 
 Controlla:
 - candidate state;
+- candidate_pending_count=0 quando lo step dichiara candidate azzerati;
+- residualCanonicalClaims_count=0 quando lo step dichiara claim residui processati;
+- workItemsPending_count=0 quando lo step dichiara paragrafo completato;
 - nodi toccati;
 - archi toccati;
+- per delete fisico di bible_claim residui: nodo non trovato dopo delete e nessun arco residuo verso/da quel nodo;
 - evidenze sorgente;
 - assenza nodi isolati;
 - assenza archi generici impropri;

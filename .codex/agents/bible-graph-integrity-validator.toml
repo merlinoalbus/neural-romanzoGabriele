@@ -27,12 +27,19 @@ Controlla:
 Devi controllare anche:
 - bible_claim canonici con requiresReview=true;
 - bible_claim non tipizzati derivati da intestazioni strutturali;
+- bible_claim canonici residui con label/provenance derivata da bible-candidate-* non devono restare nel perimetro validato dopo assimilazione/scarto;
 - duplicazione tra bible_section.heading e bible_claim content;
 - claim canonici che rappresentano solo metadati di sezione invece di semantica narrativa.
 
 Per sezioni header-only:
 - non richiedere archi semantici se non esiste contenuto semantico reale;
 - richiedere invece cleanup o classificazione dei claim residui.
+
+Per paragrafi dichiarati completati:
+- richiedi candidate_pending_count=0;
+- richiedi residualCanonicalClaims_count=0;
+- richiedi workItemsPending_count=0;
+- richiedi evidenza postwrite che i bible_claim residui processati siano stati cancellati fisicamente con i loro archi.
 
 Se mancano audit/coverage live o snapshot equivalente, rispondi FAIL.
 Non suggerire modifiche applicative; indica solo correzioni semantiche richieste.

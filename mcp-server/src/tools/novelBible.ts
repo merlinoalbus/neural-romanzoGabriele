@@ -188,6 +188,7 @@ const bibleParagraphStatusZ = z.object({
   candidate_pending_count: z.number(),
   residualCanonicalClaims: z.array(nodeZ),
   residualCanonicalClaims_count: z.number(),
+  workItemsPending_count: z.number(),
   blockingFindings: z.array(z.string()),
 });
 
@@ -258,6 +259,7 @@ const bibleProgressEligibilityZ = z.object({
   reason: z.string(),
   candidate_pending_count: z.number(),
   residualCanonicalClaims_count: z.number(),
+  workItemsPending_count: z.number(),
   blockingFindings: z.array(z.string()),
   requiredValidators: z.array(z.string()),
 });
@@ -271,6 +273,7 @@ const bibleCheckpointSummaryZ = z.object({
     paragraphStatus: paragraphStatusValueZ,
     candidate_pending_count: z.number(),
     residualCanonicalClaims_count: z.number(),
+    workItemsPending_count: z.number(),
   })),
   blockedParagraphs: z.array(z.string()),
   globalCoverageRequired: z.boolean(),
@@ -526,6 +529,7 @@ export async function buildBibleParagraphStatus(sourceId: string, sectionKey: st
     .filter((claim) => nodeMatchesBibleSection(claim, normalizedSourceId, normalizedSectionKey));
   const directTextEmpty = section ? metadataBoolean(section.metadata.directTextEmpty) : true;
   const pendingCandidates = candidates.filter(isPendingBibleCandidate);
+  const workItemsPendingCount = pendingCandidates.length + residualCanonicalClaims.length;
   const paragraphStatus = classifyParagraphStatus({ section, directTextEmpty, pendingCandidates, residualCanonicalClaims });
   const blockingFindings: string[] = [];
   if (!section) blockingFindings.push('missing_bible_section');
@@ -541,6 +545,7 @@ export async function buildBibleParagraphStatus(sourceId: string, sectionKey: st
     candidate_pending_count: pendingCandidates.length,
     residualCanonicalClaims,
     residualCanonicalClaims_count: residualCanonicalClaims.length,
+    workItemsPending_count: workItemsPendingCount,
     blockingFindings,
   };
 }
@@ -1477,6 +1482,7 @@ export function registerNovelBibleTools(server: McpServer): void {
             reason: blockingFindings.length ? 'paragraph_has_blocking_items' : 'paragraph_has_no_local_blockers',
             candidate_pending_count: paragraph.candidate_pending_count,
             residualCanonicalClaims_count: paragraph.residualCanonicalClaims_count,
+            workItemsPending_count: paragraph.workItemsPending_count,
             blockingFindings,
             requiredValidators: ['bible-postwrite-verifier', 'galaxy-task-validator'],
           },
@@ -1521,6 +1527,7 @@ export function registerNovelBibleTools(server: McpServer): void {
             paragraphStatus: status.paragraphStatus,
             candidate_pending_count: status.candidate_pending_count,
             residualCanonicalClaims_count: status.residualCanonicalClaims_count,
+            workItemsPending_count: status.workItemsPending_count,
           };
         }));
         return toolStructured({

@@ -22,6 +22,13 @@ Divieto assoluto:
 Unita di avanzamento:
 il paragrafo, identificato da outlineNumber/titolo/pagina.
 
+Definizione work item:
+- candidate pendenti: bible_candidate del paragrafo con status pending.
+- residualCanonicalClaims: bible_claim canonici gia committati, derivati da bible-candidate-* o requiresReview=true, ancora da assimilare nel grafo canonico.
+- workItemsPending_count = candidate_pending_count + residualCanonicalClaims_count.
+- Il prossimo paragrafo da lavorare e la prima riga di paragraph-index.tsv, in ordine, con workItemsPending_count > 0.
+- Non saltare residualCanonicalClaims solo perche il bible_candidate originale ha status=committed.
+
 Devi restituire:
 - sourceId
 - lastCompletedParagraph letto da progress.json
@@ -36,6 +43,8 @@ Devi restituire:
 - directTextEmpty
 - residualCanonicalClaims: bible_claim canonici gia committati, non tipizzati o requiresReview=true, legati al sectionKey
 - residualCanonicalClaims_count
+- workItemsPending_count
+- firstParagraphWithWorkItems
 - coverageScope: paragraph | global | unavailable
 
 Regole di classificazione:
@@ -45,6 +54,8 @@ Regole di classificazione:
 - Se progress.json indica un paragrafo non presente nell indice, paragraphStatus=blocked.
 - Non confondere candidate pendenti con bible_claim canonici gia committati.
 - candidate_pending_count conta solo candidate pendenti, non residualCanonicalClaims.
+- residualCanonicalClaims_count conta work item residui anche quando candidate_pending_count=0.
+- Un paragrafo non e completabile finche workItemsPending_count > 0.
 
 Read-only assoluto.
 Non modificare file, codice, MCP o grafo.

@@ -28,6 +28,20 @@ Procedura:
 6. non cancellare candidate direttamente se non autorizzato dal workflow;
 7. restituisci risultato del paragrafo.
 
+Caso header-only:
+Se directTextEmpty=true e candidates=[]:
+- non dichiarare automaticamente paragraph_complete;
+- cercare claim canonici residui collegati allo stesso sectionKey;
+- distinguere candidate pendenti da bible_claim canonici gia committati;
+- se esistono residualCanonicalClaims, produrre solo una proposta read-only;
+- valutare tre opzioni:
+  A) chiusura header-only senza write;
+  B) cancellazione dei claim come structural-noise;
+  C) tipizzazione/collegamento dei claim se contengono informazione semantica reale;
+- scegliere una sola opzione motivata;
+- non eseguire delete, mark, update o progress update;
+- preparare validation packet per source-fidelity, graph-integrity e galaxy-task-validator.
+
 Output:
 - paragraphId / outlineNumber
 - paragraphTitle
@@ -39,6 +53,12 @@ Output:
 - validation_packets_ready
 - blocking_issues
 - paragraph_complete: yes/no
+- directTextEmpty
+- paragraphStatus
+- residualCanonicalClaims_count
+- residualCanonicalClaims
+- recommended_action: close_header_only | delete_structural_noise | type_or_link_claims | blocked
+- write_authorization_required: yes/no
 
 Divieti:
 - non lavorare su altri paragrafi;

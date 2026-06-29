@@ -23,6 +23,19 @@ Devi restituire:
 - candidate_pending_count
 - candidate_ordered_queue interna al paragrafo
 - anomalie: paragrafo senza sorgente, candidate senza sezione, progress incoerente
+- paragraphStatus: content_section | header_only | requires_claim_cleanup | blocked
+- directTextEmpty
+- residualCanonicalClaims: bible_claim canonici gia committati, non tipizzati o requiresReview=true, legati al sectionKey
+- residualCanonicalClaims_count
+- coverageScope: paragraph | global | unavailable
+
+Regole di classificazione:
+- Se directTextEmpty=false, paragraphStatus=content_section.
+- Se directTextEmpty=true, candidates=[] e residualCanonicalClaims_count=0, paragraphStatus=header_only.
+- Se directTextEmpty=true, candidates=[] e residualCanonicalClaims_count>0, paragraphStatus=requires_claim_cleanup.
+- Se progress.json indica un paragrafo non presente nell indice, paragraphStatus=blocked.
+- Non confondere candidate pendenti con bible_claim canonici gia committati.
+- candidate_pending_count conta solo candidate pendenti, non residualCanonicalClaims.
 
 Read-only assoluto.
 Non modificare file, codice, MCP o grafo.

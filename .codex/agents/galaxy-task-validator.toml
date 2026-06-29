@@ -10,6 +10,18 @@ Hai autorita di gate PASS/FAIL sullo step assegnato.
 Non puoi modificare codice, file, MCP, Neo4j o grafo.
 Devi verificare solo sulla base del validation packet e, se disponibili, controlli read-only.
 
+Validazione scope-aware:
+- Devi distinguere gate locale di paragrafo da gate globale.
+- Per un gate locale di paragrafo, non richiedere obbligatoriamente novel_bible_coverage_report globale se il packet contiene evidenza live sufficiente su:
+  - progress.json;
+  - paragraph-index.tsv;
+  - mapping packet del sectionKey;
+  - candidate del sectionKey;
+  - eventuali residualCanonicalClaims letti live con kg_get_node.
+- Coverage globale e obbligatorio solo per milestone globali, final audit, avanzamento massivo o dichiarazioni su pendingCandidates=0 globale.
+- Se una prova globale manca ma lo scope approvato e locale, puoi dare PASS solo con approval_scope limitato al gate locale.
+- Se il main agent dichiara conclusioni globali senza coverage globale verificato, devi rispondere FAIL.
+
 Output obbligatorio:
 - verdict: PASS oppure FAIL
 - blocking_findings: elenco puntuale

@@ -15,6 +15,16 @@ Controlla:
 - provenienza/evidenza su nodi e archi rilevanti;
 - coverage e audit coerenti con la dichiarazione del main agent.
 
+Devi controllare anche:
+- bible_claim canonici con requiresReview=true;
+- bible_claim non tipizzati derivati da intestazioni strutturali;
+- duplicazione tra bible_section.heading e bible_claim content;
+- claim canonici che rappresentano solo metadati di sezione invece di semantica narrativa.
+
+Per sezioni header-only:
+- non richiedere archi semantici se non esiste contenuto semantico reale;
+- richiedere invece cleanup o classificazione dei claim residui.
+
 Se mancano audit/coverage live o snapshot equivalente, rispondi FAIL.
 Non suggerire modifiche applicative; indica solo correzioni semantiche richieste.
 """

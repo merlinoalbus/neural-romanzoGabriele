@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { registerNovelBibleTools } from './novelBible.js';
+import { isClaimSemanticEdgeRequiringRehome, registerNovelBibleTools } from './novelBible.js';
 
 function registeredTool(server: McpServer, name: string) {
   const tools = (server as unknown as { _registeredTools?: Record<string, RegisteredTool> })._registeredTools;
@@ -149,7 +149,49 @@ test('novel bible claim assimilation packet blocks weak residual claim cleanup',
   assert.equal(source.includes("blockingFindings.push('canonical_target_missing_specialized_navigable_edges')"), true);
   assert.equal(source.includes("blockingFindings.push('claim_has_semantic_edges_requiring_rehome_before_delete')"), true);
   assert.equal(source.includes("'bible_candidate', 'bible_section', 'bible_mapping_batch', 'bible_claim'"), true);
+  assert.equal(source.includes('const exactCoverageTargets = candidateTargets'), true);
+  assert.equal(source.includes('const partialCoverageTargets = candidateTargets'), true);
+  assert.equal(source.includes('const primaryCoverageTargets = exactCoverageTargets.length ? exactCoverageTargets : partialCoverageTargets'), true);
+  assert.equal(source.includes('? [...partialCoverageTargets, ...evidenceOnlyTargets]'), true);
   assert.equal(source.includes('deleteEligibility'), true);
+});
+
+test('novel bible claim assimilation packet permits only safe structural-noise cleanup', async () => {
+  const source = await import('node:fs/promises').then((fs) => fs.readFile(new URL('./novelBible.ts', import.meta.url), 'utf8'));
+
+  assert.equal(source.includes('const structuralNoiseClaim = Boolean('), true);
+  assert.equal(source.includes("claimNode.type === 'bible_claim'"), true);
+  assert.equal(source.includes('sourceSectionMatches'), true);
+  assert.equal(source.includes('metadataBoolean(sourceSection.metadata.directTextEmpty)'), true);
+  assert.equal(source.includes("structuralClassificationHint(claimNode, sourceSection) === 'structural_noise'"), true);
+  assert.equal(source.includes("if (!structuralNoiseClaim && !allAtomicConceptsCovered) blockingFindings.push('atomic_concepts_not_fully_assimilated')"), true);
+  assert.equal(source.includes("if (!structuralNoiseClaim && canonicalPrimaryTargets.length === 0) blockingFindings.push('missing_primary_canonical_target')"), true);
+  assert.equal(source.includes("if (!structuralNoiseClaim && isolatedTargets.length)"), true);
+  assert.equal(source.includes("blockingFindings.push('claim_has_semantic_edges_requiring_rehome_before_delete')"), true);
+  assert.equal(source.includes('incidentEdges(claimNode.id, claimGraph.edges).filter(isClaimSemanticEdgeRequiringRehome)'), true);
+  assert.equal(source.includes('marker tecnico di intestazione strutturale su sezione senza testo diretto'), true);
+  assert.equal(source.includes('titolo e metadati restano preservati nella bible_section'), true);
+  assert.equal(source.includes('allowedDeleteNodeIds: eligible ? [normalizedClaimNodeId] : []'), true);
+  assert.equal(source.includes('sourceSection?.id'), true);
+});
+
+test('structural-noise cleanup still blocks semantic edges incident to the claim', () => {
+  const edge = (kind: string) => ({
+    id: `edge-${kind}`,
+    fromId: 'claim-structural-noise',
+    toId: 'canonical-target',
+    kind,
+    weight: 1,
+    metadata: {},
+    provenance: {},
+    createdAt: '2026-06-30T00:00:00.000Z',
+  });
+
+  assert.equal(isClaimSemanticEdgeRequiringRehome(edge('applies_to')), false);
+  assert.equal(isClaimSemanticEdgeRequiringRehome(edge('validates')), false);
+  assert.equal(isClaimSemanticEdgeRequiringRehome(edge('derived_from')), false);
+  assert.equal(isClaimSemanticEdgeRequiringRehome(edge('supports')), true);
+  assert.equal(isClaimSemanticEdgeRequiringRehome(edge('helps')), true);
 });
 
 test('novel_get_bible_ontology returns mapping contract without graph access', async () => {

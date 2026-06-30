@@ -726,6 +726,10 @@ function isCanonicalNarrativeEdge(edge: kg.GraphEdge, nodesById: Map<string, kg.
     && !['bible_candidate', 'bible_claim', 'bible_section', 'bible_mapping_batch'].includes(to.type);
 }
 
+export function isClaimSemanticEdgeRequiringRehome(edge: kg.GraphEdge): boolean {
+  return !isTechnicalOrGenericEdge(edge);
+}
+
 function incidentEdges(nodeId: string, edges: kg.GraphEdge[]): kg.GraphEdge[] {
   return edges.filter((edge) => edge.fromId === nodeId || edge.toId === nodeId);
 }
@@ -753,6 +757,14 @@ async function buildClaimAssimilationPacket(
   const sourceText = sourceSection?.content ?? '';
   const claimText = claimNode?.content ?? '';
   const claimTextInSource = Boolean(sourceText.trim() && claimText.trim() && normalizeForCoverage(sourceText).includes(normalizeForCoverage(claimText)));
+  const structuralNoiseClaim = Boolean(
+    claimNode
+    && sourceSection
+    && claimNode.type === 'bible_claim'
+    && sourceSectionMatches
+    && metadataBoolean(sourceSection.metadata.directTextEmpty)
+    && structuralClassificationHint(claimNode, sourceSection) === 'structural_noise',
+  );
   const atomicConceptTexts = splitAtomicConcepts(claimText);
 
   const canonicalPool = (await listCanonicalNarrativeNodes(250))
@@ -771,14 +783,15 @@ async function buildClaimAssimilationPacket(
     })
     .filter((entry) => entry.best);
 
-  const canonicalPrimaryTargets = candidateTargets
-    .filter((entry) => entry.best?.coverage === 'exact' || entry.best?.coverage === 'partial')
-    .map((entry) => entry.node)
-    .slice(0, 20);
-  const canonicalSecondaryTargets = candidateTargets
-    .filter((entry) => entry.best?.coverage === 'evidence_only')
-    .map((entry) => entry.node)
-    .slice(0, 20);
+  const exactCoverageTargets = candidateTargets.filter((entry) => entry.best?.coverage === 'exact');
+  const partialCoverageTargets = candidateTargets.filter((entry) => entry.best?.coverage === 'partial');
+  const evidenceOnlyTargets = candidateTargets.filter((entry) => entry.best?.coverage === 'evidence_only');
+  const primaryCoverageTargets = exactCoverageTargets.length ? exactCoverageTargets : partialCoverageTargets;
+  const secondaryCoverageTargets = exactCoverageTargets.length
+    ? [...partialCoverageTargets, ...evidenceOnlyTargets]
+    : evidenceOnlyTargets;
+  const canonicalPrimaryTargets = primaryCoverageTargets.map((entry) => entry.node).slice(0, 20);
+  const canonicalSecondaryTargets = secondaryCoverageTargets.map((entry) => entry.node).slice(0, 20);
 
   const atomicConcepts = atomicConceptTexts.map((concept, index) => ({
     index,
@@ -791,8 +804,8 @@ async function buildClaimAssimilationPacket(
 
   const allAtomicConceptsCovered = atomicConcepts.length > 0
     && atomicConcepts.every((concept) => concept.coveredBy.some((coverage) => coverage.coverage === 'exact' || coverage.coverage === 'partial'));
-  if (!allAtomicConceptsCovered) blockingFindings.push('atomic_concepts_not_fully_assimilated');
-  if (canonicalPrimaryTargets.length === 0) blockingFindings.push('missing_primary_canonical_target');
+  if (!structuralNoiseClaim && !allAtomicConceptsCovered) blockingFindings.push('atomic_concepts_not_fully_assimilated');
+  if (!structuralNoiseClaim && canonicalPrimaryTargets.length === 0) blockingFindings.push('missing_primary_canonical_target');
 
   const [claimGraph, ...targetGraphs] = await Promise.all([
     claimNode ? kg.neighbors(claimNode.id, { depth: 1 }) : Promise.resolve({ nodes: [], edges: [] }),
@@ -810,16 +823,13 @@ async function buildClaimAssimilationPacket(
       return incidentEdges(entry.targetId, entry.edges).filter((edge) => isCanonicalNarrativeEdge(edge, nodesById)).length === 0;
     })
     .map((entry) => entry.targetId);
-  if (isolatedTargets.length) {
+  if (!structuralNoiseClaim && isolatedTargets.length) {
     blockingFindings.push('canonical_target_missing_specialized_navigable_edges');
     orphanRisk.push(`canonical targets without specialized navigable edges: ${isolatedTargets.join(', ')}`);
   }
 
   const claimSemanticEdges = claimNode
-    ? incidentEdges(claimNode.id, claimGraph.edges).filter((edge) => {
-      const nodesById = new Map(claimGraph.nodes.map((node) => [node.id, node]));
-      return isCanonicalNarrativeEdge(edge, nodesById);
-    })
+    ? incidentEdges(claimNode.id, claimGraph.edges).filter(isClaimSemanticEdgeRequiringRehome)
     : [];
   if (claimSemanticEdges.length) {
     blockingFindings.push('claim_has_semantic_edges_requiring_rehome_before_delete');
@@ -833,6 +843,11 @@ async function buildClaimAssimilationPacket(
     ...claimGraph.nodes.filter((node) => node.id !== claimNode?.id && node.type !== 'bible_candidate').map((node) => node.id),
   ].filter((id): id is string => Boolean(id)))];
   const eligible = Boolean(claimNode) && blockingFindings.length === 0;
+  const eligibilityReason = eligible && structuralNoiseClaim
+    ? 'Il claim residuo e cancellabile: marker tecnico di intestazione strutturale su sezione senza testo diretto; titolo e metadati restano preservati nella bible_section.'
+    : eligible
+      ? 'Il claim residuo e cancellabile: concetti atomici coperti da target canonici non bible_claim e target connessi da archi specializzati.'
+      : `Delete non autorizzabile: ${blockingFindings.join(', ')}`;
   return {
     sourceId: normalizedSourceId,
     sectionKey: normalizedSectionKey,
@@ -853,9 +868,7 @@ async function buildClaimAssimilationPacket(
     },
     deleteEligibility: {
       eligible,
-      reason: eligible
-        ? 'Il claim residuo e cancellabile: concetti atomici coperti da target canonici non bible_claim e target connessi da archi specializzati.'
-        : `Delete non autorizzabile: ${blockingFindings.join(', ')}`,
+      reason: eligibilityReason,
       allowedDeleteNodeIds: eligible ? [normalizedClaimNodeId] : [],
       requiredPreserveNodeIds,
     },

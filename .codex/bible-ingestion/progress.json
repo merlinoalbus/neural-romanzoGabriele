@@ -1,9 +1,11 @@
 {
   "sourceId": "bibbia-gabriele-2025",
-  "lastCompletedParagraph": "2.1.1.21.4",
-  "lastCompletedPage": "2.1.1.21.4",
-  "lastCompletedAt": "2026-06-29T23:08:44.4494929+02:00",
-  "currentParagraph": "2.1.2",
+  "lastCompletedParagraph": "2.1.2",
+  "lastCompletedPage": "2.1.2",
+  "lastCompletedAt": "2026-07-01T00:39:54.1354215+02:00",
+  "currentParagraph": null,
   "candidatePending": 0,
-  "notes": []
+  "notes": [
+    "2.1.2 completato con cleanup 8 wrapper e PASS."
+  ]
 }

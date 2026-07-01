@@ -932,12 +932,7 @@ export async function listCoverageFindingsForSource(sourceId?: string, limit?: n
 }
 
 export async function gatherCoverageEdges(nodes: kg.GraphNode[]): Promise<kg.GraphEdge[]> {
-  const edgeById = new Map<string, kg.GraphEdge>();
-  for (const node of nodes) {
-    const graph = await kg.neighbors(node.id, { depth: 1 });
-    for (const edge of graph.edges) edgeById.set(edge.id, edge);
-  }
-  return [...edgeById.values()];
+  return kg.edgesForNodeIds(nodes.map((node) => node.id));
 }
 
 async function findBibleSection(evidence: BibleCandidate['evidence']): Promise<kg.GraphNode | null> {

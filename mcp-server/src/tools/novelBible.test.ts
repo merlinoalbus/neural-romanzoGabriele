@@ -128,6 +128,13 @@ test('novel bible local packet implementation avoids global candidate scans', as
   assert.equal(source.includes('kg.getBibleCandidateByIdOrLabel'), true);
 });
 
+test('gatherCoverageEdges uses a single batch query instead of one neighbors() call per node', async () => {
+  const source = await import('node:fs/promises').then((fs) => fs.readFile(new URL('./novelBible.ts', import.meta.url), 'utf8'));
+
+  assert.equal(source.includes('return kg.edgesForNodeIds(nodes.map((node) => node.id));'), true);
+  assert.equal(/for \(const node of nodes\) \{\s*const graph = await kg\.neighbors/.test(source), false);
+});
+
 test('novel bible paragraph status classifies header-only from pending candidates only', async () => {
   const source = await import('node:fs/promises').then((fs) => fs.readFile(new URL('./novelBible.ts', import.meta.url), 'utf8'));
 

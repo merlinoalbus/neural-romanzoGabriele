@@ -898,6 +898,22 @@ export async function neighbors(nodeId: string, opts: { depth?: number; kinds?: 
   return { nodes: [...nodeMap.values()], edges: [...edgeMap.values()] };
 }
 
+export async function edgesForNodeIds(nodeIds: string[]): Promise<GraphEdge[]> {
+  if (!nodeIds.length) return [];
+  const records = await run(
+    `MATCH (a:Entity {projectId:$pid})-[r:REL]-(b:Entity {projectId:$pid})
+     WHERE a.id IN $ids OR b.id IN $ids
+     RETURN r, startNode(r).id AS fromId, endNode(r).id AS toId`,
+    { pid: pid(), ids: nodeIds },
+  );
+  const edgeMap = new Map<string, GraphEdge>();
+  for (const record of records) {
+    const edge = edgeFrom(record.get('r'), String(record.get('fromId')), String(record.get('toId')));
+    edgeMap.set(edge.id, edge);
+  }
+  return [...edgeMap.values()];
+}
+
 export async function recall(query: string, opts: { depth?: number; limit?: number } = {}): Promise<{ matched: GraphNode[]; nodes: GraphNode[]; edges: GraphEdge[] }> {
   const matched = await search(query, { limit: opts.limit ?? 8 });
   const nodeMap = new Map<string, GraphNode>();

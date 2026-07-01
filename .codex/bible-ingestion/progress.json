@@ -1,9 +1,12 @@
 {
   "sourceId": "bibbia-gabriele-2025",
-  "lastCompletedParagraph": "2.1.1.21.4",
-  "lastCompletedPage": "2.1.1.21.4",
-  "lastCompletedAt": "2026-06-29T23:08:44.4494929+02:00",
-  "currentParagraph": "2.1.2",
+  "lastCompletedParagraph": "2.1.2",
+  "lastCompletedPage": "2.1.2",
+  "lastCompletedAt": "2026-07-01T19:39:40.000Z",
+  "currentParagraph": "2.1.2.1",
   "candidatePending": 0,
-  "notes": []
+  "notes": [
+    "2026-07-01: audit retroattivo su 94 paragrafi (1 -> 2.1.1.21.4) confermato pulito, nessuna anomalia.",
+    "2026-07-01: 2.1.2 verificato live via novel_bible_paragraph_status: workItemsPending_count=0, avanzato senza passare dalla pipeline completa."
+  ]
 }

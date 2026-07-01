@@ -32,6 +32,25 @@ export interface OpenPoint {
   plotThread: KgNode | null;
 }
 
+export interface SemanticSearchNode extends KgNode {
+  score: number;
+}
+
+export interface BibleProgress {
+  sourceId: string | null;
+  sectionCount: number;
+  pendingCandidates: number;
+  canonicalClaims: number;
+  genericRelatedToEdges: number;
+  duplicateCanonicalNodeGroups: number;
+  lastSectionUpdatedAt: string | null;
+}
+
+export interface EmbeddingIndexStatus {
+  indexExists: boolean;
+  embeddedNodeCount: number;
+}
+
 export interface GraphSnapshot {
   schemaVersion: string;
   projectId: string;
@@ -132,6 +151,21 @@ export function listKgNodes(limit = 80, type?: string): Promise<{ nodes: KgNode[
 
 export function listKgOpenPoints(limit = 120): Promise<{ points: OpenPoint[] }> {
   return getJson<{ points: OpenPoint[] }>(`/api/v2/kg/open-points?limit=${limit}`);
+}
+
+export function semanticSearchKg(q: string, type?: string, limit?: number): Promise<{ nodes: SemanticSearchNode[] }> {
+  const params = new URLSearchParams({ q });
+  if (type) params.set('type', type);
+  if (limit) params.set('limit', String(limit));
+  return getJson<{ nodes: SemanticSearchNode[] }>(`/api/v2/kg/semantic-search?${params.toString()}`);
+}
+
+export function getBibleProgress(): Promise<BibleProgress> {
+  return getJson<BibleProgress>('/api/v2/bible/progress');
+}
+
+export function getEmbeddingIndexStatus(): Promise<EmbeddingIndexStatus> {
+  return getJson<EmbeddingIndexStatus>('/api/v2/bible/embedding-status');
 }
 
 export async function exportGraphSnapshot(): Promise<{ blob: Blob; filename: string }> {

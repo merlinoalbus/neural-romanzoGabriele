@@ -3,6 +3,7 @@ import express from 'express';
 import { checkDataPath, config, validateConfig } from './config.js';
 import { logger } from './logger.js';
 import adminRouter from './routes/admin.js';
+import bibleRouter from './routes/bible.js';
 import documentsRouter from './routes/documents.js';
 import kgRouter from './routes/kg.js';
 import * as kg from './services/neo4jReadService.js';
@@ -15,6 +16,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use('/api/v2/kg', kgRouter);
 app.use('/api/v2/documents', documentsRouter);
 app.use('/api/v2/admin', adminRouter);
+app.use('/api/v2/bible', bibleRouter);
 
 app.get('/api/config', (_req, res) => {
   res.json({ projectId: config.projectId, filesystemStorage: 'disabled' });

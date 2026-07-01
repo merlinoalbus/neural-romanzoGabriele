@@ -31,6 +31,25 @@ router.get('/search', async (req, res) => {
   }
 });
 
+router.get('/semantic-search', async (req, res) => {
+  try {
+    const q = String(req.query.q ?? '').trim();
+    if (!q) {
+      res.json({ nodes: [] });
+      return;
+    }
+    const type = req.query.type ? String(req.query.type) : undefined;
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    res.json({ nodes: await kg.semanticSearch(q, { type, limit, includeInternal: includeInternal(req) }) });
+  } catch (err) {
+    if (err instanceof kg.EmbeddingsNotConfiguredError) {
+      res.status(409).json({ error: err.message, code: 'EMBEDDINGS_NOT_CONFIGURED' });
+      return;
+    }
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 router.get('/neighbors', async (req, res) => {
   try {
     const id = String(req.query.id ?? '').trim();

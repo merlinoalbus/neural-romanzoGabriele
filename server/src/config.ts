@@ -24,6 +24,13 @@ export const config = {
     user: process.env.NEO4J_USER || 'neo4j',
     password: process.env.NEO4J_PASSWORD || '',
   },
+  embeddings: {
+    provider: process.env.EMBEDDINGS_PROVIDER || '',
+    apiKey: process.env.EMBEDDINGS_API_KEY || '',
+    baseUrl: (process.env.EMBEDDINGS_BASE_URL || 'https://api.openai.com/v1').replace(/\/+$/, ''),
+    model: process.env.EMBEDDINGS_MODEL || '',
+    timeoutMs: intFromEnv('EMBEDDINGS_TIMEOUT_MS', 30_000),
+  },
 } as const;
 
 export function validateConfig(): string[] {

@@ -23,6 +23,8 @@ Portainer esegue:
 - `romanzo_gabriele_be`
 - `romanzo_gabriele_mcp`
 - `romanzo_gabriele_neo4j`
+- `romanzo_gabriele_ollama` (embeddings self-hosted, vedi sezione Embeddings vettoriali)
+- `romanzo_gabriele_ollama_init` (one-shot: pull del modello di embedding, poi esce)
 - `romanzo_gabriele_watchtower`
 
 Il server MCP canonico per i connector IA e `https://devrn-romanzo-mcp.nasmerlinoalbus.cloud/mcp`.
@@ -82,14 +84,18 @@ Tool generici mantenuti:
 
 Il server MCP supporta embeddings reali OpenAI-compatible per ricerca semantica profonda sul grafo. Non genera vettori fittizi: se il provider non e configurato, `kg_backfill_embeddings` e `kg_semantic_search` restituiscono errore operativo.
 
-Variabili supportate:
+Di default lo stack usa un provider **self-hosted, senza API key a pagamento**: il servizio `romanzo_gabriele_ollama` (immagine `ollama/ollama`, modello `nomic-embed-text`, 768 dimensioni) espone un endpoint OpenAI-compatible su `http://romanzo_gabriele_ollama:11434/v1`. Il container `romanzo_gabriele_ollama_init` esegue il pull del modello al primo avvio dello stack. `embeddingService.ts` non richiede alcuna modifica: e' gia' agnostico rispetto al provider via HTTP OpenAI-compatible, quindi punta a Ollama o a un provider a pagamento solo cambiando le variabili d'ambiente.
+
+Variabili supportate (default nello stack Docker = Ollama locale):
 
 - `EMBEDDINGS_PROVIDER=openai-compatible`
-- `EMBEDDINGS_API_KEY`
-- `EMBEDDINGS_BASE_URL`, default `https://api.openai.com/v1`
-- `EMBEDDINGS_MODEL`
-- `EMBEDDINGS_DIMENSIONS`, opzionale
+- `EMBEDDINGS_API_KEY`, default `ollama-local` (valore fittizio, Ollama non valida la chiave)
+- `EMBEDDINGS_BASE_URL`, default `http://romanzo_gabriele_ollama:11434/v1` (oppure `https://api.openai.com/v1` per un provider a pagamento)
+- `EMBEDDINGS_MODEL`, default `nomic-embed-text`
+- `EMBEDDINGS_DIMENSIONS`, default `768` (allineato a `nomic-embed-text`)
 - `EMBEDDINGS_TIMEOUT_MS`, default `30000`
+
+Per usare un provider a pagamento (es. OpenAI) invece del sidecar locale, sovrascrivi queste quattro variabili nel `.env` dello stack.
 
 Fallback compatibili:
 

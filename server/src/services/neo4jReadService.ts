@@ -318,6 +318,135 @@ export async function listNodes(opts: { type?: string; limit?: number; includeIn
   return records.map((rec) => nodeFrom(rec.get('n')));
 }
 
+export interface BibleProgressSummary {
+  sourceId: string | null;
+  sectionCount: number;
+  pendingCandidates: number;
+  canonicalClaims: number;
+  genericRelatedToEdges: number;
+  duplicateCanonicalNodeGroups: number;
+  lastSectionUpdatedAt: string | null;
+}
+
+export async function bibleProgress(): Promise<BibleProgressSummary> {
+  const pid = config.projectId;
+  const [sample, sectionCountRows, pendingRows, claimRows, relatedToRows, duplicateRows, lastUpdatedRows] = await Promise.all([
+    run(`MATCH (n:Entity {projectId:$pid, type:'bible_section'}) RETURN n LIMIT 1`, { pid }),
+    run(`MATCH (n:Entity {projectId:$pid, type:'bible_section'}) RETURN count(n) AS c`, { pid }),
+    run(
+      `MATCH (n:Entity {projectId:$pid, type:'bible_candidate'})
+       WHERE NOT n.metadata CONTAINS '"status":"committed"' AND NOT n.metadata CONTAINS '"status":"rejected"'
+       RETURN count(n) AS c`,
+      { pid },
+    ),
+    run(
+      `MATCH (n:Entity {projectId:$pid, type:'bible_claim'}) WHERE n.metadata CONTAINS '"canonStatus":"canonical"' RETURN count(n) AS c`,
+      { pid },
+    ),
+    run(`MATCH (:Entity {projectId:$pid})-[r:REL {kind:'related_to'}]->(:Entity {projectId:$pid}) RETURN count(r) AS c`, { pid }),
+    run(
+      `MATCH (n:Entity {projectId:$pid}) WHERE n.metadata CONTAINS '"canonStatus":"canonical"'
+       WITH n.type AS t, n.label AS l, count(*) AS c
+       WHERE c > 1
+       RETURN count(*) AS groups`,
+      { pid },
+    ),
+    run(`MATCH (n:Entity {projectId:$pid, type:'bible_section'}) RETURN max(n.updatedAt) AS m`, { pid }),
+  ]);
+  const sourceId = sample.length ? String(safeJson(sample[0].get('n').properties.metadata).sourceId ?? '') || null : null;
+  return {
+    sourceId,
+    sectionCount: toInt(sectionCountRows[0]?.get('c') ?? 0),
+    pendingCandidates: toInt(pendingRows[0]?.get('c') ?? 0),
+    canonicalClaims: toInt(claimRows[0]?.get('c') ?? 0),
+    genericRelatedToEdges: toInt(relatedToRows[0]?.get('c') ?? 0),
+    duplicateCanonicalNodeGroups: toInt(duplicateRows[0]?.get('groups') ?? 0),
+    lastSectionUpdatedAt: (lastUpdatedRows[0]?.get('m') as string | null) ?? null,
+  };
+}
+
+export interface EmbeddingIndexStatus {
+  indexExists: boolean;
+  embeddedNodeCount: number;
+}
+
+export async function embeddingIndexStatus(): Promise<EmbeddingIndexStatus> {
+  const pid = config.projectId;
+  const [idxRows, countRows] = await Promise.all([
+    run(`SHOW INDEXES YIELD name WHERE name = 'entity_embedding' RETURN count(*) AS c`),
+    run(`MATCH (n:Entity {projectId:$pid}) WHERE n.embedding IS NOT NULL RETURN count(n) AS c`, { pid }),
+  ]);
+  return {
+    indexExists: toInt(idxRows[0]?.get('c') ?? 0) > 0,
+    embeddedNodeCount: toInt(countRows[0]?.get('c') ?? 0),
+  };
+}
+
+export class EmbeddingsNotConfiguredError extends Error {}
+
+function queryEmbeddingConfigured(): boolean {
+  const { provider, apiKey, model } = config.embeddings;
+  return provider === 'openai-compatible' && Boolean(apiKey.trim()) && Boolean(model.trim());
+}
+
+async function embedQueryText(text: string): Promise<number[]> {
+  const { apiKey, baseUrl, model, timeoutMs } = config.embeddings;
+  if (!queryEmbeddingConfigured()) {
+    throw new EmbeddingsNotConfiguredError('Embeddings provider is not configured on the backend');
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(`${baseUrl}/embeddings`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ model, input: text }),
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      const message = await response.text().catch(() => '');
+      throw new Error(`embedding_provider_error: ${response.status} ${response.statusText}${message ? ` - ${message}` : ''}`);
+    }
+    const payload = (await response.json()) as { data?: Array<{ embedding?: unknown }> };
+    const vector = payload.data?.[0]?.embedding;
+    if (!Array.isArray(vector) || vector.length === 0 || !vector.every((value) => typeof value === 'number' && Number.isFinite(value))) {
+      throw new Error('embedding_provider_error: response does not contain a valid numeric embedding');
+    }
+    return vector as number[];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export interface SemanticSearchResult extends GraphNode {
+  score: number;
+}
+
+export async function semanticSearch(query: string, opts: { type?: string; limit?: number; includeInternal?: boolean } = {}): Promise<SemanticSearchResult[]> {
+  const pid = config.projectId;
+  const limit = clampInt(opts.limit, 20, 1, 100);
+  const vector = await embedQueryText(query);
+  const params = { pid, vector, k: neo4j.int(limit * 3), topLimit: neo4j.int(limit), type: opts.type ?? null, ...viewParams(opts) };
+  try {
+    const records = await run(
+      `CALL db.index.vector.queryNodes('entity_embedding', $k, $vector) YIELD node, score
+       WHERE node.projectId = $pid
+         AND ($includeInternal OR (NOT (node.type IN $hiddenTypes) AND NOT (node.type = 'continuity_finding' AND node.label STARTS WITH $openPointLabelPrefix)))
+         ${opts.type ? 'AND node.type = $type' : ''}
+       RETURN node, score
+       ORDER BY score DESC
+       LIMIT $topLimit`,
+      params,
+    );
+    return records.map((rec) => ({ ...nodeFrom(rec.get('node')), score: Number(rec.get('score')) }));
+  } catch (err) {
+    if (/no such vector schema index|entity_embedding/i.test(String(err))) {
+      throw new EmbeddingsNotConfiguredError('Vector index entity_embedding does not exist yet: run kg_backfill_embeddings first');
+    }
+    throw err;
+  }
+}
+
 export async function listOpenPoints(opts: { limit?: number } = {}): Promise<OpenPoint[]> {
   const limit = clampInt(opts.limit, 100, 1, 500);
   const records = await run(

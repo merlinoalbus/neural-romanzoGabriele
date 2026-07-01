@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { Database, Download, FileText, ListChecks, Network, RefreshCw, Search, ShieldCheck, Upload, X } from 'lucide-react';
+import { BookOpen, Database, Download, FileText, ListChecks, Network, RefreshCw, Search, ShieldCheck, Sparkles, Upload, X } from 'lucide-react';
 import {
   commitGraphSnapshotImport,
   dryRunGraphSnapshotImport,
   exportGraphSnapshot,
+  getBibleProgress,
+  getEmbeddingIndexStatus,
   getKgNeighbors,
   getKgNode,
   getKgStats,
@@ -12,6 +14,9 @@ import {
   listKgNodes,
   listKgOpenPoints,
   searchKg,
+  semanticSearchKg,
+  type BibleProgress,
+  type EmbeddingIndexStatus,
   type GraphSnapshot,
   type ImportMode,
   type KgEdge,
@@ -78,7 +83,7 @@ const TYPE_LABELS: Record<string, string> = {
 const colorFor = (type: string): string => TYPE_COLORS[type] ?? '#334155';
 const labelFor = (type: string): string => TYPE_LABELS[type] ?? type;
 
-type Tab = 'search' | 'openPoints' | 'documents' | 'admin';
+type Tab = 'search' | 'openPoints' | 'documents' | 'bible' | 'admin';
 
 interface GNode {
   id: string;
@@ -139,6 +144,9 @@ export function App() {
   const [snapshot, setSnapshot] = useState<GraphSnapshot | null>(null);
   const [snapshotFileName, setSnapshotFileName] = useState('');
   const [importResult, setImportResult] = useState<SnapshotImportResult | null>(null);
+  const [bibleProgress, setBibleProgress] = useState<BibleProgress | null>(null);
+  const [embeddingStatus, setEmbeddingStatus] = useState<EmbeddingIndexStatus | null>(null);
+  const [semanticMode, setSemanticMode] = useState(false);
   const graphRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ width: 900, height: 640 });
 
@@ -149,6 +157,18 @@ export function App() {
 
   const refreshStats = useCallback(async () => {
     setStats(await getKgStats());
+  }, []);
+
+  const loadBibleProgress = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setBibleProgress(await getBibleProgress());
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const loadNodes = useCallback(async (type?: string) => {
@@ -167,6 +187,10 @@ export function App() {
   useEffect(() => {
     void refreshStats().catch((err) => setError(String(err)));
   }, [refreshStats]);
+
+  useEffect(() => {
+    void getEmbeddingIndexStatus().then(setEmbeddingStatus).catch(() => setEmbeddingStatus({ indexExists: false, embeddedNodeCount: 0 }));
+  }, []);
 
   useEffect(() => {
     void loadNodes().catch((err) => setError(String(err)));
@@ -191,14 +215,16 @@ export function App() {
     setLoading(true);
     setError(null);
     try {
-      const response = await searchKg(q, typeFilter.trim() || undefined, 40);
+      const response = semanticMode
+        ? await semanticSearchKg(q, typeFilter.trim() || undefined, 40)
+        : await searchKg(q, typeFilter.trim() || undefined, 40);
       setResults(response.nodes);
     } catch (err) {
       setError(String(err));
     } finally {
       setLoading(false);
     }
-  }, [loadNodes, query, typeFilter]);
+  }, [loadNodes, query, semanticMode, typeFilter]);
 
   const loadDocuments = useCallback(async () => {
     setLoading(true);
@@ -343,6 +369,7 @@ export function App() {
             <button className={tab === 'search' ? 'active' : ''} onClick={() => setTab('search')}><Search size={15} />Grafo</button>
             <button className={tab === 'openPoints' ? 'active' : ''} onClick={() => { setTab('openPoints'); void loadOpenPoints(); }}><ListChecks size={15} />Punti aperti</button>
             <button className={tab === 'documents' ? 'active' : ''} onClick={() => { setTab('documents'); void loadDocuments(); }}><FileText size={15} />Documenti</button>
+            <button className={tab === 'bible' ? 'active' : ''} onClick={() => { setTab('bible'); void loadBibleProgress(); }}><BookOpen size={15} />Bibbia</button>
             <button className={tab === 'admin' ? 'active' : ''} onClick={() => setTab('admin')}><ShieldCheck size={15} />Admin</button>
           </div>
 
@@ -350,6 +377,14 @@ export function App() {
             <div className="search-box">
               <input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void runSearch(); }} placeholder="Cerca nel romanzo" />
               <input value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void runSearch(); }} placeholder="tipo" />
+              <button
+                className={semanticMode ? 'icon-button active' : 'icon-button'}
+                title={embeddingStatus?.indexExists ? 'Ricerca semantica (per affinita di significato)' : 'Ricerca semantica non ancora disponibile: esegui kg_backfill_embeddings'}
+                disabled={!embeddingStatus?.indexExists}
+                onClick={() => setSemanticMode((current) => !current)}
+              >
+                <Sparkles size={18} />
+              </button>
               <button className="icon-button primary" title="Cerca" onClick={() => void runSearch()}><Search size={18} /></button>
             </div>
           )}
@@ -400,6 +435,39 @@ export function App() {
             </div>
           )}
 
+          {tab === 'bible' && (
+            <div className="bible-box">
+              {bibleProgress ? (
+                <>
+                  {bibleProgress.sourceId && <div className="admin-line">Fonte: {bibleProgress.sourceId}</div>}
+                  <div className="bible-stat"><span>Sezioni ingerite</span><b>{bibleProgress.sectionCount}</b></div>
+                  <div className={bibleProgress.pendingCandidates > 0 ? 'bible-stat warn' : 'bible-stat ok'}>
+                    <span>Candidati in sospeso</span><b>{bibleProgress.pendingCandidates}</b>
+                  </div>
+                  <div className="bible-stat"><span>Claim canonici</span><b>{bibleProgress.canonicalClaims}</b></div>
+                  <div className={bibleProgress.genericRelatedToEdges > 0 ? 'bible-stat warn' : 'bible-stat ok'}>
+                    <span>Relazioni generiche (related_to)</span><b>{bibleProgress.genericRelatedToEdges}</b>
+                  </div>
+                  <div className={bibleProgress.duplicateCanonicalNodeGroups > 0 ? 'bible-stat warn' : 'bible-stat ok'}>
+                    <span>Gruppi di nodi duplicati</span><b>{bibleProgress.duplicateCanonicalNodeGroups}</b>
+                  </div>
+                  {bibleProgress.lastSectionUpdatedAt && (
+                    <div className="admin-line">Ultimo aggiornamento sezione: {new Date(bibleProgress.lastSectionUpdatedAt).toLocaleString('it-IT')}</div>
+                  )}
+                  <div className={embeddingStatus?.indexExists ? 'bible-stat ok' : 'bible-stat warn'}>
+                    <span>Ricerca semantica</span>
+                    <b>{embeddingStatus?.indexExists ? `attiva (${embeddingStatus.embeddedNodeCount} nodi indicizzati)` : 'non attiva'}</b>
+                  </div>
+                </>
+              ) : (
+                !loading && <div className="empty-state">Nessun dato di ingestion disponibile</div>
+              )}
+              <button className="command-button" onClick={() => void loadBibleProgress()} disabled={loading}>
+                <RefreshCw size={16} />Aggiorna
+              </button>
+            </div>
+          )}
+
           {error && <div className="error-line">{error}</div>}
           {loading && <div className="loading-line">Caricamento</div>}
 
@@ -422,7 +490,7 @@ export function App() {
               {!openPoints.length && !loading && <div className="empty-state">Nessun punto aperto</div>}
             </div>
           ) : (
-            <div className={tab === 'admin' ? 'result-list hidden' : 'result-list'}>
+            <div className={tab === 'admin' || tab === 'bible' ? 'result-list hidden' : 'result-list'}>
               {activeList.map((node) => (
                 <button key={node.id} className={selectedId === node.id ? 'result active' : 'result'} onClick={() => void expandNode(node.id)}>
                   <span className="dot" style={{ background: colorFor(node.type) }} />

@@ -523,6 +523,49 @@ export async function timeline(): Promise<TimelineEntry[]> {
   return entries;
 }
 
+export interface HealthReport {
+  totals: { nodes: number; edges: number };
+  nodeTypes: Record<string, number>;
+  edgeKinds: Record<string, number>;
+  relatedToEdges: number;
+  orphanNodes: number;
+  chaptersMissingDate: number;
+  timelineUnanchored: number;
+  openPoints: number;
+}
+
+// Graph-derived model health (the audit findings themselves live only in committed
+// report files by design — "il grafo contiene solo il modello consolidato"). This
+// surfaces live structural signals: generic-edge debt, orphans, missing chapter dates,
+// unanchored timeline events, and open plot-thread points.
+export async function health(): Promise<HealthReport> {
+  const pid = config.projectId;
+  const base = await stats();
+  const relatedRows = await run(
+    "MATCH (:Entity {projectId:$pid})-[r:REL {kind:'related_to'}]->(:Entity {projectId:$pid}) RETURN count(r) AS c",
+    { pid },
+  );
+  const orphanRows = await run(
+    `MATCH (n:Entity {projectId:$pid})
+     WHERE NOT (n.type IN $hiddenTypes)
+       AND NOT (n.type = 'continuity_finding' AND n.label STARTS WITH $openPointLabelPrefix)
+       AND NOT (n)-[:REL]-(:Entity {projectId:$pid})
+     RETURN count(n) AS c`,
+    { pid, hiddenTypes: NARRATIVE_HIDDEN_NODE_TYPES, openPointLabelPrefix: OPEN_POINT_LABEL_PREFIX },
+  );
+  const [chapters, tl, openPoints] = await Promise.all([listChapters(), timeline(), listOpenPoints({ limit: 500 })]);
+  return {
+    totals: { nodes: base.nodes, edges: base.edges },
+    nodeTypes: base.nodeTypes,
+    edgeKinds: base.edgeKinds,
+    relatedToEdges: toInt(relatedRows[0]?.get('c') ?? 0),
+    orphanNodes: toInt(orphanRows[0]?.get('c') ?? 0),
+    chaptersMissingDate: chapters.filter((chapter) => !chapter.date && chapter.timePlane !== 'frame').length,
+    timelineUnanchored: tl.filter((entry) => !entry.chapterId).length,
+    openPoints: openPoints.length,
+  };
+}
+
 export async function listOpenPoints(opts: { limit?: number } = {}): Promise<OpenPoint[]> {
   const limit = clampInt(opts.limit, 100, 1, 500);
   const records = await run(

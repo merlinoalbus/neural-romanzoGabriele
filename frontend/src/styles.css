@@ -736,3 +736,60 @@ pre {
   margin: 10px 0 2px;
 }
 .admin-section:first-child { margin-top: 0; }
+
+/* ---- Fase 3/4: Coerenza + Editoriale ---- */
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.health-tile {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.health-tile.warn { border-color: #fcd34d; background: #fffbeb; }
+.health-n { font-size: 26px; font-weight: 600; color: #111827; font-variant-numeric: tabular-nums; line-height: 1; }
+.health-tile.warn .health-n { color: #b45309; }
+.health-l { color: #475569; font-size: 12.5px; margin-top: 5px; }
+.health-s { color: #94a3b8; font-size: 11px; margin-top: 2px; }
+.linklike {
+  border: none;
+  background: transparent;
+  color: #0f766e;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+.axes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+.axis-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.axis-h {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #18202f;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.axis-d { color: #64748b; font-size: 12px; margin: 6px 0 0; }
+.tag-warn {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 2px 7px;
+  border-radius: 6px;
+  margin-left: auto;
+}

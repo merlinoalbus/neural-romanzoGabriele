@@ -127,6 +127,17 @@ export interface TimelineEntry {
   timePlane: string | null;
 }
 
+export interface HealthReport {
+  totals: { nodes: number; edges: number };
+  nodeTypes: Record<string, number>;
+  edgeKinds: Record<string, number>;
+  relatedToEdges: number;
+  orphanNodes: number;
+  chaptersMissingDate: number;
+  timelineUnanchored: number;
+  openPoints: number;
+}
+
 async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(path, { headers: { Accept: 'application/json' } });
   if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${await response.text()}`);
@@ -200,6 +211,10 @@ export function getEntityPacket(id: string): Promise<EntityPacket> {
 
 export function getTimeline(): Promise<{ entries: TimelineEntry[] }> {
   return getJson<{ entries: TimelineEntry[] }>('/api/v2/novel/timeline');
+}
+
+export function getHealth(): Promise<HealthReport> {
+  return getJson<HealthReport>('/api/v2/novel/health');
 }
 
 export async function exportGraphSnapshot(): Promise<{ blob: Blob; filename: string }> {

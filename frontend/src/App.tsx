@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { BookOpen, Clock, Database, Download, FileText, GitBranch, ListChecks, Network, RefreshCw, ScrollText, Search, ShieldCheck, Upload, Users, X } from 'lucide-react';
+import { Activity, BookOpen, Clock, Database, Download, FileText, GitBranch, Globe2, ListChecks, Network, PenLine, RefreshCw, ScrollText, Search, ShieldCheck, Upload, Users, X } from 'lucide-react';
 import {
   commitGraphSnapshotImport,
   dryRunGraphSnapshotImport,
   exportGraphSnapshot,
   getChapterPacket,
   getEntityPacket,
+  getHealth,
   getKgNeighbors,
   getKgNode,
   getKgStats,
@@ -20,6 +21,7 @@ import {
   type ChapterSummary,
   type EntityPacket,
   type GraphSnapshot,
+  type HealthReport,
   type ImportMode,
   type KgEdge,
   type KgNode,
@@ -86,9 +88,18 @@ const TYPE_LABELS: Record<string, string> = {
 const colorFor = (type: string): string => TYPE_COLORS[type] ?? '#334155';
 const labelFor = (type: string): string => TYPE_LABELS[type] ?? type;
 
-type Tab = 'search' | 'romanzo' | 'capitolo' | 'personaggio' | 'arco' | 'timeline' | 'openPoints' | 'documents' | 'admin';
+type Tab = 'search' | 'romanzo' | 'capitolo' | 'personaggio' | 'arco' | 'timeline' | 'mondo' | 'coerenza' | 'editoriale' | 'openPoints' | 'documents' | 'admin';
 
 const RESOLVED_KINDS = new Set(['resolves', 'pays_off']);
+// Home tab for a related node when navigating from a panel pill.
+const ENTITY_TAB: Partial<Record<string, Tab>> = {
+  character: 'personaggio',
+  plot_thread: 'arco',
+  world_rule: 'mondo',
+  power: 'mondo',
+  faction: 'mondo',
+  entity_class: 'mondo',
+};
 
 const isFrame = (plane: string | null): boolean => plane === 'frame';
 const metaString = (node: KgNode, key: string): string | null => {
@@ -388,6 +399,89 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
   );
 }
 
+function CoerenzaPanel({ health, onOpenPoints }: { health: HealthReport | null; onOpenPoints: () => void }) {
+  if (!health) return <div className="graph-empty">Carico la salute del modello…</div>;
+  const tiles: { n: number; l: string; s?: string; warn?: boolean }[] = [
+    { n: health.totals.nodes, l: 'Nodi' },
+    { n: health.totals.edges, l: 'Archi' },
+    { n: health.openPoints, l: 'Punti aperti', s: 'plot_thread inattivi', warn: health.openPoints > 0 },
+    { n: health.relatedToEdges, l: 'Archi generici', s: 'related_to da tipizzare', warn: health.relatedToEdges > 0 },
+    { n: health.orphanNodes, l: 'Nodi orfani', s: 'senza archi', warn: health.orphanNodes > 0 },
+    { n: health.chaptersMissingDate, l: 'Capitoli senza data', s: 'main_story', warn: health.chaptersMissingDate > 0 },
+    { n: health.timelineUnanchored, l: 'Eventi non ancorati', s: 'senza capitolo', warn: health.timelineUnanchored > 0 },
+  ];
+  return (
+    <div className="novel-panel">
+      <div className="novel-head">
+        <h2>Coerenza / Salute del modello</h2>
+        <p className="novel-sub">Segnali strutturali <b>live</b> dal grafo. L'audit editoriale dettagliato (26 incongruenze su 5 assi) vive nei report versionati in <span className="edge-kind">dev-data/reports/</span> — il grafo contiene solo il modello consolidato.</p>
+      </div>
+      <div className="health-grid">
+        {tiles.map((tile) => (
+          <div className={`health-tile${tile.warn ? ' warn' : ''}`} key={tile.l}>
+            <div className="health-n">{tile.n}</div>
+            <div className="health-l">{tile.l}</div>
+            {tile.s && <div className="health-s">{tile.s}</div>}
+          </div>
+        ))}
+      </div>
+      {health.openPoints > 0 && (
+        <p className="novel-note">
+          Ci sono <b>{health.openPoints}</b> punti aperti (fili narrativi inattivi). <button className="linklike" onClick={onOpenPoints}>Apri i Punti aperti →</button>
+        </p>
+      )}
+    </div>
+  );
+}
+
+const AXES: { key: string; label: string; desc: string; semantic?: boolean }[] = [
+  { key: 'canone', label: 'Coerenza col canone', desc: 'La bozza non contraddice Bibbia/personaggi/regole/timeline (ancora = modello consolidato).' },
+  { key: 'ridondanza', label: 'Ridondanza', desc: 'Ripetizioni vs capitoli già scritti — richiede embeddings semantici attivi.', semantic: true },
+  { key: 'antipattern', label: 'Antipattern narrativi', desc: 'Info-dump, deus ex machina, telling>showing, ritmo piatto.' },
+  { key: 'stile', label: 'Aderenza di stile', desc: 'Voce, registro, POV coerenti con le style_rule del progetto.' },
+  { key: 'cronologia', label: 'Cronologia', desc: 'Date/ordine coerenti con la timeline e i capitoli adiacenti.' },
+];
+
+function EditorialePanel({ drafts, onOpen }: { drafts: KgNode[]; onOpen: (id: string, type: string) => void }) {
+  return (
+    <div className="novel-panel">
+      <div className="novel-head">
+        <h2>Cockpit Editoriale</h2>
+        <p className="novel-sub">
+          Plancia dello stato editoriale. La valutazione qualitativa della prosa avviene <b>in chat</b> con il modello sul context packet (canone come ground truth); la pipeline MCP <span className="edge-kind">novel_*</span> persiste bozze e decisioni. Il FE resta di sola lettura.
+        </p>
+      </div>
+      <section className="novel-block">
+        <h3>Bozze &amp; sessioni <small>{drafts.length}</small></h3>
+        {drafts.length === 0 ? (
+          <p className="muted">Nessuna bozza ancora nel grafo. Incolla in chat una proposta di capitolo: la valuto sui 5 assi qui sotto e consolido i dettagli emersi nel modello.</p>
+        ) : (
+          <div className="result-list">
+            {drafts.map((draft) => (
+              <button key={draft.id} className="result" onClick={() => onOpen(draft.id, draft.type)}>
+                <span className="dot" style={{ background: colorFor(draft.type) }} />
+                <span className="result-main"><b>{draft.label}</b><small>{labelFor(draft.type)}</small></span>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+      <section className="novel-block">
+        <h3>Framework di valutazione — 5 assi</h3>
+        <div className="axes-grid">
+          {AXES.map((axis) => (
+            <div className="axis-card" key={axis.key}>
+              <div className="axis-h">{axis.label}{axis.semantic && <span className="tag-warn">semantico</span>}</div>
+              <p className="axis-d">{axis.desc}</p>
+            </div>
+          ))}
+        </div>
+        <p className="novel-note">La ridondanza semantica cross-capitolo si attiva dopo il redeploy NAS + <span className="edge-kind">kg_backfill_embeddings</span> (config Ollama già in main). Gli altri assi sono ancorati alla Bibbia consolidata.</p>
+      </section>
+    </div>
+  );
+}
+
 function StatBar({ stats }: { stats: KgStats | null }) {
   const topTypes = useMemo(() => Object.entries(stats?.nodeTypes ?? {}).sort((a, b) => b[1] - a[1]).slice(0, 8), [stats]);
   return (
@@ -428,8 +522,11 @@ export function App() {
   const [chapterPacket, setChapterPacket] = useState<ChapterPacket | null>(null);
   const [characters, setCharacters] = useState<KgNode[]>([]);
   const [arcs, setArcs] = useState<KgNode[]>([]);
+  const [world, setWorld] = useState<KgNode[]>([]);
   const [entityPacket, setEntityPacket] = useState<EntityPacket | null>(null);
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
+  const [health, setHealth] = useState<HealthReport | null>(null);
+  const [drafts, setDrafts] = useState<KgNode[]>([]);
   const graphRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ width: 900, height: 640 });
 
@@ -521,14 +618,54 @@ export function App() {
     }
   }, [timeline.length]);
 
+  const loadWorld = useCallback(async () => {
+    if (world.length) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const [rules, powers] = await Promise.all([listKgNodes(200, 'world_rule'), listKgNodes(200, 'power')]);
+      setWorld([...rules.nodes, ...powers.nodes]);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [world.length]);
+
+  const loadHealth = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setHealth(await getHealth());
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadDrafts = useCallback(async () => {
+    if (drafts.length) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const [chapterDrafts, sessions] = await Promise.all([listKgNodes(100, 'chapter_draft'), listKgNodes(100, 'editing_session')]);
+      setDrafts([...chapterDrafts.nodes, ...sessions.nodes]);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [drafts.length]);
+
   const openEntity = useCallback(async (id: string, type: string) => {
     // Chapters keep their dedicated packet view; everything else uses the entity packet.
     if (type === 'chapter') {
       void openChapter(id);
       return;
     }
-    setTab(type === 'plot_thread' ? 'arco' : 'personaggio');
     setSelectedId(id);
+    setTab((current) => ENTITY_TAB[type] ?? (current === 'personaggio' || current === 'arco' || current === 'mondo' ? current : 'personaggio'));
     setLoading(true);
     setError(null);
     try {
@@ -721,6 +858,9 @@ export function App() {
             <button className={tab === 'personaggio' ? 'active' : ''} onClick={() => { setTab('personaggio'); void loadCharacters(); }}><Users size={15} />Personaggi</button>
             <button className={tab === 'arco' ? 'active' : ''} onClick={() => { setTab('arco'); void loadArcs(); }}><GitBranch size={15} />Archi</button>
             <button className={tab === 'timeline' ? 'active' : ''} onClick={() => { setTab('timeline'); void loadTimeline(); }}><Clock size={15} />Timeline</button>
+            <button className={tab === 'mondo' ? 'active' : ''} onClick={() => { setTab('mondo'); void loadWorld(); }}><Globe2 size={15} />Mondo</button>
+            <button className={tab === 'coerenza' ? 'active' : ''} onClick={() => { setTab('coerenza'); void loadHealth(); }}><Activity size={15} />Coerenza</button>
+            <button className={tab === 'editoriale' ? 'active' : ''} onClick={() => { setTab('editoriale'); void loadDrafts(); }}><PenLine size={15} />Editoriale</button>
             <button className={tab === 'search' ? 'active' : ''} onClick={() => setTab('search')}><Search size={15} />Grafo</button>
             <button className={tab === 'openPoints' ? 'active' : ''} onClick={() => { setTab('openPoints'); void loadOpenPoints(); }}><ListChecks size={15} />Punti aperti</button>
             <button className={tab === 'documents' ? 'active' : ''} onClick={() => { setTab('documents'); void loadDocuments(); }}><FileText size={15} />Documenti</button>
@@ -813,8 +953,10 @@ export function App() {
             <EntityNavList nodes={characters} selectedId={selectedId} onOpen={(id) => void openEntity(id, 'character')} />
           ) : tab === 'arco' ? (
             <EntityNavList nodes={arcs} selectedId={selectedId} onOpen={(id) => void openEntity(id, 'plot_thread')} />
-          ) : tab === 'timeline' ? (
-            <div className="empty-state">Timeline nel pannello →</div>
+          ) : tab === 'mondo' ? (
+            <EntityNavList nodes={world} selectedId={selectedId} onOpen={(id) => void openEntity(id, world.find((node) => node.id === id)?.type ?? 'world_rule')} />
+          ) : tab === 'timeline' || tab === 'coerenza' || tab === 'editoriale' ? (
+            <div className="empty-state">Contenuto nel pannello →</div>
           ) : (
             <div className={tab === 'admin' ? 'result-list hidden' : 'result-list'}>
               {activeList.map((node) => (
@@ -860,10 +1002,14 @@ export function App() {
             <RomanzoPanel chapters={chapters} selectedId={selectedId} onOpen={(id) => void openChapter(id)} />
           ) : tab === 'capitolo' ? (
             <CapitoloPanel packet={chapterPacket} onOpen={(id) => void openChapter(id)} />
-          ) : tab === 'personaggio' || tab === 'arco' ? (
+          ) : tab === 'personaggio' || tab === 'arco' || tab === 'mondo' ? (
             <EntityPanel packet={entityPacket} onOpen={(id, type) => void openEntity(id, type)} />
           ) : tab === 'timeline' ? (
             <TimelinePanel entries={timeline} onOpenChapter={(id) => void openChapter(id)} onOpenEntity={(id) => void openEntity(id, 'timeline_event')} />
+          ) : tab === 'coerenza' ? (
+            <CoerenzaPanel health={health} onOpenPoints={() => { setTab('openPoints'); void loadOpenPoints(); }} />
+          ) : tab === 'editoriale' ? (
+            <EditorialePanel drafts={drafts} onOpen={(id, type) => void openEntity(id, type)} />
           ) : graph.nodes.length > 0 ? (
             <ForceGraph2D<GNode, GLink>
               width={dims.width}

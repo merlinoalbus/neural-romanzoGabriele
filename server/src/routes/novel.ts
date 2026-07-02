@@ -48,4 +48,12 @@ router.get('/timeline', async (_req, res) => {
   }
 });
 
+router.get('/health', async (_req, res) => {
+  try {
+    res.json(await kg.health());
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 export default router;

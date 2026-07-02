@@ -1,11 +1,15 @@
 {
   "sourceId": "bibbia-gabriele-2025",
-  "lastCompletedParagraph": "2.1.2",
-  "lastCompletedPage": "2.1.2",
-  "lastCompletedAt": "2026-07-01T00:39:54.1354215+02:00",
+  "lastCompletedParagraph": "5",
+  "lastCompletedPage": "5",
+  "lastCompletedAt": "2026-07-02T13:55:00+02:00",
   "currentParagraph": null,
   "candidatePending": 0,
   "notes": [
-    "2.1.2 completato con cleanup 8 wrapper e PASS."
+    "Coda esaurita: ingestion + consolidamento canonico completati per tutte le 911 sezioni (1 .. 5).",
+    "Percorso: inventario integrale 911/911 -> 641 nodi canonici consolidati verbatim (label bibbia-gabriele-2025::<key>::canon) -> 820 archi canonici (defines/mentions/precedes) -> pulizia scaffolding completa.",
+    "Pulizia: 3710 bible_claim, 9077 bible_candidate e tutti i nodi-specchio ::bible-candidate-* eliminati via kg_delete_nodes (record di ripristino in dev-data/reports/).",
+    "Stato finale grafo: 2380 nodi / 6838 archi; bible_candidate=0, bible_claim=0; strato sorgente intatto (911 bible_section, 8 bible_coverage_finding, 1 bible_outline).",
+    "Esito verifica completa novel_bible_progress_eligibility su tutte le 911 sezioni: vedi report di outcome in dev-data/reports/."
   ]
 }

@@ -1,0 +1,43 @@
+{
+  "reportType": "chapter-restructure",
+  "sourceId": "bibbia-gabriele-2025",
+  "generatedAt": "2026-07-02T14:05:00Z",
+  "mandate": "Correzione struttura capitoli: '22.5' non esiste -> diventa 23, capitoli successivi shift +1; totale 41 unita = Prologo + 39 capitoli + Epilogo. Piu audit incongruenze.",
+  "before": { "chapterNodes": 34, "numbering": "1-38 + 22.5 (frazionario)", "precedesEdges": 1137 },
+  "after": { "chapterNodes": 39, "numbering": "1-39 (interi)", "precedesEdges": 1155 },
+  "actions": {
+    "renumbered": {
+      "count": 15,
+      "rule": "22.5->23; poi vecchio>=23 -> +1",
+      "map": {"22.5->23":"L'Invito Ingannevole e la Gelosia di Lisa","23->24":"SpeedyGonzy colpisce ancora","24->25":"Ali Invisibili","25->26":"Il ruggito del Leone","27->28":"Quando il Nerd entra in campo","28->29":"La vera identita di SpeedyGonzy","29->30":"Fratello di Luce","31->32":"Echi dal Passato Celeste","32->33":"L'Ultimatum Celeste","33->34":"Il Palazzo di Ghiaccio","34->35":"L'Arrivo di Michael","35->36":"Un istante lungo mille vite","36->37":"Lacrime e Stelle Cadenti","37->38":"Preghiere nella Notte","38->39":"Il Dono della Vita Umana"},
+      "note": "Numerazione originale del documento conservata in metadata.documentChapterLabel di ogni nodo."
+    },
+    "createdMissing": {
+      "count": 5,
+      "nodes": [
+        {"chapter": 8, "title": "E diventato magico?", "kind": "interlude", "timePlane": "frame", "sourceSection": "4.1.9", "id": "a13f54ed-454c-4b9c-85e2-f59e4c95071a"},
+        {"chapter": 10, "title": "Rinuncia e Ritorsione", "kind": "main", "timePlane": "main_story", "sourceSection": "4.2.2", "id": "80816a74-5af1-457c-bb89-2469c3cbb32a"},
+        {"chapter": 15, "title": "Il Prezzo dell'Amicizia", "kind": "interlude", "timePlane": "frame", "sourceSection": "4.2.7", "id": "dd39f7b7-641f-445b-85d7-52f31b0f9667"},
+        {"chapter": 27, "title": "Strani Poteri?", "kind": "interlude", "timePlane": "frame", "sourceSection": "4.3.8", "documentChapterLabel": "CAP. 26", "id": "f582ada1-eb63-4738-8b24-b22be354b36d"},
+        {"chapter": 31, "title": "Un angelo? Davvero?", "kind": "interlude", "timePlane": "frame", "sourceSection": "4.4.1", "documentChapterLabel": "CAP. 30", "id": "01c29084-d971-4ae7-8e68-3c543f9598b9"}
+      ],
+      "finding": "4 dei 5 capitoli senza nodo (8,15,27,31) sono INTERLUDI della cornice narrativa Nonno/Nipoti, non storia principale. Creati con timePlane=frame e chapterKind=interlude. Solo il cap 10 e storia principale."
+    },
+    "precedesChain": {"edges": 40, "created": 18, "merged": 22, "description": "Catena Prologo(frame)->Cap1->...->Cap39->Epilogo(frame), 5 nuovi nodi inseriti in sequenza"},
+    "metadataFixes": {"timePlane": "Ripristinato su tutti i capitoli 22-39 (era assente dal cap 22 in poi)"}
+  },
+  "auditFindings": {
+    "structural": [
+      "22.5 frazionario -> risolto (rinumerazione)",
+      "5 nodi-indice capitolo mancanti -> creati (39/39)"
+    ],
+    "metadata": [
+      "timePlane assente dai capitoli 22+ -> ripristinato",
+      "Cap 37 (ex 36, 'Lacrime e Stelle Cadenti') ancorato a sezione tematica 1.5.4.3 invece della cronologia 1.4.3.x dei vicini -> da valutare in audit approfondito"
+    ],
+    "chronology": "Date esplicite in ordine perfetto con la numerazione: nessuna inversione temporale (1=31/08/20 ... 39=21/06/21). Azione concentrata set-ott 2020.",
+    "deepSemanticAudit": "Contraddizioni di contenuto fini (stessa entita con attributi/date divergenti fra sezioni) da verificare nella Parte B (auditor su Opus)."
+  },
+  "frameNodes": {"prologo": "24715cf2-bf9d-4434-ba8c-cf19b9edcf7d", "epilogo": "d3a5265c-54a4-410e-92e2-a01765a4e50a"},
+  "pending": ["Parte B: audit semantico approfondito incongruenze interne alla Bibbia", "Parte D: attivazione embeddings (redeploy NAS) + estrazione prosa->canon per pipeline stesura"]
+}

@@ -6,9 +6,8 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api/v2/kg': 'http://localhost:3001',
-      '/api/v2/admin': 'http://localhost:3001',
-      '/api/config': 'http://localhost:3001',
+      // Proxy the whole /api prefix so new backend routes need no config change.
+      '/api': 'http://localhost:3001',
     },
   },
 });

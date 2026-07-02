@@ -1,0 +1,70 @@
+{
+  "reportType": "citations-to-edges-complete",
+  "sourceId": "bibbia-gabriele-2025",
+  "generatedAt": "2026-07-02T19:30:00Z",
+  "mandate": "Convertire le citazioni inline (Sez. X.Y)/(Cap. N: Titolo) in archi 'mentions' e rimuovere la citazione dal testo, lasciando il riferimento espresso SOLO dall'arco. Copertura sull'intero documento. Il grafo contiene solo il modello consolidato.",
+  "groundTruth": {
+    "method": "parsing del documento sorgente (SHA256 4d4298ab…) per parentesi che iniziano con Sez/Cap",
+    "sectionsWithRemovableCitations": 90,
+    "removableCitationOccurrences": 517,
+    "note": "Esclusi (conservati): riferimenti fra parentesi con data '(25/02/2021 – Sez. 4.4.6)', bare '(2.2.2)', date '(29/09/2020)', ref fra quadre '[… Sez. 4.1.7]', ed etichette-bullet NON parentetiche 'Cap. 29: Titolo:' (strutturali, non citazioni)."
+  },
+  "coverage": {
+    "phase_G2_G3_secmap_auth": {
+      "sections": 45,
+      "withCitations": 44,
+      "cleaned": 44,
+      "canonTwins": 0,
+      "note": "branch 1.5 + nucleo. 37 puliti dal primo worker, 7 annidati + 2 side-effect completati da G3b. Nessun gemello ::canon (nodi consolidati parafrasati)."
+    },
+    "phase_G3c_comprehensive": {
+      "remainingSectionsProcessed": 46,
+      "textCleaned": 44,
+      "canonTwinsCleaned": 43,
+      "canonTwinTypes": {"character_state": 34, "world_rule": 5, "timeline_event": 2, "glossary_term": 1},
+      "mentionsEdgesCreated": 6,
+      "skippedForSourceDefect": ["2.2.1.14.3", "2.3.2.4.3"]
+    },
+    "phase_G3d_tail": {
+      "sourceTypoFixes": {
+        "2.2.1.14.3": "'(Sez. 1.5.2.21.5.3.2)' (due numeri di sezione fusi) -> target corretto 1.5.2.2 (tema 'Potere: Nascita, Controllo, Abuso, Perdita'); arco 2.2.1.14.3->1.5.2.2 creato (edge 6de4f9ff), citazione rimossa",
+        "2.3.2.4.3": "refuso doppia parentesi '((Sez. 4.4.5, 4.4.6)' -> '(Sez. 4.4.5, 4.4.6)'; citazioni rimosse, archi 4.4.5/4.4.6 gia' presenti"
+      },
+      "cleanerDefectFixes": {
+        "rootCause": "la regola 'etichetta-bullet' del cleaner (drop del ': ' dopo una citazione) scattava anche a meta' frase, fondendo le parole",
+        "fix": "resa sensibile alla posizione: il ': ' si rimuove SOLO quando la citazione e' a inizio-bullet (preceduta da '•'/'o' + tab); a meta' frase i due punti restano",
+        "sectionsRecleaned": {
+          "1.5.4.3": "'SpeedyGonzyArticolo'->'SpeedyGonzy: Articolo'; 'FerrettiSospensione'->'Preside Ferretti: Sospensione'",
+          "2.3.2.3.4": "'Festa CarnevaleLa'->'Festa Carnevale: La' (bible_section + gemello ::canon)"
+        }
+      },
+      "nodesUpdated": 7,
+      "verification": "tutti i nodi re-fetchati e confermati byte-per-byte; residui citazioni parentetiche = 0"
+    }
+  },
+  "edgeConvention": {
+    "kind": "mentions",
+    "metadata": ["refType (section|chapter)", "originalCitation", "fromSection", "targetRef"],
+    "provenance": "claude-citations-to-edges-2026-07-02 / -2026-07-02b",
+    "note": "kind 'references' e' rifiutato dal server (vocabolario controllato); 'mentions' e' la relazione canonica di cross-reference. kg_link fa merge idempotente per (from,to,kind)."
+  },
+  "graphStateAfter": {
+    "nodes": 2386,
+    "edges": 7271,
+    "chapterNodes": 40,
+    "bibleSections": 911,
+    "mentionsEdges": 889,
+    "note": "mentions ~476 (baseline post-consolidamento) -> 889 dopo la conversione citazioni->archi su tutto il documento."
+  },
+  "residual": {
+    "removableCitationsOnCleanedNodes": 0,
+    "preservedByDesign": "riferimenti con data co-locata dentro la stessa parentesi, bare-refs numerici, date, ref fra quadre, etichette-bullet non parentetiche (strutturali)",
+    "integrity": "i riferimenti vivono ora negli archi id-based (immuni a rinumerazione/split capitoli); il testo sorgente e i gemelli ::canon non contengono piu' citazioni parentetiche rimovibili."
+  },
+  "priorReports": [
+    "2026-07-02T12-31-43Z-bibbia-gabriele-2025-canonical-cleanup-outcome.json",
+    "2026-07-02T14-05-00Z-chapter-restructure.json",
+    "2026-07-02T14-30-00Z-bibbia-incongruenze-audit.json",
+    "2026-07-02T15-20-00Z-corrections-applied.json"
+  ]
+}

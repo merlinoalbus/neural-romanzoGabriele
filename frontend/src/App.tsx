@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { BookOpen, Database, Download, FileText, ListChecks, Network, RefreshCw, ScrollText, Search, ShieldCheck, Upload, X } from 'lucide-react';
+import { BookOpen, Clock, Database, Download, FileText, GitBranch, ListChecks, Network, RefreshCw, ScrollText, Search, ShieldCheck, Upload, Users, X } from 'lucide-react';
 import {
   commitGraphSnapshotImport,
   dryRunGraphSnapshotImport,
   exportGraphSnapshot,
   getChapterPacket,
+  getEntityPacket,
   getKgNeighbors,
   getKgNode,
   getKgStats,
+  getTimeline,
   listChapters,
   listKgDocuments,
   listKgNodes,
@@ -16,6 +18,7 @@ import {
   searchKg,
   type ChapterPacket,
   type ChapterSummary,
+  type EntityPacket,
   type GraphSnapshot,
   type ImportMode,
   type KgEdge,
@@ -23,6 +26,7 @@ import {
   type KgStats,
   type OpenPoint,
   type SnapshotImportResult,
+  type TimelineEntry,
 } from './api';
 
 const TYPE_COLORS: Record<string, string> = {
@@ -82,7 +86,9 @@ const TYPE_LABELS: Record<string, string> = {
 const colorFor = (type: string): string => TYPE_COLORS[type] ?? '#334155';
 const labelFor = (type: string): string => TYPE_LABELS[type] ?? type;
 
-type Tab = 'search' | 'romanzo' | 'capitolo' | 'openPoints' | 'documents' | 'admin';
+type Tab = 'search' | 'romanzo' | 'capitolo' | 'personaggio' | 'arco' | 'timeline' | 'openPoints' | 'documents' | 'admin';
+
+const RESOLVED_KINDS = new Set(['resolves', 'pays_off']);
 
 const isFrame = (plane: string | null): boolean => plane === 'frame';
 const metaString = (node: KgNode, key: string): string | null => {
@@ -244,6 +250,144 @@ function CapitoloPanel({ packet, onOpen }: { packet: ChapterPacket | null; onOpe
   );
 }
 
+function EntityNavList({ nodes, selectedId, onOpen }: { nodes: KgNode[]; selectedId: string | null; onOpen: (id: string) => void }) {
+  const sorted = useMemo(() => [...nodes].sort((a, b) => a.label.localeCompare(b.label)), [nodes]);
+  return (
+    <div className="result-list">
+      {sorted.map((node) => (
+        <button key={node.id} className={selectedId === node.id ? 'result active' : 'result'} onClick={() => onOpen(node.id)}>
+          <span className="dot" style={{ background: colorFor(node.type) }} />
+          <span className="result-main"><b>{node.label}</b><small>{labelFor(node.type)}</small></span>
+        </button>
+      ))}
+      {!sorted.length && <div className="empty-state">Nessun elemento</div>}
+    </div>
+  );
+}
+
+function groupTouches(touches: EntityPacket['touches']): Map<string, EntityPacket['touches']> {
+  const grouped = new Map<string, EntityPacket['touches']>();
+  for (const relation of touches) {
+    const list = grouped.get(relation.kind) ?? [];
+    list.push(relation);
+    grouped.set(relation.kind, list);
+  }
+  return grouped;
+}
+
+function EntityPanel({ packet, onOpen }: { packet: EntityPacket | null; onOpen: (id: string, type: string) => void }) {
+  if (!packet?.node) return <div className="graph-empty">Seleziona un elemento</div>;
+  const node = packet.node;
+  const grouped = groupTouches(packet.touches);
+  const isArc = node.type === 'plot_thread';
+  const resolved = packet.touches.some((relation) => RESOLVED_KINDS.has(relation.kind));
+  return (
+    <div className="novel-panel capitolo">
+      <div className="novel-head">
+        <span className="node-type"><span className="dot" style={{ background: colorFor(node.type) }} />{labelFor(node.type)}</span>
+        <h2>
+          {node.label}
+          {isArc && <span className={`arc-status ${resolved ? 'resolved' : 'open'}`}>{resolved ? 'risolto' : 'aperto'}</span>}
+        </h2>
+      </div>
+      {node.content && <p className="node-content">{node.content}</p>}
+
+      <section className="novel-block">
+        <h3>Relazioni &amp; collegamenti <small>{packet.touches.length}</small></h3>
+        {grouped.size === 0 && <span className="muted">nessun collegamento</span>}
+        {[...grouped.entries()].map(([kind, list]) => (
+          <div className="touch-group" key={kind}>
+            <span className="edge-kind">{kind}</span>
+            <div className="touch-chips">
+              {list.map((relation) => (
+                <button
+                  key={`${kind}-${relation.node.id}`}
+                  className="pill touch"
+                  title={relation.direction === 'out' ? `${node.label} ${kind} →` : `→ ${kind} ${node.label}`}
+                  onClick={() => onOpen(relation.node.id, relation.node.type)}
+                >
+                  <span className="dir">{relation.direction === 'out' ? '→' : '←'}</span>
+                  <span className="dot" style={{ background: colorFor(relation.node.type) }} />
+                  {relation.node.label}
+                  <small>{labelFor(relation.node.type)}</small>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {packet.incomingMentions.length > 0 && (
+        <section className="novel-block">
+          <h3>Riferimenti in entrata <small>{packet.incomingMentions.length} archi mentions</small></h3>
+          <div className="mention-list">
+            {packet.incomingMentions.map((mention, index) => (
+              <div className="mention" key={`${mention.fromId}-${index}`}>
+                <span className="mono">{mention.fromSection ?? mention.fromLabel}</span>
+                <span className="arrow">→ mentions →</span>
+                <span className="mono">{node.label}</span>
+                {mention.originalCitation && <small className="cite">{mention.originalCitation}</small>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: TimelineEntry[]; onOpenChapter: (id: string) => void; onOpenEntity: (id: string) => void }) {
+  const groups = useMemo(() => {
+    const main = entries.filter((entry) => entry.timePlane === 'main_story');
+    const frame = entries.filter((entry) => entry.timePlane === 'frame');
+    const unanchored = entries.filter((entry) => entry.timePlane !== 'main_story' && entry.timePlane !== 'frame');
+    return { main, frame, unanchored };
+  }, [entries]);
+  const renderRow = (entry: TimelineEntry) => (
+    <div className="tl-event" key={entry.id}>
+      <span className="tl-date">{entry.date ?? '—'}</span>
+      <button className="tl-title" onClick={() => onOpenEntity(entry.id)}>{entry.label}</button>
+      {entry.chapterId ? (
+        <button className="tl-chapter" onClick={() => onOpenChapter(entry.chapterId!)}>
+          Cap {entry.chapterNumber ?? '·'}{entry.chapterTitle ? ` · ${entry.chapterTitle}` : ''}
+        </button>
+      ) : (
+        <span className="tl-chapter none">non ancorato</span>
+      )}
+    </div>
+  );
+  return (
+    <div className="novel-panel">
+      <div className="novel-head">
+        <h2>Vista Timeline — bi-piano</h2>
+        <p className="novel-sub">
+          <b>{entries.length}</b> eventi. Data e ordine derivati dal capitolo collegato (archi <span className="edge-kind">part_of</span>/<span className="edge-kind">occurs_in</span>).
+          Gli eventi non ancorati a un capitolo compaiono in fondo.
+        </p>
+      </div>
+      {groups.main.length > 0 && (
+        <section className="novel-block">
+          <h3><span className="chapter-plane main">storia principale</span> <small>{groups.main.length}</small></h3>
+          <div className="tl-list">{groups.main.map(renderRow)}</div>
+        </section>
+      )}
+      {groups.frame.length > 0 && (
+        <section className="novel-block">
+          <h3><span className="chapter-plane frame">cornice</span> <small>{groups.frame.length}</small></h3>
+          <div className="tl-list">{groups.frame.map(renderRow)}</div>
+        </section>
+      )}
+      {groups.unanchored.length > 0 && (
+        <section className="novel-block">
+          <h3>Non ancorati <small>{groups.unanchored.length}</small></h3>
+          <div className="tl-list">{groups.unanchored.map(renderRow)}</div>
+        </section>
+      )}
+      {!entries.length && <div className="empty-state">Nessun evento timeline</div>}
+    </div>
+  );
+}
+
 function StatBar({ stats }: { stats: KgStats | null }) {
   const topTypes = useMemo(() => Object.entries(stats?.nodeTypes ?? {}).sort((a, b) => b[1] - a[1]).slice(0, 8), [stats]);
   return (
@@ -282,6 +426,10 @@ export function App() {
   const [importResult, setImportResult] = useState<SnapshotImportResult | null>(null);
   const [chapters, setChapters] = useState<ChapterSummary[]>([]);
   const [chapterPacket, setChapterPacket] = useState<ChapterPacket | null>(null);
+  const [characters, setCharacters] = useState<KgNode[]>([]);
+  const [arcs, setArcs] = useState<KgNode[]>([]);
+  const [entityPacket, setEntityPacket] = useState<EntityPacket | null>(null);
+  const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
   const graphRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ width: 900, height: 640 });
 
@@ -333,6 +481,64 @@ export function App() {
       setLoading(false);
     }
   }, []);
+
+  const loadCharacters = useCallback(async () => {
+    if (characters.length) return;
+    setLoading(true);
+    setError(null);
+    try {
+      setCharacters((await listKgNodes(200, 'character')).nodes);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [characters.length]);
+
+  const loadArcs = useCallback(async () => {
+    if (arcs.length) return;
+    setLoading(true);
+    setError(null);
+    try {
+      setArcs((await listKgNodes(200, 'plot_thread')).nodes);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [arcs.length]);
+
+  const loadTimeline = useCallback(async () => {
+    if (timeline.length) return;
+    setLoading(true);
+    setError(null);
+    try {
+      setTimeline((await getTimeline()).entries);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [timeline.length]);
+
+  const openEntity = useCallback(async (id: string, type: string) => {
+    // Chapters keep their dedicated packet view; everything else uses the entity packet.
+    if (type === 'chapter') {
+      void openChapter(id);
+      return;
+    }
+    setTab(type === 'plot_thread' ? 'arco' : 'personaggio');
+    setSelectedId(id);
+    setLoading(true);
+    setError(null);
+    try {
+      setEntityPacket(await getEntityPacket(id));
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [openChapter]);
 
   useEffect(() => {
     void refreshStats().catch((err) => setError(String(err)));
@@ -512,6 +718,9 @@ export function App() {
           <div className="tabs" role="tablist">
             <button className={tab === 'romanzo' ? 'active' : ''} onClick={() => { setTab('romanzo'); void loadChapters(); }}><BookOpen size={15} />Romanzo</button>
             <button className={tab === 'capitolo' ? 'active' : ''} onClick={() => { setTab('capitolo'); void loadChapters(); }}><ScrollText size={15} />Capitolo</button>
+            <button className={tab === 'personaggio' ? 'active' : ''} onClick={() => { setTab('personaggio'); void loadCharacters(); }}><Users size={15} />Personaggi</button>
+            <button className={tab === 'arco' ? 'active' : ''} onClick={() => { setTab('arco'); void loadArcs(); }}><GitBranch size={15} />Archi</button>
+            <button className={tab === 'timeline' ? 'active' : ''} onClick={() => { setTab('timeline'); void loadTimeline(); }}><Clock size={15} />Timeline</button>
             <button className={tab === 'search' ? 'active' : ''} onClick={() => setTab('search')}><Search size={15} />Grafo</button>
             <button className={tab === 'openPoints' ? 'active' : ''} onClick={() => { setTab('openPoints'); void loadOpenPoints(); }}><ListChecks size={15} />Punti aperti</button>
             <button className={tab === 'documents' ? 'active' : ''} onClick={() => { setTab('documents'); void loadDocuments(); }}><FileText size={15} />Documenti</button>
@@ -528,9 +737,11 @@ export function App() {
 
           {tab === 'admin' && (
             <div className="admin-box">
+              <div className="admin-section">Esporta l'intero modello neurale</div>
               <button className="command-button" onClick={() => void runExport()} disabled={adminBusy}>
-                <Download size={16} />Esporta modello
+                <Download size={16} />Scarica modello (.json)
               </button>
+              <div className="admin-section">Ricarica un modello da file</div>
               <label className="file-button">
                 <Upload size={16} />Carica snapshot
                 <input
@@ -549,14 +760,17 @@ export function App() {
                   setImportResult(null);
                 }}
               >
-                <option value="upsert">upsert</option>
-                <option value="replaceProject">replace project</option>
+                <option value="upsert">Aggiornamento (upsert: fonde/aggiorna)</option>
+                <option value="replaceProject">Sostituzione globale (svuota e ricarica)</option>
               </select>
+              {importMode === 'replaceProject' && (
+                <div className="admin-line bad">⚠ Cancella l'intero modello attuale prima di ricaricare. Irreversibile.</div>
+              )}
               <button className="command-button" onClick={() => void runImportDryRun()} disabled={adminBusy || !snapshot}>
-                Dry-run import
+                Verifica (dry-run)
               </button>
               <button className="command-button danger" onClick={() => void runImportCommit()} disabled={adminBusy || !snapshot || !importResult?.ok}>
-                Commit import
+                {importMode === 'replaceProject' ? 'Applica sostituzione' : 'Applica aggiornamento'}
               </button>
               {snapshotFileName && <div className="admin-line">{snapshotFileName}</div>}
               {adminMessage && <div className="admin-line ok">{adminMessage}</div>}
@@ -595,6 +809,12 @@ export function App() {
             </div>
           ) : tab === 'romanzo' || tab === 'capitolo' ? (
             <ChapterNavList chapters={chapters} selectedId={selectedId} onOpen={(id) => void openChapter(id)} />
+          ) : tab === 'personaggio' ? (
+            <EntityNavList nodes={characters} selectedId={selectedId} onOpen={(id) => void openEntity(id, 'character')} />
+          ) : tab === 'arco' ? (
+            <EntityNavList nodes={arcs} selectedId={selectedId} onOpen={(id) => void openEntity(id, 'plot_thread')} />
+          ) : tab === 'timeline' ? (
+            <div className="empty-state">Timeline nel pannello →</div>
           ) : (
             <div className={tab === 'admin' ? 'result-list hidden' : 'result-list'}>
               {activeList.map((node) => (
@@ -640,6 +860,10 @@ export function App() {
             <RomanzoPanel chapters={chapters} selectedId={selectedId} onOpen={(id) => void openChapter(id)} />
           ) : tab === 'capitolo' ? (
             <CapitoloPanel packet={chapterPacket} onOpen={(id) => void openChapter(id)} />
+          ) : tab === 'personaggio' || tab === 'arco' ? (
+            <EntityPanel packet={entityPacket} onOpen={(id, type) => void openEntity(id, type)} />
+          ) : tab === 'timeline' ? (
+            <TimelinePanel entries={timeline} onOpenChapter={(id) => void openChapter(id)} onOpenEntity={(id) => void openEntity(id, 'timeline_event')} />
           ) : graph.nodes.length > 0 ? (
             <ForceGraph2D<GNode, GLink>
               width={dims.width}

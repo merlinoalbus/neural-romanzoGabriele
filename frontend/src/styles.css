@@ -673,3 +673,66 @@ pre {
 .mention .arrow { color: #0f766e; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; }
 .mention .cite { color: #94a3b8; }
 .muted { color: #94a3b8; font-size: 13px; }
+
+/* ---- Fase 2: Personaggio / Arco / Timeline ---- */
+.arc-status {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 9px;
+  border-radius: 99px;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+.arc-status.open { color: #b45309; background: #fef3c7; }
+.arc-status.resolved { color: #047857; background: #d1fae5; }
+.pill.touch .dir { font-family: ui-monospace, Menlo, Consolas, monospace; color: #94a3b8; }
+.tl-list { display: flex; flex-direction: column; gap: 4px; }
+.tl-event {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+.tl-event:hover { background: #f1f5f9; border-color: #e2e8f0; }
+.tl-date {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  color: #64748b;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.tl-title {
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 13.5px;
+  color: #18202f;
+  cursor: pointer;
+  padding: 0;
+}
+.tl-title:hover { color: #0f766e; text-decoration: underline; }
+.tl-chapter {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 11.5px;
+  color: #be123c;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tl-chapter:hover { border-color: #be123c; background: #fff1f2; }
+.tl-chapter.none { color: #94a3b8; border-style: dashed; cursor: default; }
+
+.admin-section {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin: 10px 0 2px;
+}
+.admin-section:first-child { margin-top: 0; }

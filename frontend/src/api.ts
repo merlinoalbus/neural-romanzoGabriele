@@ -110,6 +110,23 @@ export interface ChapterPacket {
   incomingMentions: ChapterMention[];
 }
 
+export interface EntityPacket {
+  node: KgNode | null;
+  touches: ChapterRelation[];
+  incomingMentions: ChapterMention[];
+}
+
+export interface TimelineEntry {
+  id: string;
+  label: string;
+  content: string;
+  chapterId: string | null;
+  chapterNumber: number | null;
+  chapterTitle: string | null;
+  date: string | null;
+  timePlane: string | null;
+}
+
 async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(path, { headers: { Accept: 'application/json' } });
   if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${await response.text()}`);
@@ -175,6 +192,14 @@ export function listChapters(): Promise<{ chapters: ChapterSummary[] }> {
 
 export function getChapterPacket(id: string): Promise<ChapterPacket> {
   return getJson<ChapterPacket>(`/api/v2/novel/chapter?id=${encodeURIComponent(id)}`);
+}
+
+export function getEntityPacket(id: string): Promise<EntityPacket> {
+  return getJson<EntityPacket>(`/api/v2/novel/entity?id=${encodeURIComponent(id)}`);
+}
+
+export function getTimeline(): Promise<{ entries: TimelineEntry[] }> {
+  return getJson<{ entries: TimelineEntry[] }>('/api/v2/novel/timeline');
 }
 
 export async function exportGraphSnapshot(): Promise<{ blob: Blob; filename: string }> {

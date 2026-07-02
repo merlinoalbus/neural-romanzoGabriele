@@ -27,4 +27,25 @@ router.get('/chapter', async (req, res) => {
   }
 });
 
+router.get('/entity', async (req, res) => {
+  try {
+    const id = String(req.query.id ?? '').trim();
+    if (!id) {
+      res.status(400).json({ error: 'query parameter id is required' });
+      return;
+    }
+    res.json(await kg.entityPacket(id));
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+router.get('/timeline', async (_req, res) => {
+  try {
+    res.json({ entries: await kg.timeline() });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 export default router;

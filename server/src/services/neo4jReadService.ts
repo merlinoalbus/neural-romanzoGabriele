@@ -318,6 +318,254 @@ export async function listNodes(opts: { type?: string; limit?: number; includeIn
   return records.map((rec) => nodeFrom(rec.get('n')));
 }
 
+export interface ChapterSummary {
+  id: string;
+  label: string;
+  number: number | null;
+  title: string;
+  date: string | null;
+  timePlane: string | null;
+  chapterKind: string | null;
+  documentChapterLabel: string | null;
+  primarySectionKey: string | null;
+}
+
+function chapterSummaryFrom(node: GraphNode): ChapterSummary {
+  const m = node.metadata;
+  const rawNumber = m.chapterNumber;
+  const number = typeof rawNumber === 'number' ? rawNumber : rawNumber != null && Number.isFinite(Number(rawNumber)) ? Number(rawNumber) : null;
+  return {
+    id: node.id,
+    label: node.label,
+    number,
+    title: String(m.chapterTitle ?? node.label),
+    date: m.date ? String(m.date) : null,
+    timePlane: m.timePlane ? String(m.timePlane) : null,
+    chapterKind: m.chapterKind ? String(m.chapterKind) : null,
+    documentChapterLabel: m.documentChapterLabel ? String(m.documentChapterLabel) : null,
+    primarySectionKey: m.primarySectionKey ? String(m.primarySectionKey) : null,
+  };
+}
+
+export async function listChapters(): Promise<ChapterSummary[]> {
+  const records = await run("MATCH (n:Entity {projectId:$pid, type:'chapter'}) RETURN n", { pid: config.projectId });
+  const chapters = records.map((rec) => chapterSummaryFrom(nodeFrom(rec.get('n'))));
+  chapters.sort((a, b) => (a.number ?? Number.MAX_SAFE_INTEGER) - (b.number ?? Number.MAX_SAFE_INTEGER));
+  return chapters;
+}
+
+export interface ChapterRelation {
+  node: GraphNode;
+  kind: string;
+  direction: 'out' | 'in';
+}
+
+export interface ChapterMention {
+  fromId: string;
+  fromLabel: string;
+  fromType: string;
+  fromSection: string | null;
+  refType: string | null;
+  originalCitation: string | null;
+}
+
+export interface ChapterPacket {
+  chapter: GraphNode | null;
+  prev: ChapterSummary[];
+  next: ChapterSummary[];
+  touches: ChapterRelation[];
+  incomingMentions: ChapterMention[];
+}
+
+export async function chapterPacket(id: string): Promise<ChapterPacket> {
+  const pid = config.projectId;
+  const chapter = await getNodeById(id, { includeInternal: true });
+  if (!chapter || chapter.type !== 'chapter') {
+    return { chapter: null, prev: [], next: [], touches: [], incomingMentions: [] };
+  }
+  const prevRecs = await run(
+    "MATCH (p:Entity {projectId:$pid, type:'chapter'})-[:REL {kind:'precedes'}]->(c:Entity {id:$id, projectId:$pid}) RETURN p",
+    { pid, id },
+  );
+  const nextRecs = await run(
+    "MATCH (c:Entity {id:$id, projectId:$pid})-[:REL {kind:'precedes'}]->(n:Entity {projectId:$pid, type:'chapter'}) RETURN n",
+    { pid, id },
+  );
+  const touchRecs = await run(
+    `MATCH (c:Entity {id:$id, projectId:$pid})-[r:REL]-(m:Entity {projectId:$pid})
+     WHERE r.kind <> 'precedes' AND r.kind <> 'mentions'
+       AND NOT (m.type IN $hiddenTypes)
+       AND NOT (m.type = 'continuity_finding' AND m.label STARTS WITH $openPointLabelPrefix)
+     RETURN DISTINCT m, r.kind AS kind, (startNode(r).id = $id) AS outgoing`,
+    { pid, id, hiddenTypes: NARRATIVE_HIDDEN_NODE_TYPES, openPointLabelPrefix: OPEN_POINT_LABEL_PREFIX },
+  );
+  const mentionRecs = await run(
+    `MATCH (s:Entity {projectId:$pid})-[r:REL {kind:'mentions'}]->(c:Entity {id:$id, projectId:$pid}) RETURN s, r`,
+    { pid, id },
+  );
+  const prev = prevRecs.map((rec) => chapterSummaryFrom(nodeFrom(rec.get('p')))).sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+  const next = nextRecs.map((rec) => chapterSummaryFrom(nodeFrom(rec.get('n')))).sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+  const touches: ChapterRelation[] = touchRecs.map((rec) => ({
+    node: nodeFrom(rec.get('m')),
+    kind: String(rec.get('kind')),
+    direction: rec.get('outgoing') === true ? 'out' : 'in',
+  }));
+  const incomingMentions: ChapterMention[] = mentionRecs.map((rec) => {
+    const source = nodeFrom(rec.get('s'));
+    const meta = edgeFrom(rec.get('r'), source.id, id).metadata;
+    return {
+      fromId: source.id,
+      fromLabel: source.label,
+      fromType: source.type,
+      fromSection: meta.fromSection ? String(meta.fromSection) : null,
+      refType: meta.refType ? String(meta.refType) : null,
+      originalCitation: meta.originalCitation ? String(meta.originalCitation) : null,
+    };
+  });
+  return { chapter, prev, next, touches, incomingMentions };
+}
+
+export interface EntityPacket {
+  node: GraphNode | null;
+  touches: ChapterRelation[];
+  incomingMentions: ChapterMention[];
+}
+
+// Generic node "packet" reusable across character / plot_thread / any node type:
+// the node itself, all non-`mentions` edges grouped later on the client by kind+direction,
+// and the incoming `mentions` cross-references. Mirrors chapterPacket without the
+// chapter-specific prev/next adjacency.
+export async function entityPacket(id: string): Promise<EntityPacket> {
+  const pid = config.projectId;
+  const node = await getNodeById(id, { includeInternal: true });
+  if (!node) return { node: null, touches: [], incomingMentions: [] };
+  const touchRecs = await run(
+    `MATCH (c:Entity {id:$id, projectId:$pid})-[r:REL]-(m:Entity {projectId:$pid})
+     WHERE r.kind <> 'mentions'
+       AND NOT (m.type IN $hiddenTypes)
+       AND NOT (m.type = 'continuity_finding' AND m.label STARTS WITH $openPointLabelPrefix)
+     RETURN DISTINCT m, r.kind AS kind, (startNode(r).id = $id) AS outgoing`,
+    { pid, id, hiddenTypes: NARRATIVE_HIDDEN_NODE_TYPES, openPointLabelPrefix: OPEN_POINT_LABEL_PREFIX },
+  );
+  const mentionRecs = await run(
+    `MATCH (s:Entity {projectId:$pid})-[r:REL {kind:'mentions'}]->(c:Entity {id:$id, projectId:$pid}) RETURN s, r`,
+    { pid, id },
+  );
+  const touches: ChapterRelation[] = touchRecs.map((rec) => ({
+    node: nodeFrom(rec.get('m')),
+    kind: String(rec.get('kind')),
+    direction: (rec.get('outgoing') === true ? 'out' : 'in') as 'out' | 'in',
+  }));
+  const incomingMentions: ChapterMention[] = mentionRecs.map((rec) => {
+    const source = nodeFrom(rec.get('s'));
+    const meta = edgeFrom(rec.get('r'), source.id, id).metadata;
+    return {
+      fromId: source.id,
+      fromLabel: source.label,
+      fromType: source.type,
+      fromSection: meta.fromSection ? String(meta.fromSection) : null,
+      refType: meta.refType ? String(meta.refType) : null,
+      originalCitation: meta.originalCitation ? String(meta.originalCitation) : null,
+    };
+  });
+  return { node, touches, incomingMentions };
+}
+
+export interface TimelineEntry {
+  id: string;
+  label: string;
+  content: string;
+  chapterId: string | null;
+  chapterNumber: number | null;
+  chapterTitle: string | null;
+  date: string | null;
+  timePlane: string | null;
+}
+
+// timeline_event nodes carry no standardized date/plane fields; ordering and dating are
+// derived from the linked chapter (via `part_of`/`occurs_in`), with the event's own
+// metadata.date/dateStart as a fallback. Events with no chapter anchor sort to the end.
+export async function timeline(): Promise<TimelineEntry[]> {
+  const pid = config.projectId;
+  const records = await run(
+    `MATCH (e:Entity {projectId:$pid, type:'timeline_event'})
+     OPTIONAL MATCH (e)-[r:REL]->(c:Entity {projectId:$pid, type:'chapter'})
+       WHERE r.kind IN ['part_of','occurs_in']
+     WITH e, collect(c)[0] AS chapter
+     RETURN e, chapter`,
+    { pid },
+  );
+  const entries: TimelineEntry[] = records.map((rec) => {
+    const event = nodeFrom(rec.get('e'));
+    const chapterRaw = rec.get('chapter');
+    const chapter = chapterRaw ? nodeFrom(chapterRaw) : null;
+    const cm = chapter?.metadata ?? {};
+    const em = event.metadata;
+    const rawNumber = cm.chapterNumber;
+    const chapterNumber = typeof rawNumber === 'number' ? rawNumber : rawNumber != null && Number.isFinite(Number(rawNumber)) ? Number(rawNumber) : null;
+    const eventDate = em.date ?? em.dateStart;
+    return {
+      id: event.id,
+      label: event.label,
+      content: event.content,
+      chapterId: chapter?.id ?? null,
+      chapterNumber,
+      chapterTitle: chapter ? String(cm.chapterTitle ?? chapter.label) : null,
+      date: eventDate != null ? String(eventDate) : cm.date != null ? String(cm.date) : null,
+      timePlane: cm.timePlane != null ? String(cm.timePlane) : em.timePlane != null ? String(em.timePlane) : null,
+    };
+  });
+  entries.sort((a, b) => {
+    const an = a.chapterNumber ?? Number.MAX_SAFE_INTEGER;
+    const bn = b.chapterNumber ?? Number.MAX_SAFE_INTEGER;
+    return an !== bn ? an - bn : a.label.localeCompare(b.label);
+  });
+  return entries;
+}
+
+export interface HealthReport {
+  totals: { nodes: number; edges: number };
+  nodeTypes: Record<string, number>;
+  edgeKinds: Record<string, number>;
+  relatedToEdges: number;
+  orphanNodes: number;
+  chaptersMissingDate: number;
+  timelineUnanchored: number;
+  openPoints: number;
+}
+
+// Graph-derived model health (the audit findings themselves live only in committed
+// report files by design — "il grafo contiene solo il modello consolidato"). This
+// surfaces live structural signals: generic-edge debt, orphans, missing chapter dates,
+// unanchored timeline events, and open plot-thread points.
+export async function health(): Promise<HealthReport> {
+  const pid = config.projectId;
+  const base = await stats();
+  const relatedRows = await run(
+    "MATCH (:Entity {projectId:$pid})-[r:REL {kind:'related_to'}]->(:Entity {projectId:$pid}) RETURN count(r) AS c",
+    { pid },
+  );
+  const orphanRows = await run(
+    `MATCH (n:Entity {projectId:$pid})
+     WHERE NOT (n.type IN $hiddenTypes)
+       AND NOT (n.type = 'continuity_finding' AND n.label STARTS WITH $openPointLabelPrefix)
+       AND NOT (n)-[:REL]-(:Entity {projectId:$pid})
+     RETURN count(n) AS c`,
+    { pid, hiddenTypes: NARRATIVE_HIDDEN_NODE_TYPES, openPointLabelPrefix: OPEN_POINT_LABEL_PREFIX },
+  );
+  const [chapters, tl, openPoints] = await Promise.all([listChapters(), timeline(), listOpenPoints({ limit: 500 })]);
+  return {
+    totals: { nodes: base.nodes, edges: base.edges },
+    nodeTypes: base.nodeTypes,
+    edgeKinds: base.edgeKinds,
+    relatedToEdges: toInt(relatedRows[0]?.get('c') ?? 0),
+    orphanNodes: toInt(orphanRows[0]?.get('c') ?? 0),
+    chaptersMissingDate: chapters.filter((chapter) => !chapter.date && chapter.timePlane !== 'frame').length,
+    timelineUnanchored: tl.filter((entry) => !entry.chapterId).length,
+    openPoints: openPoints.length,
+  };
+}
+
 export async function listOpenPoints(opts: { limit?: number } = {}): Promise<OpenPoint[]> {
   const limit = clampInt(opts.limit, 100, 1, 500);
   const records = await run(

@@ -538,3 +538,258 @@ pre {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ---- Vista Romanzo / Capitolo (Fase 1) ---- */
+.chapter-num {
+  font-family: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: #64748b;
+  min-width: 22px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.novel-panel {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: 22px 26px 40px;
+  background: #fbfcfe;
+}
+.novel-head h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  color: #111827;
+}
+.novel-sub, .novel-note {
+  color: #64748b;
+  font-size: 13px;
+  margin: 0 0 16px;
+  max-width: 70ch;
+}
+.novel-note {
+  border-left: 2px solid #cbd5e1;
+  padding-left: 12px;
+  margin-top: 8px;
+}
+.chapter-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.chapter-row {
+  display: grid;
+  grid-template-columns: 30px 1fr 76px 96px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s, border-color 0.12s;
+}
+.chapter-row:hover { background: #f1f5f9; border-color: #e2e8f0; }
+.chapter-row.active { border-color: #0f766e; background: #f0fdfa; }
+.chapter-row.frame { background: #faf5ff; }
+.chapter-ti { font-size: 14px; color: #18202f; }
+.chapter-ti small { display: block; font-size: 11px; color: #7c3aed; }
+.chapter-plane {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+}
+.chapter-plane.main { color: #0f766e; }
+.chapter-plane.frame { color: #7c3aed; border-color: #ddd6fe; }
+.chapter-date {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: #64748b;
+  text-align: right;
+}
+.pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  cursor: default;
+}
+.pill b { color: #18202f; font-weight: 600; }
+.pill.touch { cursor: pointer; }
+.pill.touch:hover { border-color: #0f766e; }
+.pill.touch small { color: #94a3b8; }
+.novel-block { margin-top: 18px; }
+.novel-block h3 {
+  font-size: 14px;
+  color: #111827;
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.novel-block h3 small { color: #94a3b8; font-weight: 400; }
+.adj-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.adj {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: #334155;
+  cursor: pointer;
+}
+.adj:hover { border-color: #0f766e; background: #f0fdfa; }
+.adj.next { color: #0f766e; }
+.touch-group { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+.edge-kind {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: #0f766e;
+  min-width: 92px;
+  padding-top: 5px;
+}
+.touch-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.mention-list { display: flex; flex-direction: column; gap: 6px; }
+.mention {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #475569;
+}
+.mention .mono { font-family: ui-monospace, Menlo, Consolas, monospace; color: #18202f; }
+.mention .arrow { color: #0f766e; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; }
+.mention .cite { color: #94a3b8; }
+.muted { color: #94a3b8; font-size: 13px; }
+
+/* ---- Fase 2: Personaggio / Arco / Timeline ---- */
+.arc-status {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 9px;
+  border-radius: 99px;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+.arc-status.open { color: #b45309; background: #fef3c7; }
+.arc-status.resolved { color: #047857; background: #d1fae5; }
+.pill.touch .dir { font-family: ui-monospace, Menlo, Consolas, monospace; color: #94a3b8; }
+.tl-list { display: flex; flex-direction: column; gap: 4px; }
+.tl-event {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+.tl-event:hover { background: #f1f5f9; border-color: #e2e8f0; }
+.tl-date {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  color: #64748b;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.tl-title {
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 13.5px;
+  color: #18202f;
+  cursor: pointer;
+  padding: 0;
+}
+.tl-title:hover { color: #0f766e; text-decoration: underline; }
+.tl-chapter {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 11.5px;
+  color: #be123c;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tl-chapter:hover { border-color: #be123c; background: #fff1f2; }
+.tl-chapter.none { color: #94a3b8; border-style: dashed; cursor: default; }
+
+.admin-section {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin: 10px 0 2px;
+}
+.admin-section:first-child { margin-top: 0; }
+
+/* ---- Fase 3/4: Coerenza + Editoriale ---- */
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.health-tile {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.health-tile.warn { border-color: #fcd34d; background: #fffbeb; }
+.health-n { font-size: 26px; font-weight: 600; color: #111827; font-variant-numeric: tabular-nums; line-height: 1; }
+.health-tile.warn .health-n { color: #b45309; }
+.health-l { color: #475569; font-size: 12.5px; margin-top: 5px; }
+.health-s { color: #94a3b8; font-size: 11px; margin-top: 2px; }
+.linklike {
+  border: none;
+  background: transparent;
+  color: #0f766e;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+.axes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+.axis-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.axis-h {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #18202f;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.axis-d { color: #64748b; font-size: 12px; margin: 6px 0 0; }
+.tag-warn {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 2px 7px;
+  border-radius: 6px;
+  margin-left: auto;
+}

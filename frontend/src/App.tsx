@@ -184,7 +184,7 @@ function RomanzoPanel({ chapters, selectedId, onOpen }: { chapters: ChapterSumma
   );
 }
 
-function CapitoloPanel({ packet, onOpen }: { packet: ChapterPacket | null; onOpen: (id: string) => void }) {
+function CapitoloPanel({ packet, onOpen }: { packet: ChapterPacket | null; onOpen: (id: string, type: string) => void }) {
   if (!packet?.chapter) return <div className="graph-empty">Seleziona un capitolo</div>;
   const chapter = packet.chapter;
   const number = metaString(chapter, 'chapterNumber');
@@ -196,6 +196,10 @@ function CapitoloPanel({ packet, onOpen }: { packet: ChapterPacket | null; onOpe
     list.push(relation);
     grouped.set(relation.kind, list);
   }
+  const graph = packetToGraph(chapter, packet.touches, packet.incomingMentions, [
+    ...packet.prev.map((p) => ({ node: p, dir: 's' as const })),
+    ...packet.next.map((n) => ({ node: n, dir: 'd' as const })),
+  ]);
   return (
     <div className="novel-panel capitolo">
       <div className="novel-head">
@@ -214,10 +218,10 @@ function CapitoloPanel({ packet, onOpen }: { packet: ChapterPacket | null; onOpe
         <h3>Adiacenze <small>precedes</small></h3>
         <div className="adj-row">
           {packet.prev.map((p) => (
-            <button key={p.id} className="adj" onClick={() => onOpen(p.id)}>← <b>{p.number ?? '·'}</b> {p.title}</button>
+            <button key={p.id} className="adj" onClick={() => onOpen(p.id, 'chapter')}>← <b>{p.number ?? '·'}</b> {p.title}</button>
           ))}
           {packet.next.map((n) => (
-            <button key={n.id} className="adj next" onClick={() => onOpen(n.id)}><b>{n.number ?? '·'}</b> {n.title} →</button>
+            <button key={n.id} className="adj next" onClick={() => onOpen(n.id, 'chapter')}><b>{n.number ?? '·'}</b> {n.title} →</button>
           ))}
           {!packet.prev.length && !packet.next.length && <span className="muted">nessuna adiacenza</span>}
         </div>
@@ -231,7 +235,7 @@ function CapitoloPanel({ packet, onOpen }: { packet: ChapterPacket | null; onOpe
             <span className="edge-kind">{kind}</span>
             <div className="touch-chips">
               {list.map((relation) => (
-                <button key={`${kind}-${relation.node.id}`} className="pill touch" onClick={() => onOpen(relation.node.id)}>
+                <button key={`${kind}-${relation.node.id}`} className="pill touch" onClick={() => onOpen(relation.node.id, relation.node.type)}>
                   <span className="dot" style={{ background: colorFor(relation.node.type) }} />
                   {relation.node.label}
                   <small>{labelFor(relation.node.type)}</small>
@@ -257,6 +261,7 @@ function CapitoloPanel({ packet, onOpen }: { packet: ChapterPacket | null; onOpe
         </div>
         <p className="novel-note">Il numero non è più nel testo sorgente: il riferimento vive come arco id-based → integrità garantita anche dopo rinumerazione/split.</p>
       </section>
+      <GraphView data={graph} onOpen={onOpen} />
     </div>
   );
 }
@@ -292,6 +297,7 @@ function EntityPanel({ packet, onOpen }: { packet: EntityPacket | null; onOpen: 
   const grouped = groupTouches(packet.touches);
   const isArc = node.type === 'plot_thread';
   const resolved = packet.touches.some((relation) => RESOLVED_KINDS.has(relation.kind));
+  const graph = packetToGraph(node, packet.touches, packet.incomingMentions);
   return (
     <div className="novel-panel capitolo">
       <div className="novel-head">
@@ -343,6 +349,7 @@ function EntityPanel({ packet, onOpen }: { packet: EntityPacket | null; onOpen: 
           </div>
         </section>
       )}
+      <GraphView data={graph} onOpen={onOpen} />
     </div>
   );
 }
@@ -478,6 +485,188 @@ function EditorialePanel({ drafts, onOpen }: { drafts: KgNode[]; onOpen: (id: st
         </div>
         <p className="novel-note">La ridondanza semantica cross-capitolo si attiva dopo il redeploy NAS + <span className="edge-kind">kg_backfill_embeddings</span> (config Ollama già in main). Gli altri assi sono ancorati alla Bibbia consolidata.</p>
       </section>
+    </div>
+  );
+}
+
+// ---- per-view interactive force-directed graph (canvas) ----
+interface GData { nodes: { id: string; type: string; label: string; frame?: boolean }[]; edges: { s: string; d: string; k: string }[]; }
+const SANS_F = 'system-ui, sans-serif';
+const MONO_F = 'ui-monospace, monospace';
+const EK_COLOR: Record<string, string> = {
+  mentions: '#e6b450', precedes: '#74c6a4', defines: '#7fa6d9', part_of: '#556184', about: '#9b8ce6',
+  applies_to: '#7fa6d9', occurs_in: '#9b8ce6', occurs_at: '#9b8ce6', threatens: '#de8080', loves: '#e39b8a',
+  protects: '#74c6a4', family_of: '#b79be6', appears_in: '#c6b074', supersedes: '#de8080', constrains: '#de8080',
+  resolves: '#74c6a4', pays_off: '#74c6a4', sets_up: '#7fa6d9', foreshadows: '#9b8ce6', causes: '#de8080', has_arc: '#c6b074',
+};
+const ekColor = (kind: string): string => EK_COLOR[kind] ?? '#586079';
+const nodeRadius = (type: string): number => (type === 'chapter' || type === 'character' ? 9 : 7);
+
+function packetToGraph(center: KgNode, touches: EntityPacket['touches'], mentions: EntityPacket['incomingMentions'], adjacency: { node: ChapterSummary; dir: 's' | 'd' }[] = []): GData {
+  const nodes: GData['nodes'] = [{ id: center.id, type: center.type, label: center.label }];
+  const edges: GData['edges'] = [];
+  const seen = new Set([center.id]);
+  const add = (id: string, type: string, label: string, frame?: boolean): void => {
+    if (!seen.has(id)) { seen.add(id); nodes.push({ id, type, label, frame }); }
+  };
+  for (const relation of touches) {
+    add(relation.node.id, relation.node.type, relation.node.label);
+    edges.push(relation.direction === 'out' ? { s: center.id, d: relation.node.id, k: relation.kind } : { s: relation.node.id, d: center.id, k: relation.kind });
+  }
+  for (const adj of adjacency) {
+    add(adj.node.id, 'chapter', `${adj.node.number ?? ''} ${adj.node.title}`.trim(), isFrame(adj.node.timePlane));
+    edges.push(adj.dir === 's' ? { s: adj.node.id, d: center.id, k: 'precedes' } : { s: center.id, d: adj.node.id, k: 'precedes' });
+  }
+  for (const mention of mentions.slice(0, 12)) {
+    add(mention.fromId, mention.fromType, mention.fromSection ?? mention.fromLabel);
+    edges.push({ s: mention.fromId, d: center.id, k: 'mentions' });
+  }
+  return { nodes, edges };
+}
+
+function GraphView({ data, onOpen }: { data: GData; onOpen?: (id: string, type: string) => void }) {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const onOpenRef = useRef(onOpen);
+  onOpenRef.current = onOpen;
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host || !data.nodes.length) return;
+    const types: string[] = [];
+    const kinds: string[] = [];
+    for (const n of data.nodes) if (!types.includes(n.type)) types.push(n.type);
+    for (const e of data.edges) if (!kinds.includes(e.k)) kinds.push(e.k);
+    const offT: Record<string, boolean> = {};
+    const offK: Record<string, boolean> = {};
+
+    host.innerHTML = '';
+    const fil = document.createElement('div');
+    fil.className = 'gfil';
+    const typeMeta = new Map(types.map((t) => [t, { color: colorFor(t), name: labelFor(t) }]));
+    const mkRow = (label: string, items: string[], color: (v: string) => string, name: (v: string) => string, store: Record<string, boolean>): HTMLDivElement => {
+      const row = document.createElement('div');
+      row.className = 'gfrow';
+      const lb = document.createElement('span');
+      lb.className = 'lb';
+      lb.textContent = label;
+      row.appendChild(lb);
+      for (const it of items) {
+        const c = document.createElement('button');
+        c.className = 'gchip';
+        c.type = 'button';
+        c.innerHTML = `<span class="cd" style="background:${color(it)}"></span>${name(it)}`;
+        c.addEventListener('click', () => { store[it] = !store[it]; c.classList.toggle('off', !!store[it]); reheat(0.5); });
+        row.appendChild(c);
+      }
+      return row;
+    };
+    fil.appendChild(mkRow('Tipo nodo', types, (t) => typeMeta.get(t)!.color, (t) => typeMeta.get(t)!.name, offT));
+    fil.appendChild(mkRow('Tipo arco', kinds, ekColor, (k) => k, offK));
+    host.appendChild(fil);
+    const wrap = document.createElement('div');
+    wrap.className = 'gwrap';
+    const cv = document.createElement('canvas');
+    cv.className = 'gcanvas';
+    wrap.appendChild(cv);
+    const tip = document.createElement('div');
+    tip.className = 'gtip';
+    wrap.appendChild(tip);
+    host.appendChild(wrap);
+    const hint = document.createElement('div');
+    hint.className = 'ghint';
+    hint.textContent = 'Trascina i nodi · hover per evidenziare vicini ed etichette-arco · click per aprire · chip per filtrare';
+    host.appendChild(hint);
+
+    const ctx = cv.getContext('2d')!;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    let W = 0;
+    const H = 360;
+    interface N { id: string; type: string; label: string; frame?: boolean; x: number; y: number; vx: number; vy: number; fx: number; fy: number; }
+    const N: N[] = data.nodes.map((n) => ({ ...n, x: 0, y: 0, vx: 0, vy: 0, fx: 0, fy: 0 }));
+    const byId = new Map(N.map((n) => [n.id, n]));
+    const E = data.edges.map((e) => ({ s: byId.get(e.s), d: byId.get(e.d), k: e.k })).filter((e): e is { s: N; d: N; k: string } => !!e.s && !!e.d);
+    let alpha = 0;
+    let hover: N | null = null;
+    let drag: N | null = null;
+    let raf: number | null = null;
+    let seeded = false;
+
+    const fit = (): void => { W = cv.clientWidth || host.clientWidth || 600; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+    const seed = (): void => { fit(); const cx = W / 2; const cy = H / 2; const R = Math.min(W, H) / 2 - 42; N.forEach((n, i) => { const a = (i / N.length) * Math.PI * 2; n.x = cx + Math.cos(a) * R * 0.7; n.y = cy + Math.sin(a) * R * 0.7; }); seeded = true; };
+    const vis = (n: N): boolean => !offT[n.type];
+    const visE = (e: { s: N; d: N; k: string }): boolean => !offK[e.k] && vis(e.s) && vis(e.d);
+    const neighbor = (a: N, b: N): boolean => E.some((e) => visE(e) && ((e.s === a && e.d === b) || (e.d === a && e.s === b)));
+    const tick = (): void => {
+      const vs = N.filter(vis);
+      for (let i = 0; i < vs.length; i++) {
+        const a = vs[i];
+        let fx = 0;
+        let fy = 0;
+        for (let j = 0; j < vs.length; j++) {
+          if (i === j) continue;
+          const b = vs[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const d2 = dx * dx + dy * dy || 0.01;
+          const d = Math.sqrt(d2);
+          const f = 2700 / d2;
+          fx += (dx / d) * f;
+          fy += (dy / d) * f;
+        }
+        fx += (W / 2 - a.x) * 0.008;
+        fy += (H / 2 - a.y) * 0.008;
+        a.fx = fx;
+        a.fy = fy;
+      }
+      E.forEach((e) => { if (!visE(e)) return; const dx = e.d.x - e.s.x; const dy = e.d.y - e.s.y; const d = Math.sqrt(dx * dx + dy * dy) || 0.01; const f = (d - 98) * 0.015; const ux = dx / d; const uy = dy / d; e.s.fx += ux * f; e.s.fy += uy * f; e.d.fx -= ux * f; e.d.fy -= uy * f; });
+      vs.forEach((n) => { if (n === drag) return; n.vx = (n.vx + n.fx * alpha) * 0.86; n.vy = (n.vy + n.fy * alpha) * 0.86; n.x = Math.max(26, Math.min(W - 26, n.x + n.vx)); n.y = Math.max(24, Math.min(H - 24, n.y + n.vy)); });
+      alpha *= 0.975;
+    };
+    const draw = (): void => {
+      ctx.clearRect(0, 0, W, H);
+      E.forEach((e) => { if (!visE(e)) return; const hl = !!hover && (e.s === hover || e.d === hover); ctx.strokeStyle = ekColor(e.k); ctx.globalAlpha = hover ? (hl ? 0.95 : 0.1) : 0.5; ctx.lineWidth = hl ? 2 : 1; ctx.beginPath(); ctx.moveTo(e.s.x, e.s.y); ctx.lineTo(e.d.x, e.d.y); ctx.stroke(); });
+      ctx.globalAlpha = 1;
+      if (hover) { ctx.textAlign = 'center'; ctx.font = `10px ${MONO_F}`; E.forEach((e) => { if (!visE(e) || (e.s !== hover && e.d !== hover)) return; ctx.fillStyle = ekColor(e.k); ctx.fillText(e.k, (e.s.x + e.d.x) / 2, (e.s.y + e.d.y) / 2 - 3); }); }
+      N.forEach((n) => {
+        if (!vis(n)) return;
+        const r = nodeRadius(n.type);
+        const dim = !!hover && hover !== n && !neighbor(hover, n);
+        ctx.globalAlpha = dim ? 0.26 : 1;
+        if (n.frame) { ctx.beginPath(); ctx.arc(n.x, n.y, r + 3, 0, 7); ctx.strokeStyle = '#9b8ce6'; ctx.lineWidth = 1.5; ctx.stroke(); }
+        ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 7); ctx.fillStyle = colorFor(n.type); ctx.fill();
+        if (n === hover || n === drag) { ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke(); }
+        ctx.font = `11px ${SANS_F}`; ctx.fillStyle = '#eaecf2'; ctx.textAlign = 'center';
+        const lbl = n.label.length > 26 ? `${n.label.slice(0, 25)}…` : n.label;
+        ctx.fillText(lbl, n.x, n.y + r + 11);
+      });
+      ctx.globalAlpha = 1;
+    };
+    const loop = (): void => { tick(); draw(); if (alpha > 0.02) raf = requestAnimationFrame(loop); else { raf = null; draw(); } };
+    function reheat(a: number): void { if (!seeded) seed(); else fit(); alpha = Math.max(alpha, a); if (!raf) raf = requestAnimationFrame(loop); }
+    const pos = (ev: MouseEvent): { x: number; y: number } => { const r = cv.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top }; };
+    const pick = (p: { x: number; y: number }): N | null => { let best: N | null = null; let bd = 1e9; N.forEach((n) => { if (!vis(n)) return; const dx = n.x - p.x; const dy = n.y - p.y; const d = dx * dx + dy * dy; const rr = nodeRadius(n.type) + 6; if (d < rr * rr && d < bd) { bd = d; best = n; } }); return best; };
+    let moved = false;
+    const onMove = (ev: MouseEvent): void => {
+      const p = pos(ev);
+      if (drag) { drag.x = p.x; drag.y = p.y; drag.vx = 0; drag.vy = 0; moved = true; reheat(0.4); }
+      const h = pick(p);
+      if (h !== hover) { hover = h; if (!raf) draw(); }
+      if (h) { tip.style.opacity = '1'; tip.style.left = `${p.x + 12}px`; tip.style.top = `${p.y + 8}px`; tip.innerHTML = `<b>${h.label}</b><small>${labelFor(h.type)}${h.frame ? ' · cornice' : ''}</small>`; } else tip.style.opacity = '0';
+    };
+    const onDown = (ev: MouseEvent): void => { drag = pick(pos(ev)); moved = false; if (drag) reheat(0.4); };
+    const onUp = (ev: MouseEvent): void => { if (drag && !moved && onOpenRef.current) onOpenRef.current(drag.id, drag.type); drag = null; void ev; };
+    const onLeave = (): void => { hover = null; tip.style.opacity = '0'; if (!raf) draw(); };
+    cv.addEventListener('mousemove', onMove);
+    cv.addEventListener('mousedown', onDown);
+    window.addEventListener('mouseup', onUp);
+    cv.addEventListener('mouseleave', onLeave);
+    reheat(0.7);
+    return () => { if (raf) cancelAnimationFrame(raf); cv.removeEventListener('mousemove', onMove); cv.removeEventListener('mousedown', onDown); window.removeEventListener('mouseup', onUp); cv.removeEventListener('mouseleave', onLeave); host.innerHTML = ''; };
+  }, [data]);
+  if (!data.nodes.length) return null;
+  return (
+    <div className="gmount">
+      <h3>Grafo del modello <small>{data.nodes.length} nodi · {data.edges.length} archi</small></h3>
+      <div ref={hostRef} />
     </div>
   );
 }
@@ -852,14 +1041,21 @@ export function App() {
 
       <main className="workspace">
         <aside className="sidebar">
+          <div className="nav-group">Panoramica</div>
           <div className="tabs" role="tablist">
             <button className={tab === 'romanzo' ? 'active' : ''} onClick={() => { setTab('romanzo'); void loadChapters(); }}><BookOpen size={15} />Romanzo</button>
+            <button className={tab === 'timeline' ? 'active' : ''} onClick={() => { setTab('timeline'); void loadTimeline(); }}><Clock size={15} />Timeline</button>
+            <button className={tab === 'coerenza' ? 'active' : ''} onClick={() => { setTab('coerenza'); void loadHealth(); }}><Activity size={15} />Coerenza</button>
+          </div>
+          <div className="nav-group">Entità</div>
+          <div className="tabs" role="tablist">
             <button className={tab === 'capitolo' ? 'active' : ''} onClick={() => { setTab('capitolo'); void loadChapters(); }}><ScrollText size={15} />Capitolo</button>
             <button className={tab === 'personaggio' ? 'active' : ''} onClick={() => { setTab('personaggio'); void loadCharacters(); }}><Users size={15} />Personaggi</button>
             <button className={tab === 'arco' ? 'active' : ''} onClick={() => { setTab('arco'); void loadArcs(); }}><GitBranch size={15} />Archi</button>
-            <button className={tab === 'timeline' ? 'active' : ''} onClick={() => { setTab('timeline'); void loadTimeline(); }}><Clock size={15} />Timeline</button>
             <button className={tab === 'mondo' ? 'active' : ''} onClick={() => { setTab('mondo'); void loadWorld(); }}><Globe2 size={15} />Mondo</button>
-            <button className={tab === 'coerenza' ? 'active' : ''} onClick={() => { setTab('coerenza'); void loadHealth(); }}><Activity size={15} />Coerenza</button>
+          </div>
+          <div className="nav-group">Lavoro</div>
+          <div className="tabs" role="tablist">
             <button className={tab === 'editoriale' ? 'active' : ''} onClick={() => { setTab('editoriale'); void loadDrafts(); }}><PenLine size={15} />Editoriale</button>
             <button className={tab === 'search' ? 'active' : ''} onClick={() => setTab('search')}><Search size={15} />Grafo</button>
             <button className={tab === 'openPoints' ? 'active' : ''} onClick={() => { setTab('openPoints'); void loadOpenPoints(); }}><ListChecks size={15} />Punti aperti</button>
@@ -1001,7 +1197,7 @@ export function App() {
           ) : tab === 'romanzo' ? (
             <RomanzoPanel chapters={chapters} selectedId={selectedId} onOpen={(id) => void openChapter(id)} />
           ) : tab === 'capitolo' ? (
-            <CapitoloPanel packet={chapterPacket} onOpen={(id) => void openChapter(id)} />
+            <CapitoloPanel packet={chapterPacket} onOpen={(id, type) => void openEntity(id, type)} />
           ) : tab === 'personaggio' || tab === 'arco' || tab === 'mondo' ? (
             <EntityPanel packet={entityPacket} onOpen={(id, type) => void openEntity(id, type)} />
           ) : tab === 'timeline' ? (

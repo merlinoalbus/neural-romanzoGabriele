@@ -1,0 +1,347 @@
+{
+ "reportType": "bibbia-incongruenze-audit",
+ "sourceId": "bibbia-gabriele-2025",
+ "generatedAt": "2026-07-02T14:30:00Z",
+ "method": "5 assi read-only (cronologia, personaggi, distribuzione, mondo/poteri) + check deterministici (giorno-settimana, riferimenti sezione). Fonte di verita: documento originale.",
+ "deterministicChecks": {
+  "weekdayVsDate": "26 date verificate, 0 errori",
+  "brokenSectionRefs": [
+   "1.5.2.21.5.3.2",
+   "2.4.11"
+  ]
+ },
+ "totals": {
+  "findings": 26,
+  "bySeverity": {
+   "alta": 2,
+   "high": 2,
+   "media": 5,
+   "medium": 5,
+   "bassa": 6,
+   "low": 6
+  }
+ },
+ "findings": [
+  {
+   "axis": "cronologia",
+   "severity": "alta",
+   "kind": "stesso_evento_date_diverse",
+   "sections": [
+    "1.5.2.2",
+    "1.5.3.3",
+    "1.4.3.3",
+    "4.2.4"
+   ],
+   "description": "La 'Rettifica Riluttante' di SpeedyGonzy e la revoca/reintegrazione della sospensione di Lisa (Cap. 12) sono datate 12/10/2020 nelle timeline tematiche (1.5.2.2 Potere e 1.5.3.3 Gerarchie), ma in tutto il resto del documento la rettifica avviene il 02/10/2020 e la revoca della sospensione il 05/10/2020. Discrepanza di 10 giorni sullo stesso evento, citando esplicitamente 'Cap. 12: La Rettifica Riluttante' in tutti i casi. Il 12/10/2020 non compare in nessun'altra sezione e contraddice sia la cronologia mensile (1.4.3.3) sia la cronologia per capitolo (4.2.4).",
+   "evidence": "1.5.2.2: '12/10/2020: Rettifica forzata - potere limitato da ultimatum Gabriele (Cap. 12: La Rettifica Riluttante)' ; 1.5.3.3: '12/10/2020: Reintegrazione Lisa - potere superiore corregge errore (Cap. 12: La Rettifica Riluttante)' ; vs 1.4.3.3 (sotto '02/10/2020 (venerdi)'): 'Rettifica di SpeedyGonzy (la revoca della sospensione di Lisa avverra il 05/10/2020) (Cap. 12: La Rettifica Riluttante)' ; 4.2.4: 'Revoca della Sospensione di Lisa (05/10/2020)... la riconciliazione con Gabriele... sono gia avvenute prima della revoca (02/10)'."
+  },
+  {
+   "axis": "distribuzione",
+   "severity": "high",
+   "kind": "equilibrio atti / distribuzione temporale",
+   "sections": [
+    "1.4.1",
+    "1.4.3.2",
+    "1.4.3.3",
+    "1.4.3.7",
+    "1.4.3.9",
+    "4.1",
+    "4.2"
+   ],
+   "description": "Grave squilibrio tra numero di capitoli e copertura temporale/pesatura eventi. Il conteggio capitoli e' bilanciato (8/11/11/10 con Cap 22.5), ma il tempo narrato e' distribuito in modo molto disomogeneo: le Parti 1-2 (fino al Cap 19, circa meta' del romanzo) coprono appena ~5 settimane di vita scolastica realistica (31/08-05/10/2020), con trattamento giorno-per-giorno; la Parte 4 comprime ~4 mesi (dic 2020 - giu 2021) inclusa l'intera risoluzione cosmica. Il romanzo e' 'front-loaded': il set-up mondano e' dilatato, il climax soprannaturale e la risoluzione sono compressi. Inoltre la vera svolta di genere (rivelazione angelica) arriva solo al Cap 29, ~72% dell'opera: lunghissima rampa 'realistica' prima dell'aggancio fantastico centrale.",
+   "evidence": "1.4.1: 'Storia Principale: Anno scolastico 2020-2021 (31/08/2020 - 21/06/2021)'. In 1.4.3.3 i Cap 9-17 sono tutti datati 30/09-05/10/2020 (una sola settimana), mentre il Cap 18 da solo copre '06-31/10/2020'. La rivelazione angelica e' collocata al 17/12/2020 (Cap 29)."
+  },
+  {
+   "axis": "distribuzione",
+   "severity": "high",
+   "kind": "arco antagonista abbandonato / personaggio sparito",
+   "sections": [
+    "4.3.11",
+    "4.4.1",
+    "4.4.9",
+    "2.2.2.11"
+   ],
+   "description": "Cristiano, principale antagonista umano e motore del conflitto per le Parti 1-3, sparisce del tutto dopo il Cap 29 senza alcuna chiusura DENTRO la storia. La sua ultima scena e' l'umiliazione da parte di Gabriele; non compare in nessun capitolo della Parte 4, non ha reazione alla scomparsa/oblio di Gabriele, ne' una scena di resa dei conti o evoluzione. La sua 'sorte' e' descritta solo nel dossier come futuro post-romanzo (2.2.2.11), non drammatizzata. L'antagonismo passa bruscamente da Cristiano (umano) a Michael (celeste) e il primo viene semplicemente lasciato cadere: pay-off del filone bullismo assente.",
+   "evidence": "4.3.11 (Cap 29, ultima apparizione): 'Blocca facilmente il pugno di Cristiano, e decide di insegnargli una lezione su cosa vuol dire essere trattati da sfigati. Lascia Cristiano spaventato e umiliato.' Dopo di cio', Cristiano e' assente da 4.4.1-4.4.10."
+  },
+  {
+   "axis": "mondo",
+   "severity": "alta",
+   "kind": "potere-vs-regola",
+   "sections": [
+    "3.3.4.2",
+    "2.1.1.12",
+    "4.3.11"
+   ],
+   "description": "La distorsione temporale e' attribuita a Gabriele come suo potere manifestato durante l'esplosione INCONTROLLATA vs Cristiano (17/12/2020, Cap. 29), che avviene in fase PRE-RIVELAZIONE (Raphael rivela la natura angelica solo dopo, nello stesso capitolo). La regola celeste 3.3.4.2 stabilisce esplicitamente che la distorsione temporale e' generata da un ARCANGELO manifesto in forma celeste per comunicare con un angelo incarnato, e che 'non e' accessibile a Gabriele nella fase pre-rivelazione'. Sia l'elenco poteri (2.1.1.12) sia il testo evento (4.3.11) attribuiscono pero' il rallentamento/arresto del tempo alla manifestazione di Gabriele stesso, prima dell'arrivo di Raphael. Contraddizione diretta e non riconciliata (diversamente dalla xenoglossia, che ha una NOTA di raccordo precursore).",
+   "evidence": "Regola 3.3.4.2: \"Quando un arcangelo si manifesta sul piano terreno nella sua forma celeste, e' in grado di generare una distorsione temporale apparente... Questo tipo di distorsione non e' accessibile a Gabriele nella fase pre-rivelazione, ne' puo' essere attivato da lui dopo la sua trasformazione umana.\" | Poteri 2.1.1.12 (Fase 5): \"17/12/2020: Prima esplosione incontrollata: bagliore corporeo bianco-dorato, occhi di fuoco bianco, ombre ali di luce, distorsione temporale (vs Cristiano - Sez. 4.3.11)\" | Evento 4.3.11: \"i poteri di Gabriele esplodono in modo plateale e incontrollato: le luci della scuola impazziscono e si frantumano... e il tempo sembra fermarsi o rallentare drasticamente per gli osservatori.\""
+  },
+  {
+   "axis": "cronologia",
+   "severity": "media",
+   "kind": "capitolo_titolo_data_incoerente",
+   "sections": [
+    "1.4.3.2",
+    "1.5.1.2",
+    "1.5.3.3",
+    "1.5.4.2",
+    "4.1.3",
+    "4.1.4"
+   ],
+   "description": "Lo stesso numero di capitolo 'Cap. 3' e associato a due titoli e due date diverse. In 1.4.3.2 e nelle sezioni tematiche il 'Cap. 3' e 'Un Concorso per Sognare' datato 04/09/2020 (annuncio concorso 'Metamorfosi Creativa'). Nella cronologia per capitolo (4.1.4) il 'Cap. 3' e invece 'IL CORAGGIO DEL LEGNO (02-03/09/2020)'. Contraddizione interna anche dentro il ramo 4: il Cap. 2 (4.1.3) rimanda l'annuncio concorso a 'Cap. 3, il 04/09/2020', ma l'intestazione del Cap. 3 (4.1.4) e datata 02-03/09/2020. I capitoli 4,5,6,... risultano invece allineati per titolo, quindi non c'e uno slittamento di numerazione: solo il Cap. 3 e incoerente.",
+   "evidence": "1.4.3.2: '04/09/2020 (venerdi): Annuncio Concorso Artistico \"Metamorfosi Creativa\" (Cap. 3: Un Concorso per Sognare)' ; 4.1.4: '4.1.4 CAP. 3: IL CORAGGIO DEL LEGNO (02-03/09/2020)' ; 4.1.3 (Cap. 2): 'l'annuncio completo con tema, date e premi avverra nel Cap. 3, il 04/09/2020'."
+  },
+  {
+   "axis": "cronologia",
+   "severity": "media",
+   "kind": "stesso_evento_date_diverse",
+   "sections": [
+    "2.5.1.2.5",
+    "1.4.3.4",
+    "4.3.5",
+    "2.5.1.2.5-riga3479"
+   ],
+   "description": "Lo 'Scandalo SpeedyGonzy' (doppio articolo con rivelazione tradimento Cristiano-Laura e rottura Lisa-Cristiano) e datato 03/11/2020 nella timeline dei genitori di Lisa (2.5.1.2.5), ma in tutto il resto del documento lo scandalo e la rottura definitiva Lisa-Cristiano avvengono il 04/11/2020 (Cap. 23). Il 03/11/2020 e il giorno del 'nuovo look' (Cap. 22), non dello scandalo. La stessa sezione (dossier famiglia Lisa) usa altrove '04/11/2020' per gli stessi scandali, quindi e incoerente al proprio interno.",
+   "evidence": "2.5.1.2.5: 'Timeline evoluzione: Scandalo SpeedyGonzy 03/11/2020 (preoccupazione per \"immagine famiglia\") -> Rottura Lisa-Cristiano' ; vs 1.4.3.4: '04/11/2020 (mercoledi) (Cap. 23: SpeedyGonzy colpisce ancora): Articoli Devastanti di SpeedyGonzy / Rottura Definitiva Lisa-Cristiano' ; e nella stessa 2.5.x: 'Reazioni implicite scandali 04/11/2020'."
+  },
+  {
+   "axis": "cronologia",
+   "severity": "media",
+   "kind": "giorno_settimana_non_corrisponde_alla_data",
+   "sections": [
+    "4.3.6",
+    "1.4.3.5",
+    "4.3.7"
+   ],
+   "description": "La gita allo zoo (Cap. 25: Il ruggito del Leone) e datata 05/12/2020, che nel calendario reale e un SABATO. Tuttavia il Cap. 24 (4.3.6) dice che la gita viene organizzata 'per la domenica successiva' alla selezione di basket del 04/12/2020 (venerdi): la domenica successiva sarebbe il 06/12/2020, non il 05/12. Quindi la data 05/12/2020 non corrisponde ne al giorno indicato dalla narrazione (domenica) ne alla 'domenica successiva' alla selezione.",
+   "evidence": "4.3.6 (Cap. 24): 'Gabriele e Lisa organizzano una gita allo zoo per la domenica successiva.' ; 1.4.3.5: '04/12/2020: Selezione di Gabriele... squadra di basket (Cap. 24)' e '05/12/2020: Manifestazione Poteri allo Zoo... (Cap. 25)'. Calendario: 04/12/2020=venerdi, 05/12/2020=sabato, 06/12/2020=domenica."
+  },
+  {
+   "axis": "personaggi",
+   "severity": "medium",
+   "kind": "coerenza-narratore/conoscenza",
+   "sections": [
+    "2.6.1.3",
+    "2.6.1.4",
+    "2.6.1.9",
+    "2.6.6.1"
+   ],
+   "description": "La 'copertura' sulla fonte di conoscenza del Nonno (= Gabriele anziano) e' internamente contraddittoria e implausibile. Da un lato la Bibbia afferma che non deve giustificare la sua conoscenza dettagliata perche' 'e' la SUA storia'; dall'altro impone come divieto assoluto/obbligo di attribuire SEMPRE cio' che sa al 'racconto di Trevor'. Le due istruzioni si escludono. Inoltre la copertura 'solo da Trevor' e' materialmente impossibile per numerose scene intime narrate a cui Trevor non ha mai assistito: l'appuntamento/confidenze all'osservatorio (Gabriele-Lisa soli), l'abbraccio empatico sulle scale, il ballo finale con bacio e recupero della memoria ancestrale (vissuto solo da Lisa) e le preghiere notturne solitarie di Lisa. Tali eventi Gabriele li conoscerebbe come vissuto proprio o tramite Lisa (moglie), non tramite Trevor.",
+   "evidence": "2.6.1.4: 'Non ha bisogno di giustificare la conoscenza dettagliata - e' la SUA storia' CONTRO 2.6.1.9 / 2.6.6.1: 'MAI mostrare conoscenza che non possa derivare da Trevor' / 'Copertura narrativa: Sempre attribuire conoscenza a \"racconto di Trevor\"'."
+  },
+  {
+   "axis": "distribuzione",
+   "severity": "medium",
+   "kind": "capitolo sovraccarico",
+   "sections": [
+    "4.3.11"
+   ],
+   "description": "Cap 29 'Fratello di Luce' e' il capitolo piu' sovraccarico: concentra circa dieci beat maggiori in un unico snodo - scontro con Cristiano, esplosione incontrollata dei poteri, apparizione di Raphael, rivelazione della vera natura angelica, backstory della Caduta e dell'amore millenario, rifiuto terrorizzato, ultimatum celeste, cancellazione della memoria dei testimoni, 'lezione' a Cristiano, riconciliazione + confessione a Trevor, entry di diario. La rivelazione identitaria centrale del romanzo rischia di risultare compressa e frettolosa perche' costretta a convivere con la chiusura del filone Cristiano e la riconciliazione con Trevor nello stesso capitolo.",
+   "evidence": "4.3.11 elenca in sequenza: 'Manifestazione Arcangelica Incontrollata... Apparizione dell'Arcangelo Raphael... Rivelazione della Vera Natura di Gabriele... Avvertimento e Ultimatum Celeste... Lampo di Ricordi Celesti e Addio di Raphael... Ritorno alla Realta' e Confronto con Cristiano... Riconciliazione con Trevor e Confidenza'."
+  },
+  {
+   "axis": "distribuzione",
+   "severity": "medium",
+   "kind": "capitolo sovraccarico / risoluzione off-page",
+   "sections": [
+    "4.4.9"
+   ],
+   "description": "Cap 38 'Il Dono della Vita Umana' risolve l'intero impianto cosmico in un solo capitolo dopo un salto di ~4 mesi: ritorno di Gabriele, comparsa dei tre arcangeli, spiegazione degli eventi celesti, trasformazione in umano, normalizzazione della memoria collettiva, benedizione. Criticamente, la svolta dell'arco antagonista di Michael (da distruttore a fratello che approva) e la concessione della grazia divina NON sono drammatizzate ma solo raccontate in esposizione da Gabriele ('told, not shown'): un pay-off importante il cui set-up/sviluppo avviene interamente fuori scena.",
+   "evidence": "4.4.9: 'E' Gabriele stesso, ora pienamente cosciente della sua storia e del suo destino, a narrarle gli eventi celesti successivi alla sua partenza: le rivela come le sue incessanti preghiere... al mutato rispetto e all'approvazione finale di Michael per la sua scelta, abbiano mosso la Misericordia del Creatore.'"
+  },
+  {
+   "axis": "distribuzione",
+   "severity": "medium",
+   "kind": "salto temporale / incongruenza di continuita'",
+   "sections": [
+    "1.4.3.4",
+    "1.4.3.5",
+    "4.3.6"
+   ],
+   "description": "Tra Cap 23 (datato 04/11/2020 nello schema) e Cap 24 (datato 04/12/2020) c'e' un salto di circa un mese in cui nessun capitolo narra eventi: tutto novembre (05/11-03/12) resta vuoto. Il salto e' anche una contraddizione di continuita': il testo del Cap 24 presenta gli eventi come immediatamente conseguenti allo scandalo di Cap 23 ('Nei giorni successivi', piume che continuano 'quotidianamente', incidente del foulard, provini di basket), mentre lo schema li colloca un mese dopo. Il lettore percepisce continuita' ma il calendario impone un mese di stacco non giustificato.",
+   "evidence": "1.4.3.4 '04/11/2020 (mercoledi)... Manifestazione Inconsapevole di Potere Empatico' vs 1.4.3.5 '04/12/2020: Selezione di Gabriele - Entra come riserva nella squadra di basket (Cap. 24)'. Il Cap 24 (4.3.6) descrive pero' i fatti come immediatamente successivi: 'Le notti di Gabriele continuano ad essere popolate da sogni... Le piume bianche misteriose continuano ad apparire'."
+  },
+  {
+   "axis": "distribuzione",
+   "severity": "medium",
+   "kind": "arco aperto / personaggio con dossier senza presenza scenica",
+   "sections": [
+    "4.3.5",
+    "2.4.4",
+    "2.1.2.11.4"
+   ],
+   "description": "Laura Mancini, definita 'migliore amica di Lisa', e' oggetto di un dossier molto esteso (2.4.4, oltre 300 righe) come se fosse personaggio ricorrente, ma nella cronologia effettiva compare SOLO come nome nell'articolo di SpeedyGonzy (Cap 23): non ha mai una scena on-page, non ha alcun confronto diretto con Lisa. Il tradimento dell'amicizia Lisa-Laura, che sarebbe una ferita emotiva rilevante, viene assorbito nel generale addio a Cristiano e non ha mai una scena di risoluzione. Set-up pesante (dossier) senza pay-off drammatico distribuito nei capitoli.",
+   "evidence": "4.3.5 (Cap 23): 'rivela il tradimento di Cristiano con Laura Mancini (migliore amica di Lisa e precedentemente fidanzata di Stefano Ferrari)... umiliando pubblicamente Cristiano e Laura'. Laura non ricompare in alcuna scena successiva."
+  },
+  {
+   "axis": "mondo",
+   "severity": "media",
+   "kind": "gerarchia-poteri",
+   "sections": [
+    "4.4.1",
+    "4.4.5",
+    "2.3.2.3.1"
+   ],
+   "description": "Incoerenza sulla gerarchia di potenza tra gli arcangeli. Nel Cap. 30 il Nonno definisce Michael 'il piu' potente degli angeli' (superlativo assoluto). Nel Cap. 34, pero', la piena manifestazione di Gabriel rivela poteri 'di livello pari a quelli di Michael'. Se Gabriel e' pari a Michael, Michael non puo' essere in senso stretto il piu' potente di tutti. La mitologia non chiarisce la discrepanza.",
+   "evidence": "Cap. 30 (4.4.1): \"uno dei tre arcangeli era il Messaggero... fratello di Raphael il Guaritore a cui si era unito Michael il Guerriero, il piu' potente degli angeli.\" | Cap. 34 (4.4.5): \"Utilizza i suoi poteri angelici (che si rivelano di livello pari a quelli di Michael) per creare uno scudo o una barriera di energia protettiva.\""
+  },
+  {
+   "axis": "mondo",
+   "severity": "media",
+   "kind": "meccanica-oblio",
+   "sections": [
+    "3.3.8",
+    "4.4.8"
+   ],
+   "description": "L'oblio selettivo e' definito (3.3.8) come cancellazione/alterazione dei ricordi degli esseri umani 'testimoni di eventi manifestamente angelici', a tutela dei segreti divini. Nel Cap. 37, invece, l'oblio arriva a cancellare l'INTERA ESISTENZA di Gabriele: i suoi genitori non ricordano di aver mai avuto un figlio, e la sua stanza risulta 'come se non fosse mai esistito'. I genitori non hanno assistito agli eventi manifestamente angelici della Festa di Carnevale (Cap. 34), eppure la loro memoria del figlio (non degli eventi soprannaturali) viene azzerata. L'applicazione eccede la portata e il meccanismo enunciati dalla regola (cancellazione selettiva dei RICORDI DEGLI EVENTI ai testimoni, non dell'esistenza della persona a chi testimone non e').",
+   "evidence": "Regola 3.3.8: \"le entita' celesti hanno la capacita' di cancellare o alterare selettivamente i ricordi degli esseri umani che sono stati testimoni di eventi manifestamente angelici.\" | Cap. 37 (4.4.8): \"Scopre con dolore che i signori Rinaldi non ricordano di aver mai avuto un figlio di nome Gabriele... Trevor... scopre che [la stanza] e' lo studio asettico e informe del padre, priva di ogni traccia personale di Gabriele, come se non fosse mai esistito.\""
+  },
+  {
+   "axis": "cronologia",
+   "severity": "bassa",
+   "kind": "data_range_incoerente",
+   "sections": [
+    "1.4.3.2",
+    "4.1.5"
+   ],
+   "description": "La creazione della Scultura dei Cigni (Cap. 4: La Nascita dei Cigni) e datata '05-25/09/2020' nella cronologia mensile (1.4.3.2) ma 'DAL 04/09/2020 AL 25/09/2020' nella cronologia per capitolo (4.1.5). Discrepanza di 1 giorno sull'inizio, collegata all'ambiguita del Cap. 3 (04/09) descritta nel finding precedente sul Cap. 3.",
+   "evidence": "1.4.3.2: '05-25/09/2020: Creazione Scultura dei Cigni (Cap. 4: La Nascita dei Cigni)' ; 4.1.5: 'CAP. 4: LA NASCITA DEI CIGNI (DAL 04/09/2020 AL 25/09/2020 - FLASH FORWARD)'."
+  },
+  {
+   "axis": "cronologia",
+   "severity": "bassa",
+   "kind": "data_evento_attribuita_in_modo_ambiguo",
+   "sections": [
+    "2.2.1.3.1",
+    "1.4.3.3"
+   ],
+   "description": "In 2.2.1.3.1 (trigger di Trevor) si parla di 'appuntamento all'osservatorio del 03/10/2020', ma la gita all'osservatorio avviene il 04/10/2020 (Cap. 16). Il 03/10/2020 e la data dell'annuncio/lite (Cap. 14), non dell'appuntamento: c'e una confusione tra la data della notizia e la data dell'evento.",
+   "evidence": "2.2.1.3.1: 'a seguito della notizia dall'appuntamento all'osservatorio del 03/10/2020' ; vs 1.4.3.3: '04/10/2020 (domenica): Gita all'Osservatorio (Cap. 16: Una Giornata tra le Stelle)'."
+  },
+  {
+   "axis": "personaggi",
+   "severity": "low",
+   "kind": "oggetto-simbolico/destino (piuma di Trevor)",
+   "sections": [
+    "2.2.1.7.2",
+    "2.2.1.12.4",
+    "2.6.1.7"
+   ],
+   "description": "Le circostanze e il timing con cui Trevor restituisce la propria piuma angelica a Gabriele sono descritte in modo divergente. La scheda di Trevor la presenta come un gesto consapevole compiuto 'anni dopo, quando Trevor e' maturo emotivamente' e donata 'a Gabriele anziano' (gesto d'amicizia tra vivi); la cornice narrativa invece afferma che Gabriele l'ha riavuta soltanto alla morte di Trevor, durante l'ultimo incontro in cui attende con lui l'Angelo della Morte. Consegna in vita vs. recupero in punto di morte.",
+   "evidence": "2.2.1.12.4: \"'Anni dopo' gli eventi principali, quando Trevor e' maturo emotivamente ... Affida la piuma, simbolo della solidita' della loro amicizia a Gabriele\"; 2.2.1.7.2: 'Donata a Gabriele anziano come gesto di lealta' definitiva' CONTRO 2.6.1.7: 'Piuma angelica di Trevor: Conservata per decenni, riavuta quando Trevor e' morto. Durante l'ultimo incontro ... Gabriele ha aspettato insieme a lui l'arrivo dell'Angelo della Morte'."
+  },
+  {
+   "axis": "distribuzione",
+   "severity": "low",
+   "kind": "capitoli 'vuoti' di trama principale (interludi)",
+   "sections": [
+    "4.1.9",
+    "4.2.7",
+    "4.2.11",
+    "4.3.8",
+    "4.4.1",
+    "4.4.7",
+    "4.5.2"
+   ],
+   "description": "Sei capitoli su 39 (~15%) sono interludi puri Nonno/nipoti che non fanno avanzare la trama principale (solo commento della cornice). Sono voluti per design (4.5.2), ma dal punto di vista della distribuzione degli eventi sono capitoli 'a peso zero' sul piano della storia di Gabriele. Alcuni sono minimali (singolo bullet). In Parte 2 se ne trovano due ravvicinati (Cap 15 e Cap 19), che spezzano il ritmo dello sviluppo Gabriele/Lisa/Trevor con due pause di cornice a breve distanza.",
+   "evidence": "4.2.7 (Cap 15): 'Interludio Nonno/Nipoti: Il Nonno commenta la rottura tra Gabriele e Trevor, riflettendo sulla complessita' dell'amicizia'. 4.2.11 (Cap 19): 'Interludio Nonno/Nipoti: Il Nonno commenta la crescente intimita' tra Gabriele e Lisa'."
+  },
+  {
+   "axis": "distribuzione",
+   "severity": "low",
+   "kind": "personaggi introdotti e poi spariti (uso monofunzione)",
+   "sections": [
+    "4.3.4",
+    "4.3.6",
+    "2.4.5",
+    "2.4.3"
+   ],
+   "description": "Federica Villa e Stefano Ferrari hanno dossier ampi (2.4.5, 2.4.3) ma nella distribuzione effettiva svolgono ruoli mono-funzione a scena singola e poi scompaiono. Federica compare al Cap 22.5 (inganno per innescare la gelosia di Lisa) e non ricompare piu'. Stefano compare al Cap 24 (spinge Gabriele nel basket) ed e' vittima collaterale del tradimento al Cap 23, ma il suo arco (tradimento subito, possibile crescita previsto nel dossier) non ha sviluppo ne' chiusura on-page. Archi aperti come utility narrativa senza follow-up.",
+   "evidence": "4.3.4 (Cap 22.5): funzione di Federica limitata a 'L'Invito Ingannevole e la Gelosia di Lisa'. 4.3.6 (Cap 24): Stefano 'lo supplica con insistenza di presentarsi alle selezioni per la squadra di basket', poi assente."
+  },
+  {
+   "axis": "distribuzione",
+   "severity": "low",
+   "kind": "dispositivo ricorrente abbandonato (set-up senza pay-off)",
+   "sections": [
+    "4.5.9",
+    "2.1.1.16.4",
+    "4.4.9"
+   ],
+   "description": "Il diario personale di Gabriele e' un dispositivo narrativo ricorrente e oggetto simbolico dettagliato (2.1.1.16.4), con entry disseminate fino al Cap 29. Nella Parte 4 sparisce completamente: nessuna entry, e soprattutto la sua sorte sotto l'oblio (quando la stanza diventa lo studio del padre e ogni traccia di Gabriele viene cancellata) non viene mai affrontata. Un 'Chekhov's gun' introspettivo che resta senza chiusura nella cornice (l'Epilogo restituisce piume e ciondolo, mai il diario).",
+   "evidence": "4.5.9 'USO NARRATIVO DEL DIARIO... in momenti di alta tensione emotiva'. Ultima entry citata in 4.3.11 (Cap 29): 'Diario di Gabriele: Entry sul shock della rivelazione angelica'. Nessun riferimento al diario in 4.4 e nell'Epilogo (4.4.10)."
+  },
+  {
+   "axis": "distribuzione",
+   "severity": "low",
+   "kind": "simbolo centrale senza chiusura narrativa",
+   "sections": [
+    "4.1.5",
+    "4.2.10",
+    "2.1.1.16.2"
+   ],
+   "description": "La scultura 'Incontro di Cigni' e' il simbolo visivo centrale del legame Gabriele-Lisa (i due cigni che si riconoscono), collocata in posizione centrale all'asta (Cap 18) come 'fulcro visivo ed emotivo'. Dopo la vendita all'asta di beneficenza (22/12/2020) non viene mai piu' menzionata e non riceve alcuna chiusura simbolica, nonostante il suo peso tematico. Rispetto alle altre reliquie (piume, ciondolo) che tornano nell'Epilogo, i cigni escono di scena senza pay-off.",
+   "evidence": "4.2.10 (Cap 18): la scultura 'viene posizionata da Lisa in un punto centrale e ben illuminato della sala, diventando un fulcro visivo ed emotivo dell'esposizione, e un costante, silenzioso riferimento al loro percorso'. Poi assente dopo l'asta."
+  },
+  {
+   "axis": "distribuzione",
+   "severity": "low",
+   "kind": "incongruenza titolo/data che sposta la collocazione di un evento",
+   "sections": [
+    "4.1.3",
+    "4.1.4",
+    "1.4.3.2"
+   ],
+   "description": "Doppia identita' del 'Cap. 3'. Lo schema cronologico (1.4.3.2) lo chiama 'Un Concorso per Sognare' e lo data 04/09/2020, collegandolo all'annuncio del concorso; la cronologia dettagliata (4.1.4) lo chiama 'Il Coraggio del Legno' e lo data 02-03/09/2020, incentrandolo sul garage/scultura. L'annuncio del concorso 'Metamorfosi Creativa' e' inoltre anticipato nel Cap 2 (01/09) con nota interna che ne rinvia i dettagli 'al Cap. 3 - 04/09/2020', in contraddizione col titolo/data che il Cap 3 ha in 4.1.4. Un evento-innesco chiave (annuncio concorso) risulta collocato in modo incoerente tra Cap 2 e Cap 3.",
+   "evidence": "4.1.4 'CAP. 3: IL CORAGGIO DEL LEGNO (02-03/09/2020)' vs 1.4.3.2 '04/09/2020 (venerdi): Annuncio Concorso Artistico Metamorfosi Creativa (Cap. 3: Un Concorso per Sognare)'. In 4.1.3 (Cap 2): 'Dettagli tecnici concorso (da sviluppare nel Cap. 3 - 04/09/2020)'."
+  },
+  {
+   "axis": "mondo",
+   "severity": "bassa",
+   "kind": "ruolo-arcangeli",
+   "sections": [
+    "2.3.1.1.2",
+    "2.1.1.15.4",
+    "2.3.1.3.2",
+    "4.4.1"
+   ],
+   "description": "Sovrapposizione terminologica tra i titoli/ruoli degli arcangeli. Il titolo proprio di Gabriel e' 'Il Messaggero' (identita' arcangelica, ribadita anche dal Nonno nel Cap. 30), mentre Raphael e' 'Il Guaritore'. Tuttavia Raphael viene ripetutamente etichettato 'messaggero': la scheda 2.1.1.15.4 lo definisce nella sua NATURA 'messaggero Cielo', e 2.3.1.3 lo elenca come 'Messaggero compassionevole' / 'Messaggero: Ultimatum ufficiale Michael'. L'uso del medesimo appellativo che identifica Gabriel come 'messaggero' anche per Raphael crea ambiguita' sui ruoli mitologici dei due arcangeli.",
+   "evidence": "2.3.1.1.2: \"Gabriel: Il Messaggero (fratello di Raphael)\" - \"Raphael: Il Guaritore (fratello di Gabriel)\" | 2.1.1.15.4: \"Raphael (Sez. 2.3.1) NATURA: Fratello angelico, messaggero Cielo, figura compassionevole.\" | 2.3.1.3.1/3.2: \"Messaggero compassionevole e ponte emotivo... Messaggero: Ultimatum ufficiale Michael (Sez. 4.4.3)\""
+  },
+  {
+   "axis": "mondo",
+   "severity": "bassa",
+   "kind": "mitologia-motivazione",
+   "sections": [
+    "2.3.2.3.3",
+    "2.3.2.8.2",
+    "2.3.2.5"
+   ],
+   "description": "Descrizione contraddittoria della natura/legge d'azione di Michael. Da un lato si afferma un'imparzialita' assoluta priva di considerazioni personali o emotive; dall'altro l'intera psicologia e motivazione di Michael sono presentate come guidate da un trauma personale ed emotivo (la perdita di Lucifer e la paura di perdere anche Gabriel), con 'ogni compassione soppressa dal dovere' ma azione 'motivata dalla determinazione a non perdere un altro fratello'. La rigidita' 'impersonale/non emotiva' e la motivazione 'personale/emotiva/traumatica' sono enunciate entrambe in termini assoluti, in tensione tra loro.",
+   "evidence": "2.3.2.3.3: \"La sua imparzialita' e' assoluta... il suo agire e' motivato unicamente dal dovere e dalla fedelta' al Trono, senza considerazioni personali o emotive.\" | 2.3.2.8.2: \"Stato Emotivo Michael: Rigidita' assoluta motivata dalla determinazione a non perdere un altro fratello come accadde con Lucifer. Ogni compassione e' soppressa dal dovere.\""
+  },
+  {
+   "axis": "mondo",
+   "severity": "bassa",
+   "kind": "attivazione-attenzione-celeste",
+   "sections": [
+    "3.3.4.2",
+    "3.3.8",
+    "4.3.7",
+    "4.3.11"
+   ],
+   "description": "Applicazione incoerente della regola sull'attenzione celeste / oblio. Le regole 3.3.4.2 e 3.3.8 legano l'uso manifesto/incontrollato dei poteri all'attrazione dell'attenzione delle gerarchie celesti e all'oblio dei testimoni. Al Cap. 25 (zoo, 05/12/2020) Gabriele compie una resurrezione e una guarigione miracolose davanti a custodi e visitatori (evento pubblico e straordinario), senza alcuna conseguenza celeste ne' oblio dei testimoni. Solo l'esplosione al Cap. 29 (17/12) viene indicata da Raphael come cio' che 'ha attirato l'attenzione delle gerarchie celesti'. Il criterio con cui un atto sovrannaturale attiva (o meno) la reazione celeste appare disomogeneo. Attenuante: al zoo la luce dorata e' percepita solo da Lisa e Gabriele minimizza l'accaduto.",
+   "evidence": "Regola 3.3.4.2: \"l'uso manifesto e incontrollato di poteri angelici, e' scoraggiato o proibito in quanto puo'... attirare l'attenzione indesiderata delle gerarchie celesti superiori.\" | Cap. 25 (4.3.7): \"Gabriele si inginocchia accanto al cucciolo, lo prende tra le braccia e desidera con tutto se stesso riportarlo alla vita. Le sue mani si illuminano di una leggera luce dorata... Il cucciolo si rianima.\" | Cap. 29 (4.3.11): \"l'uso incontrollato dei suoi poteri stanno creando uno squilibrio energetico e hanno attirato l'attenzione delle gerarchie celesti.\""
+  },
+  {
+   "axis": "struttura(det)",
+   "severity": "bassa",
+   "kind": "riferimento_sezione_rotto",
+   "sections": [
+    "riga 2322"
+   ],
+   "description": "Riferimento '(Sez. 2.4.11)' punta a sezione inesistente (le 2.4.x arrivano a 2.4.1/2.4.4).",
+   "evidence": "'Consultare dinamiche autorita scolastiche (Sez. 2.4.11)'"
+  }
+ ]
+}

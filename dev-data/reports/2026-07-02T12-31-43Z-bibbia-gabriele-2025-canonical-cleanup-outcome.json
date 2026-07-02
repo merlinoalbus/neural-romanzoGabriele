@@ -1,0 +1,52 @@
+{
+  "reportType": "canonical-cleanup-outcome",
+  "sourceId": "bibbia-gabriele-2025",
+  "generatedAt": "2026-07-02T12:31:43Z",
+  "documentSha256": "4d4298ab927d022bc6dde56051f6ad1e19b34a115871c100769455dff1ba2ce8",
+  "summary": "Ingestion e consolidamento canonico completati per tutte le 911 sezioni della Bibbia. Tutto lo scaffolding di ingestion (bible_claim, bible_candidate, nodi-specchio ::bible-candidate-*, bible_mapping_batch) e' stato rimosso. Il grafo residuo contiene esclusivamente nodi/archi canonici piu' lo strato sorgente di provenienza (bible_section, bible_coverage_finding, bible_outline).",
+  "pipeline": {
+    "phaseA_inventory": "censimento integrale 911/911 sezioni: claim residui e wrapper candidato catalogati id-per-id (record pre-delete committato in dev-data/reports/2026-07-02T06-22-39Z-bibbia-gabriele-2025-canonical-cleanup-inventory.json)",
+    "phaseB_consolidation": "641 nodi canonici consolidati verbatim creati (label bibbia-gabriele-2025::<sectionKey>::canon, tipo dal proprietario di sezione), zero fallimenti",
+    "phaseB2_edges": "820 archi canonici creati e verificati live: 446 defines (nodo->proprietario), 334 mentions (416 crossref dedotti dal testo), 40 precedes (catena cronologica ramo 4)",
+    "phaseC_cleanup": "delete massivi via kg_delete_nodes (dryRun esercitato sui lotti pilota, poi reali): 3710 bible_claim, 9077 wrapper bible_candidate (9076 censiti + 1 orfano trovato in verifica finale, sezione 2.4.4.11.2), tutti i nodi-specchio ::bible-candidate-* e i bible_mapping_batch; 47/47 chunk completati senza errori (log: scratchpad/phaseC/chunks/progress.log)",
+    "phaseD_verification": "verifica integrale novel_bible_progress_eligibility su tutte le 911 sezioni"
+  },
+  "graphBefore": { "nodes": 19704, "edges": 33027, "bibleClaims": 3710, "bibleCandidates": 9076 },
+  "graphAfterConsolidation": { "nodes": 20345, "edges": 33847 },
+  "graphFinal": {
+    "nodes": 2380,
+    "edges": 6838,
+    "bibleCandidates": 0,
+    "bibleClaims": 0,
+    "nodeTypes": {
+      "bible_section": 911, "character_state": 666, "timeline_event": 201,
+      "narrative_constraint": 101, "plot_thread": 51, "world_rule": 41, "power": 41,
+      "relationship_dynamic": 38, "motif": 38, "chapter": 34, "style_rule": 31,
+      "knowledge_state": 24, "character": 23, "revelation": 21, "character_trait": 21,
+      "theme": 20, "conflict": 19, "artifact": 19, "emotional_state": 14, "secret": 11,
+      "location": 11, "character_goal": 9, "bible_coverage_finding": 8, "faction": 5,
+      "symbol": 4, "character_voice": 4, "entity_class": 4, "character_belief": 4,
+      "character_wound": 4, "glossary_term": 1, "bible_outline": 1
+    },
+    "topEdgeKinds": {
+      "part_of": 1283, "precedes": 1137, "defines": 854, "derived_from": 612,
+      "mentions": 476, "supports": 264, "applies_to": 249, "occurs_in": 192, "about": 184
+    }
+  },
+  "verification": {
+    "sampleEligibility": { "checked": 14, "pass": 14 },
+    "fullEligibilitySweep": {
+      "sectionsChecked": 911,
+      "eligibleTrueWorkItemsZero": 911,
+      "bad": 0,
+      "errors": 0,
+      "crossCheckedAgainstDocIndex": "911 chiavi distinte, 0 mancanti, 0 extra"
+    },
+    "sourceLayerIntact": { "bible_section": 911, "bible_coverage_finding": 8, "bible_outline": 1 },
+    "protectedNodesIntact": "22 personaggi canonici + nodi consolidati promossi verificati presenti"
+  },
+  "pendingHandoff": [
+    "Redeploy NAS del container romanzo_gabriele_mcp per attivare fix N+1 coverage report e sidecar Ollama embeddings (gia' su main via PR #2)",
+    "Dopo il redeploy: kg_backfill_embeddings (dryRun poi reale) e verifica kg_semantic_search"
+  ]
+}

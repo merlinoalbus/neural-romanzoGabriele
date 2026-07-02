@@ -1,0 +1,41 @@
+{
+  "reportType": "corrections-applied",
+  "sourceId": "bibbia-gabriele-2025",
+  "generatedAt": "2026-07-02T15:20:00Z",
+  "principle": "Il grafo contiene SOLO il modello consolidato: correzioni applicate in-place, nessun nodo-incongruenza aggiunto. Audit resta nel report 2026-07-02T14-30-00Z.",
+  "F1_chapters": {
+    "interludesFixed": {
+      "Cap19": "id 3c7109cd -> timePlane=frame, chapterKind=interlude, ri-ancorato 4.2.11",
+      "Cap37": "id fa5166b4 -> timePlane=frame, chapterKind=interlude, ri-ancorato da 1.5.4.3 a 4.4.7"
+    },
+    "datesPopulated": "date storia impostate sui capitoli main-story con data certa in cronologia (Cap 3,5,6,7,9,22,24,25,26,28,29,30,33,34,35,36; gli altri gia' presenti). Zoo(Cap26)=06/12 corretto, scandalo(Cap24)=04/11.",
+    "note": "Capitoli con data ambigua/range nel documento (2,4,10,18,20,21,23) lasciati senza data-storia forzata per fedelta'."
+  },
+  "F2_factual": {
+    "Cap12": "12/10 -> 02/10 (rettifica, sez 1.5.2.2) + 05/10 (reintegrazione, sez 1.5.3.3)",
+    "scandalo": "03/11 -> 04/11 (sez 2.5.1.2.5)",
+    "osservatorio": "03/10 -> 04/10 (sez 2.2.1.3.1)",
+    "zoo": "05/12 -> 06/12 (nodo Cap 26)",
+    "cap3": "titolo canonico 'Un Concorso per Sognare' 04/09 (confermato: 0 occorrenze 'Il Coraggio del Legno')",
+    "brokenRef": "'(Sez. 2.4.11)' -> '(Sez. 2.5.2)' Corpo Docente/Preside (sez 2.4.1.9.1)"
+  },
+  "F3_worldbuilding": {
+    "distorsioneTemporale": "world_rule 3.3.4.2: clausola -> manifestazioni incontrollate/involontarie esulano dalle regole del potere volontario",
+    "oblio": "world_rule 3.3.8: clausola -> cancellazione dell'esistenza nel finale = atto eccezionale del Creatore, distinto dall'oblio ordinario",
+    "michaelGabriel": "character Michael: powerReconciliation -> Michael piu' potente della gerarchia ordinaria; Gabriel risvegliato raggiunge parita' come eccezione (escalation antagonista)"
+  },
+  "F4_characters": {
+    "nonnoCoverage": "character_state 2.6::canon: narratorCoverageRule -> attribuzione indiretta a Trevor, mai diretta, mai rivelare identita' prima dell'Epilogo (risolve 2.6.1.4 vs 2.6.1.9/2.6.6.1)",
+    "trevorFeather": "character Trevor: featherCanonicalVersion -> ricevuta ALLA MORTE di Trevor (cornice 2.6.1.7), superata la versione 'in vita'"
+  },
+  "F5_distribution": {
+    "cristianoMichael": "edge supersedes Michael->Cristiano (successione antagonista, risolve DIST-02)",
+    "craftItems": "front-loading, Cap29/38, gap, Laura, diario, cigni, Federica/Stefano -> report craft-suggestions.md (non nel grafo)"
+  },
+  "graphState": { "chapterNodes": 39, "note": "nessun nodo-incongruenza aggiunto; correzioni in-place sui nodi consolidati e sui bible_section source dei typo" },
+  "residual": [
+    "Citazioni 'Cap. N' nel testo sorgente restano nella numerazione originale del documento (la rinumerazione vive nei nodi chapter + documentChapterLabel); non riscritte per non alterare massivamente il testo.",
+    "Alcuni capitoli con data-range/ambigua senza data-storia forzata.",
+    "Craft items = suggerimenti di riscrittura, non modifiche al grafo."
+  ]
+}

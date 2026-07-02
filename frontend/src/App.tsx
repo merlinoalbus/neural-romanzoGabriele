@@ -1,17 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { Database, Download, FileText, ListChecks, Network, RefreshCw, Search, ShieldCheck, Upload, X } from 'lucide-react';
+import { BookOpen, Database, Download, FileText, ListChecks, Network, RefreshCw, ScrollText, Search, ShieldCheck, Upload, X } from 'lucide-react';
 import {
   commitGraphSnapshotImport,
   dryRunGraphSnapshotImport,
   exportGraphSnapshot,
+  getChapterPacket,
   getKgNeighbors,
   getKgNode,
   getKgStats,
+  listChapters,
   listKgDocuments,
   listKgNodes,
   listKgOpenPoints,
   searchKg,
+  type ChapterPacket,
+  type ChapterSummary,
   type GraphSnapshot,
   type ImportMode,
   type KgEdge,
@@ -78,7 +82,13 @@ const TYPE_LABELS: Record<string, string> = {
 const colorFor = (type: string): string => TYPE_COLORS[type] ?? '#334155';
 const labelFor = (type: string): string => TYPE_LABELS[type] ?? type;
 
-type Tab = 'search' | 'openPoints' | 'documents' | 'admin';
+type Tab = 'search' | 'romanzo' | 'capitolo' | 'openPoints' | 'documents' | 'admin';
+
+const isFrame = (plane: string | null): boolean => plane === 'frame';
+const metaString = (node: KgNode, key: string): string | null => {
+  const value = node.metadata[key];
+  return value == null ? null : String(value);
+};
 
 interface GNode {
   id: string;
@@ -101,6 +111,137 @@ function graphFrom(nodes: KgNode[], edges: KgEdge[]): { nodes: GNode[]; links: G
 
 function openPointTitle(point: OpenPoint): string {
   return point.finding.label.replace(/^plot_thread_inactive:/, '');
+}
+
+function ChapterNavList({ chapters, selectedId, onOpen }: { chapters: ChapterSummary[]; selectedId: string | null; onOpen: (id: string) => void }) {
+  return (
+    <div className="result-list">
+      {chapters.map((chapter) => (
+        <button
+          key={chapter.id}
+          className={selectedId === chapter.id ? 'result active' : 'result'}
+          onClick={() => onOpen(chapter.id)}
+        >
+          <span className="chapter-num">{chapter.number ?? '·'}</span>
+          <span className="result-main">
+            <b>{chapter.title}</b>
+            <small>{isFrame(chapter.timePlane) ? 'cornice / interludio' : 'storia principale'}{chapter.date ? ` · ${chapter.date}` : ''}</small>
+          </span>
+        </button>
+      ))}
+      {!chapters.length && <div className="empty-state">Nessun capitolo</div>}
+    </div>
+  );
+}
+
+function RomanzoPanel({ chapters, selectedId, onOpen }: { chapters: ChapterSummary[]; selectedId: string | null; onOpen: (id: string) => void }) {
+  const frame = chapters.filter((chapter) => isFrame(chapter.timePlane)).length;
+  const main = chapters.length - frame;
+  return (
+    <div className="novel-panel">
+      <div className="novel-head">
+        <h2>Vista Romanzo</h2>
+        <p className="novel-sub">
+          Struttura a cornice · <b>{chapters.length}</b> capitoli ({main} storia · {frame} cornice/interludi).
+          Ogni riga apre la Vista Capitolo.
+        </p>
+      </div>
+      <div className="chapter-strip">
+        {chapters.map((chapter) => (
+          <button
+            key={chapter.id}
+            className={`chapter-row${isFrame(chapter.timePlane) ? ' frame' : ''}${selectedId === chapter.id ? ' active' : ''}`}
+            onClick={() => onOpen(chapter.id)}
+          >
+            <span className="chapter-num">{chapter.number ?? '·'}</span>
+            <span className="chapter-ti">
+              {chapter.title}
+              {chapter.chapterKind === 'interlude' && <small>interludio / cornice</small>}
+            </span>
+            <span className={`chapter-plane ${isFrame(chapter.timePlane) ? 'frame' : 'main'}`}>{isFrame(chapter.timePlane) ? 'cornice' : 'storia'}</span>
+            <span className="chapter-date">{chapter.date ?? '—'}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CapitoloPanel({ packet, onOpen }: { packet: ChapterPacket | null; onOpen: (id: string) => void }) {
+  if (!packet?.chapter) return <div className="graph-empty">Seleziona un capitolo</div>;
+  const chapter = packet.chapter;
+  const number = metaString(chapter, 'chapterNumber');
+  const title = metaString(chapter, 'chapterTitle') ?? chapter.label;
+  const plane = metaString(chapter, 'timePlane');
+  const grouped = new Map<string, ChapterPacket['touches']>();
+  for (const relation of packet.touches) {
+    const list = grouped.get(relation.kind) ?? [];
+    list.push(relation);
+    grouped.set(relation.kind, list);
+  }
+  return (
+    <div className="novel-panel capitolo">
+      <div className="novel-head">
+        <span className="node-type"><span className="dot" style={{ background: colorFor('chapter') }} />capitolo · {isFrame(plane) ? 'cornice' : 'storia principale'}</span>
+        <h2>{number ? `${number} · ` : ''}{title}</h2>
+      </div>
+      <div className="pill-row">
+        {metaString(chapter, 'date') && <span className="pill">📅 <b>{metaString(chapter, 'date')}</b></span>}
+        {plane && <span className="pill">piano <b>{plane}</b></span>}
+        {metaString(chapter, 'documentChapterLabel') && <span className="pill">doc <b>{metaString(chapter, 'documentChapterLabel')}</b></span>}
+        {metaString(chapter, 'primarySectionKey') && <span className="pill">sez. <b>{metaString(chapter, 'primarySectionKey')}</b></span>}
+      </div>
+      {chapter.content && <p className="node-content">{chapter.content}</p>}
+
+      <section className="novel-block">
+        <h3>Adiacenze <small>precedes</small></h3>
+        <div className="adj-row">
+          {packet.prev.map((p) => (
+            <button key={p.id} className="adj" onClick={() => onOpen(p.id)}>← <b>{p.number ?? '·'}</b> {p.title}</button>
+          ))}
+          {packet.next.map((n) => (
+            <button key={n.id} className="adj next" onClick={() => onOpen(n.id)}><b>{n.number ?? '·'}</b> {n.title} →</button>
+          ))}
+          {!packet.prev.length && !packet.next.length && <span className="muted">nessuna adiacenza</span>}
+        </div>
+      </section>
+
+      <section className="novel-block">
+        <h3>Chi c'è &amp; cosa tocca</h3>
+        {grouped.size === 0 && <span className="muted">nessun collegamento</span>}
+        {[...grouped.entries()].map(([kind, list]) => (
+          <div className="touch-group" key={kind}>
+            <span className="edge-kind">{kind}</span>
+            <div className="touch-chips">
+              {list.map((relation) => (
+                <button key={`${kind}-${relation.node.id}`} className="pill touch" onClick={() => onOpen(relation.node.id)}>
+                  <span className="dot" style={{ background: colorFor(relation.node.type) }} />
+                  {relation.node.label}
+                  <small>{labelFor(relation.node.type)}</small>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section className="novel-block">
+        <h3>Riferimenti in entrata <small>{packet.incomingMentions.length} archi mentions</small></h3>
+        {packet.incomingMentions.length === 0 && <span className="muted">nessun riferimento entrante</span>}
+        <div className="mention-list">
+          {packet.incomingMentions.map((mention, index) => (
+            <div className="mention" key={`${mention.fromId}-${index}`}>
+              <span className="mono">{mention.fromSection ?? mention.fromLabel}</span>
+              <span className="arrow">→ mentions →</span>
+              <span className="mono">{number ? `Cap ${number}` : title}</span>
+              {mention.originalCitation && <small className="cite">{mention.originalCitation}</small>}
+            </div>
+          ))}
+        </div>
+        <p className="novel-note">Il numero non è più nel testo sorgente: il riferimento vive come arco id-based → integrità garantita anche dopo rinumerazione/split.</p>
+      </section>
+    </div>
+  );
 }
 
 function StatBar({ stats }: { stats: KgStats | null }) {
@@ -139,6 +280,8 @@ export function App() {
   const [snapshot, setSnapshot] = useState<GraphSnapshot | null>(null);
   const [snapshotFileName, setSnapshotFileName] = useState('');
   const [importResult, setImportResult] = useState<SnapshotImportResult | null>(null);
+  const [chapters, setChapters] = useState<ChapterSummary[]>([]);
+  const [chapterPacket, setChapterPacket] = useState<ChapterPacket | null>(null);
   const graphRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ width: 900, height: 640 });
 
@@ -157,6 +300,33 @@ export function App() {
     try {
       const response = await listKgNodes(80, type?.trim() || undefined);
       setResults(response.nodes);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadChapters = useCallback(async () => {
+    if (chapters.length) return;
+    setLoading(true);
+    setError(null);
+    try {
+      setChapters((await listChapters()).chapters);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [chapters.length]);
+
+  const openChapter = useCallback(async (id: string) => {
+    setTab('capitolo');
+    setSelectedId(id);
+    setLoading(true);
+    setError(null);
+    try {
+      setChapterPacket(await getChapterPacket(id));
     } catch (err) {
       setError(String(err));
     } finally {
@@ -340,6 +510,8 @@ export function App() {
       <main className="workspace">
         <aside className="sidebar">
           <div className="tabs" role="tablist">
+            <button className={tab === 'romanzo' ? 'active' : ''} onClick={() => { setTab('romanzo'); void loadChapters(); }}><BookOpen size={15} />Romanzo</button>
+            <button className={tab === 'capitolo' ? 'active' : ''} onClick={() => { setTab('capitolo'); void loadChapters(); }}><ScrollText size={15} />Capitolo</button>
             <button className={tab === 'search' ? 'active' : ''} onClick={() => setTab('search')}><Search size={15} />Grafo</button>
             <button className={tab === 'openPoints' ? 'active' : ''} onClick={() => { setTab('openPoints'); void loadOpenPoints(); }}><ListChecks size={15} />Punti aperti</button>
             <button className={tab === 'documents' ? 'active' : ''} onClick={() => { setTab('documents'); void loadDocuments(); }}><FileText size={15} />Documenti</button>
@@ -421,6 +593,8 @@ export function App() {
               ))}
               {!openPoints.length && !loading && <div className="empty-state">Nessun punto aperto</div>}
             </div>
+          ) : tab === 'romanzo' || tab === 'capitolo' ? (
+            <ChapterNavList chapters={chapters} selectedId={selectedId} onOpen={(id) => void openChapter(id)} />
           ) : (
             <div className={tab === 'admin' ? 'result-list hidden' : 'result-list'}>
               {activeList.map((node) => (
@@ -462,6 +636,10 @@ export function App() {
                 <div className="graph-empty">Nessun punto aperto</div>
               )}
             </div>
+          ) : tab === 'romanzo' ? (
+            <RomanzoPanel chapters={chapters} selectedId={selectedId} onOpen={(id) => void openChapter(id)} />
+          ) : tab === 'capitolo' ? (
+            <CapitoloPanel packet={chapterPacket} onOpen={(id) => void openChapter(id)} />
           ) : graph.nodes.length > 0 ? (
             <ForceGraph2D<GNode, GLink>
               width={dims.width}
@@ -481,7 +659,7 @@ export function App() {
             <div className="graph-empty">Seleziona un nodo narrativo</div>
           )}
 
-          {tab !== 'openPoints' && detail && (
+          {tab === 'search' && detail && (
             <aside className="detail-panel">
               <button className="close-button" title="Chiudi" onClick={() => setDetail(null)}><X size={18} /></button>
               <span className="node-type"><span className="dot" style={{ background: colorFor(detail.type) }} />{labelFor(detail.type)}</span>

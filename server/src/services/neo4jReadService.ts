@@ -318,6 +318,113 @@ export async function listNodes(opts: { type?: string; limit?: number; includeIn
   return records.map((rec) => nodeFrom(rec.get('n')));
 }
 
+export interface ChapterSummary {
+  id: string;
+  label: string;
+  number: number | null;
+  title: string;
+  date: string | null;
+  timePlane: string | null;
+  chapterKind: string | null;
+  documentChapterLabel: string | null;
+  primarySectionKey: string | null;
+}
+
+function chapterSummaryFrom(node: GraphNode): ChapterSummary {
+  const m = node.metadata;
+  const rawNumber = m.chapterNumber;
+  const number = typeof rawNumber === 'number' ? rawNumber : rawNumber != null && Number.isFinite(Number(rawNumber)) ? Number(rawNumber) : null;
+  return {
+    id: node.id,
+    label: node.label,
+    number,
+    title: String(m.chapterTitle ?? node.label),
+    date: m.date ? String(m.date) : null,
+    timePlane: m.timePlane ? String(m.timePlane) : null,
+    chapterKind: m.chapterKind ? String(m.chapterKind) : null,
+    documentChapterLabel: m.documentChapterLabel ? String(m.documentChapterLabel) : null,
+    primarySectionKey: m.primarySectionKey ? String(m.primarySectionKey) : null,
+  };
+}
+
+export async function listChapters(): Promise<ChapterSummary[]> {
+  const records = await run("MATCH (n:Entity {projectId:$pid, type:'chapter'}) RETURN n", { pid: config.projectId });
+  const chapters = records.map((rec) => chapterSummaryFrom(nodeFrom(rec.get('n'))));
+  chapters.sort((a, b) => (a.number ?? Number.MAX_SAFE_INTEGER) - (b.number ?? Number.MAX_SAFE_INTEGER));
+  return chapters;
+}
+
+export interface ChapterRelation {
+  node: GraphNode;
+  kind: string;
+  direction: 'out' | 'in';
+}
+
+export interface ChapterMention {
+  fromId: string;
+  fromLabel: string;
+  fromType: string;
+  fromSection: string | null;
+  refType: string | null;
+  originalCitation: string | null;
+}
+
+export interface ChapterPacket {
+  chapter: GraphNode | null;
+  prev: ChapterSummary[];
+  next: ChapterSummary[];
+  touches: ChapterRelation[];
+  incomingMentions: ChapterMention[];
+}
+
+export async function chapterPacket(id: string): Promise<ChapterPacket> {
+  const pid = config.projectId;
+  const chapter = await getNodeById(id, { includeInternal: true });
+  if (!chapter || chapter.type !== 'chapter') {
+    return { chapter: null, prev: [], next: [], touches: [], incomingMentions: [] };
+  }
+  const prevRecs = await run(
+    "MATCH (p:Entity {projectId:$pid, type:'chapter'})-[:REL {kind:'precedes'}]->(c:Entity {id:$id, projectId:$pid}) RETURN p",
+    { pid, id },
+  );
+  const nextRecs = await run(
+    "MATCH (c:Entity {id:$id, projectId:$pid})-[:REL {kind:'precedes'}]->(n:Entity {projectId:$pid, type:'chapter'}) RETURN n",
+    { pid, id },
+  );
+  const touchRecs = await run(
+    `MATCH (c:Entity {id:$id, projectId:$pid})-[r:REL]-(m:Entity {projectId:$pid})
+     WHERE r.kind <> 'precedes' AND r.kind <> 'mentions'
+       AND NOT (m.type IN $hiddenTypes)
+       AND NOT (m.type = 'continuity_finding' AND m.label STARTS WITH $openPointLabelPrefix)
+     RETURN DISTINCT m, r.kind AS kind, (startNode(r).id = $id) AS outgoing`,
+    { pid, id, hiddenTypes: NARRATIVE_HIDDEN_NODE_TYPES, openPointLabelPrefix: OPEN_POINT_LABEL_PREFIX },
+  );
+  const mentionRecs = await run(
+    `MATCH (s:Entity {projectId:$pid})-[r:REL {kind:'mentions'}]->(c:Entity {id:$id, projectId:$pid}) RETURN s, r`,
+    { pid, id },
+  );
+  const prev = prevRecs.map((rec) => chapterSummaryFrom(nodeFrom(rec.get('p')))).sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+  const next = nextRecs.map((rec) => chapterSummaryFrom(nodeFrom(rec.get('n')))).sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+  const touches: ChapterRelation[] = touchRecs.map((rec) => ({
+    node: nodeFrom(rec.get('m')),
+    kind: String(rec.get('kind')),
+    direction: rec.get('outgoing') === true ? 'out' : 'in',
+  }));
+  const incomingMentions: ChapterMention[] = mentionRecs.map((rec) => {
+    const source = nodeFrom(rec.get('s'));
+    const meta = edgeFrom(rec.get('r'), source.id, id).metadata;
+    return {
+      fromId: source.id,
+      fromLabel: source.label,
+      fromType: source.type,
+      fromSection: meta.fromSection ? String(meta.fromSection) : null,
+      refType: meta.refType ? String(meta.refType) : null,
+      originalCitation: meta.originalCitation ? String(meta.originalCitation) : null,
+    };
+  });
+  return { chapter, prev, next, touches, incomingMentions };
+}
+
 export async function listOpenPoints(opts: { limit?: number } = {}): Promise<OpenPoint[]> {
   const limit = clampInt(opts.limit, 100, 1, 500);
   const records = await run(

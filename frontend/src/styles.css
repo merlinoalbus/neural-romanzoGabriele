@@ -538,3 +538,138 @@ pre {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ---- Vista Romanzo / Capitolo (Fase 1) ---- */
+.chapter-num {
+  font-family: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: #64748b;
+  min-width: 22px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.novel-panel {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: 22px 26px 40px;
+  background: #fbfcfe;
+}
+.novel-head h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  color: #111827;
+}
+.novel-sub, .novel-note {
+  color: #64748b;
+  font-size: 13px;
+  margin: 0 0 16px;
+  max-width: 70ch;
+}
+.novel-note {
+  border-left: 2px solid #cbd5e1;
+  padding-left: 12px;
+  margin-top: 8px;
+}
+.chapter-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.chapter-row {
+  display: grid;
+  grid-template-columns: 30px 1fr 76px 96px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s, border-color 0.12s;
+}
+.chapter-row:hover { background: #f1f5f9; border-color: #e2e8f0; }
+.chapter-row.active { border-color: #0f766e; background: #f0fdfa; }
+.chapter-row.frame { background: #faf5ff; }
+.chapter-ti { font-size: 14px; color: #18202f; }
+.chapter-ti small { display: block; font-size: 11px; color: #7c3aed; }
+.chapter-plane {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+}
+.chapter-plane.main { color: #0f766e; }
+.chapter-plane.frame { color: #7c3aed; border-color: #ddd6fe; }
+.chapter-date {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: #64748b;
+  text-align: right;
+}
+.pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  cursor: default;
+}
+.pill b { color: #18202f; font-weight: 600; }
+.pill.touch { cursor: pointer; }
+.pill.touch:hover { border-color: #0f766e; }
+.pill.touch small { color: #94a3b8; }
+.novel-block { margin-top: 18px; }
+.novel-block h3 {
+  font-size: 14px;
+  color: #111827;
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.novel-block h3 small { color: #94a3b8; font-weight: 400; }
+.adj-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.adj {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: #334155;
+  cursor: pointer;
+}
+.adj:hover { border-color: #0f766e; background: #f0fdfa; }
+.adj.next { color: #0f766e; }
+.touch-group { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+.edge-kind {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: #0f766e;
+  min-width: 92px;
+  padding-top: 5px;
+}
+.touch-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.mention-list { display: flex; flex-direction: column; gap: 6px; }
+.mention {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #475569;
+}
+.mention .mono { font-family: ui-monospace, Menlo, Consolas, monospace; color: #18202f; }
+.mention .arrow { color: #0f766e; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; }
+.mention .cite { color: #94a3b8; }
+.muted { color: #94a3b8; font-size: 13px; }

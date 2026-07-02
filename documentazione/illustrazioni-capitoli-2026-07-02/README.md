@@ -1,11 +1,12 @@
-# Illustrazioni capitoli - 2026-07-02
+# Illustrazioni romanzo - 2026-07-02
 
-Cartella documentale con le illustrazioni generate per i 40 capitoli del romanzo, salvate dal batch di anteprime in chat e rinominate in ordine capitolo.
+Cartella documentale con le illustrazioni generate per Prologo, 40 capitoli ed Epilogo del romanzo, salvate dal batch di anteprime in chat e rinominate in ordine narrativo.
 
 Fonte narrativa usata: modello/grafo canonico del repository `neural-romanzoGabriele`.
 
 ## File
 
+0. `prologo-la-promessa-della-cioccolata-calda.png`
 1. `capitolo-01-vigilia-di-scuola.png`
 2. `capitolo-02-la-legge-del-corridoio.png`
 3. `capitolo-03-un-concorso-per-sognare.png`
@@ -46,3 +47,4 @@ Fonte narrativa usata: modello/grafo canonico del repository `neural-romanzoGabr
 38. `capitolo-38-lacrime-e-stelle-cadenti.png`
 39. `capitolo-39-preghiere-nella-notte.png`
 40. `capitolo-40-il-dono-della-vita-umana.png`
+41. `epilogo-rivelazione-del-nonno-e-dono-delle-piume.png`

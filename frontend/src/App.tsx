@@ -522,53 +522,157 @@ function EntityPanel({ packet, onOpen }: { packet: EntityPacket | null; onOpen: 
   );
 }
 
+const MONTHS_IT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+function parseDay(value: string | null): number | null {
+  if (!value) return null;
+  const iso = value.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return Date.UTC(+iso[1], +iso[2] - 1, +iso[3]);
+  const dmy = value.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (dmy) return Date.UTC(+dmy[3], +dmy[2] - 1, +dmy[1]);
+  const ym = value.match(/(\d{4})-(\d{2})/);
+  if (ym) return Date.UTC(+ym[1], +ym[2] - 1, 1);
+  const y = value.match(/\b(19|20)\d{2}\b/);
+  if (y) return Date.UTC(+y[0], 0, 1);
+  return null;
+}
+
 function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: TimelineEntry[]; onOpenChapter: (id: string) => void; onOpenEntity: (id: string) => void }) {
-  const groups = useMemo(() => {
-    const main = entries.filter((entry) => entry.timePlane === 'main_story');
-    const frame = entries.filter((entry) => entry.timePlane === 'frame');
-    const unanchored = entries.filter((entry) => entry.timePlane !== 'main_story' && entry.timePlane !== 'frame');
-    return { main, frame, unanchored };
+  const [hover, setHover] = useState<string | null>(null);
+  const H = 292;
+
+  const model = useMemo(() => {
+    const parsed = entries.map((entry) => ({ entry, day: parseDay(entry.date) }));
+    const dated = parsed.filter((p): p is { entry: TimelineEntry; day: number } => p.day != null);
+    const frameYear = (day: number): boolean => new Date(day).getUTCFullYear() >= 2050;
+    const mainPts = dated.filter((p) => !frameYear(p.day)).sort((a, b) => a.day - b.day);
+    const framePts = dated.filter((p) => frameYear(p.day)).sort((a, b) => a.day - b.day);
+    const undated = parsed.filter((p) => p.day == null).map((p) => p.entry);
+
+    const MARGIN = 46;
+    const spineY = 234;
+    const min = mainPts.length ? mainPts[0].day : 0;
+    const max = mainPts.length ? mainPts[mainPts.length - 1].day : 1;
+    const span = Math.max(1, max - min);
+    const monthMs = 1000 * 60 * 60 * 24 * 30.44;
+    const innerW = Math.max(680, Math.round((span / monthMs) * 62));
+    const width = innerW + MARGIN * 2;
+    const xOf = (day: number): number => MARGIN + ((day - min) / span) * innerW;
+
+    const bucket = new Map<number, number>();
+    const staged = mainPts.map((p) => {
+      const x = xOf(p.day);
+      const key = Math.round(x / 13);
+      const stack = bucket.get(key) ?? 0;
+      bucket.set(key, stack + 1);
+      return { entry: p.entry, day: p.day, x, stack };
+    });
+    const maxStack = staged.reduce((m, n) => Math.max(m, n.stack), 0);
+    const rowH = Math.max(7, Math.min(14, (spineY - 44) / Math.max(1, maxStack)));
+    const nodes = staged.map((n) => ({ ...n, y: spineY - 16 - n.stack * rowH }));
+
+    const ticks: { x: number; label: string }[] = [];
+    if (mainPts.length) {
+      const start = new Date(min);
+      let cur = Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1);
+      while (cur <= max + monthMs) {
+        const d = new Date(cur);
+        ticks.push({ x: xOf(cur), label: d.getUTCMonth() === 0 ? `${MONTHS_IT[0]} ${d.getUTCFullYear()}` : MONTHS_IT[d.getUTCMonth()] });
+        cur = Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
+      }
+    }
+    return { nodes, framePts, undated, width, spineY, MARGIN, ticks };
   }, [entries]);
-  const renderRow = (entry: TimelineEntry) => (
-    <div className="tl-event" key={entry.id}>
-      <span className="tl-date">{entry.date ?? '—'}</span>
-      <button className="tl-title" onClick={() => onOpenEntity(entry.id)}>{entry.label}</button>
-      {entry.chapterId ? (
-        <button className="tl-chapter" onClick={() => onOpenChapter(entry.chapterId!)}>
-          Cap {entry.chapterNumber ?? '·'}{entry.chapterTitle ? ` · ${entry.chapterTitle}` : ''}
-        </button>
-      ) : (
-        <span className="tl-chapter none">non ancorato</span>
-      )}
-    </div>
-  );
+
+  const hovered = model.nodes.find((n) => n.entry.id === hover) ?? null;
+  const openEntry = (entry: TimelineEntry): void => { if (entry.chapterId) onOpenChapter(entry.chapterId); else onOpenEntity(entry.id); };
+
   return (
     <div className="novel-panel">
       <div className="novel-head">
-        <h2>Vista Timeline — bi-piano</h2>
+        <h2>Timeline del romanzo</h2>
         <p className="novel-sub">
-          <b>{entries.length}</b> eventi. Data e ordine derivati dal capitolo collegato (archi <span className="edge-kind">part_of</span>/<span className="edge-kind">occurs_in</span>).
-          Gli eventi non ancorati a un capitolo compaiono in fondo.
+          <b>{entries.length}</b> eventi lungo la spina temporale. Storia principale 2020–2021; cornice 2080 a parte. Hover per il dettaglio, click per aprire il capitolo/evento. L'altezza dei punti segnala i periodi più densi.
         </p>
       </div>
-      {groups.main.length > 0 && (
+      <div className="tl-legend">
+        <span><i className="tl-key main" /> storia principale <b>{model.nodes.length}</b></span>
+        <span><i className="tl-key frame" /> cornice 2080 <b>{model.framePts.length}</b></span>
+        {model.undated.length > 0 && <span><i className="tl-key none" /> non datati <b>{model.undated.length}</b></span>}
+      </div>
+
+      {model.nodes.length > 0 && (
+        <div className="tl-scroll">
+          <svg className="tl-svg" width={model.width} height={H} viewBox={`0 0 ${model.width} ${H}`} role="img" aria-label="Timeline storia principale">
+            <defs>
+              <linearGradient id="tlspine" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#e6b450" />
+                <stop offset="0.75" stopColor="#c6a06a" />
+                <stop offset="1" stopColor="#9b8ce6" />
+              </linearGradient>
+            </defs>
+            {model.ticks.map((t, i) => (
+              <g key={i}>
+                <line x1={t.x} y1={42} x2={t.x} y2={model.spineY} stroke="#242b3d" strokeWidth="1" strokeDasharray="2 5" />
+                <text x={t.x} y={model.spineY + 20} fill="#6a7288" fontSize="10" textAnchor="middle" fontFamily="ui-monospace, monospace">{t.label}</text>
+              </g>
+            ))}
+            <line x1={model.MARGIN} y1={model.spineY} x2={model.width - model.MARGIN} y2={model.spineY} stroke="url(#tlspine)" strokeWidth="3" strokeLinecap="round" />
+            {model.nodes.map((n) => {
+              const active = hover === n.entry.id;
+              return (
+                <g key={n.entry.id} className="tl-node" onMouseEnter={() => setHover(n.entry.id)} onMouseLeave={() => setHover((h) => (h === n.entry.id ? null : h))} onClick={() => openEntry(n.entry)}>
+                  <line x1={n.x} y1={n.y} x2={n.x} y2={model.spineY} stroke={active ? '#e6b450' : '#39415a'} strokeWidth="1" />
+                  <circle cx={n.x} cy={n.y} r={active ? 6.5 : 4.5} fill={active ? '#fff' : '#e6b450'} stroke="#e6b450" strokeWidth={active ? 2 : 0} />
+                </g>
+              );
+            })}
+            {hovered && (() => {
+              const label = hovered.entry.label.length > 46 ? `${hovered.entry.label.slice(0, 45)}…` : hovered.entry.label;
+              const chapter = hovered.entry.chapterId ? `Cap ${hovered.entry.chapterNumber ?? '·'}${hovered.entry.chapterTitle ? ` · ${hovered.entry.chapterTitle}` : ''}` : 'non ancorato a un capitolo';
+              const boxW = 250;
+              const bx = Math.max(6, Math.min(model.width - boxW - 6, hovered.x - boxW / 2));
+              const below = hovered.y < 96;
+              const by = below ? hovered.y + 14 : hovered.y - 74;
+              return (
+                <g className="tl-tip" pointerEvents="none">
+                  <rect x={bx} y={by} width={boxW} height={62} rx={8} fill="#0c0f18" stroke="#2a3145" />
+                  <text x={bx + 12} y={by + 20} fill="#eaecf2" fontSize="12.5" fontWeight="600">{label}</text>
+                  <text x={bx + 12} y={by + 38} fill="#e6b450" fontSize="11" fontFamily="ui-monospace, monospace">{hovered.entry.date ?? '—'}</text>
+                  <text x={bx + 12} y={by + 54} fill="#9aa3b8" fontSize="11">{chapter.length > 40 ? `${chapter.slice(0, 39)}…` : chapter}</text>
+                </g>
+              );
+            })()}
+          </svg>
+        </div>
+      )}
+
+      {model.framePts.length > 0 && (
         <section className="novel-block">
-          <h3><span className="chapter-plane main">storia principale</span> <small>{groups.main.length}</small></h3>
-          <div className="tl-list">{groups.main.map(renderRow)}</div>
+          <h3><span className="chapter-plane frame">cornice</span> 2080 <small>{model.framePts.length}</small></h3>
+          <div className="tl-frame-rail">
+            {model.framePts.map((p) => (
+              <button key={p.entry.id} className="tl-chip frame" onClick={() => openEntry(p.entry)}>
+                <span className="tl-chip-date">{p.entry.date ?? '—'}</span>
+                {p.entry.label}
+              </button>
+            ))}
+          </div>
         </section>
       )}
-      {groups.frame.length > 0 && (
+
+      {model.undated.length > 0 && (
         <section className="novel-block">
-          <h3><span className="chapter-plane frame">cornice</span> <small>{groups.frame.length}</small></h3>
-          <div className="tl-list">{groups.frame.map(renderRow)}</div>
+          <h3>Eventi non datati <small>{model.undated.length}</small></h3>
+          <p className="novel-note">Senza data derivabile dal capitolo collegato — candidati alla bonifica (ancoraggio a un capitolo).</p>
+          <div className="tl-frame-rail">
+            {model.undated.slice(0, 60).map((entry) => (
+              <button key={entry.id} className="tl-chip none" onClick={() => openEntry(entry)}>{entry.label}</button>
+            ))}
+            {model.undated.length > 60 && <span className="muted">+{model.undated.length - 60} altri</span>}
+          </div>
         </section>
       )}
-      {groups.unanchored.length > 0 && (
-        <section className="novel-block">
-          <h3>Non ancorati <small>{groups.unanchored.length}</small></h3>
-          <div className="tl-list">{groups.unanchored.map(renderRow)}</div>
-        </section>
-      )}
+
       {!entries.length && <div className="empty-state">Nessun evento timeline</div>}
     </div>
   );

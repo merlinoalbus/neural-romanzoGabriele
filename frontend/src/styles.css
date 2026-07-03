@@ -468,3 +468,52 @@ button { font-family: inherit; }
   color: var(--muted);
   white-space: pre-wrap;
 }
+
+/* Timeline redesign (SVG spine) */
+.tl-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  padding: 4px 2px 14px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.tl-legend b { color: var(--ink); font-weight: 600; margin-left: 3px; }
+.tl-key { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.tl-key.main { background: var(--gold); }
+.tl-key.frame { background: var(--violet); }
+.tl-key.none { background: var(--faint); }
+.tl-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #121626, #0f131e);
+  padding: 4px;
+}
+.tl-svg { display: block; }
+.tl-node { cursor: pointer; }
+.tl-node circle { transition: r 0.1s ease; }
+.tl-frame-rail { display: flex; flex-wrap: wrap; gap: 8px; }
+.tl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--raised);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12.5px;
+  cursor: pointer;
+  text-align: left;
+}
+.tl-chip:hover { border-color: var(--violet); }
+.tl-chip.frame { border-color: rgba(155, 140, 230, 0.4); }
+.tl-chip.none { color: var(--muted); border-style: dashed; }
+.tl-chip-date {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--violet);
+}

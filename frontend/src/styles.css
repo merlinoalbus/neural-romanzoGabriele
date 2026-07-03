@@ -690,3 +690,56 @@ button { font-family: inherit; }
 }
 .pf select:focus, .pf input:focus { outline: none; border-color: var(--gold); }
 .pf input::placeholder { color: var(--faint); }
+
+/* Timeline v2 — asse cronologico proporzionale, navigabile e zoomabile */
+.tl2-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px 20px; flex-wrap: wrap; padding: 4px 2px 12px; }
+.tl2-zoom { display: flex; align-items: center; gap: 6px; }
+.tl2-span { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-right: 4px; white-space: nowrap; }
+.tl2-zoom button {
+  all: unset; cursor: pointer;
+  min-width: 28px; height: 28px; padding: 0 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--raised); color: var(--muted); font-size: 13px;
+}
+.tl2-zoom button:hover { color: var(--ink); border-color: var(--faint); }
+.tl2-zoom button:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.tl2-scroll {
+  overflow-x: auto; overflow-y: hidden;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: linear-gradient(180deg, #121626, #0f131e);
+  overscroll-behavior-x: contain;
+}
+.tl2-canvas { position: relative; min-width: 100%; }
+.tl2-band { position: absolute; top: 0; bottom: 26px; background: rgba(255, 255, 255, 0.016); pointer-events: none; }
+.tl2-grid { position: absolute; top: 0; width: 1px; background: #212940; pointer-events: none; }
+.tl2-grid.major { background: #384675; }
+.tl2-daytick { position: absolute; top: 0; width: 1px; background: rgba(120, 130, 160, 0.05); pointer-events: none; }
+.tl2-monthlab {
+  position: absolute; transform: translateX(5px);
+  font-family: var(--mono); font-size: 10px; color: var(--faint);
+  white-space: nowrap; pointer-events: none;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.tl2-spine { position: absolute; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #e6b450, #c6a06a 72%, #9b8ce6); pointer-events: none; }
+.tl2-conn { position: absolute; width: 1px; background: #333c56; z-index: 1; pointer-events: none; }
+.tl2-card {
+  all: unset; position: absolute; z-index: 2;
+  display: flex; align-items: baseline; gap: 6px;
+  max-width: 232px; height: 17px; box-sizing: border-box;
+  padding: 0 8px; border: 1px solid var(--line); border-radius: 7px;
+  background: var(--panel); cursor: pointer; white-space: nowrap; overflow: hidden;
+  transition: border-color 0.12s, background 0.12s;
+}
+.tl2-card:hover, .tl2-card.active { border-color: var(--gold); background: var(--raised); overflow: visible; z-index: 7; max-width: none; }
+.tl2-card-d { font-family: var(--mono); font-size: 9.5px; color: var(--gold); flex: none; font-variant-numeric: tabular-nums; }
+.tl2-card-t { font-size: 11px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; }
+.tl2-dot {
+  all: unset; position: absolute; z-index: 3;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--gold); transform: translate(-50%, -50%);
+  cursor: pointer; box-shadow: 0 0 0 2px #0f131e;
+  transition: width 0.1s, height 0.1s;
+}
+.tl2-dot.free { background: var(--violet); }
+.tl2-dot:hover, .tl2-dot.active { width: 13px; height: 13px; background: #fff; box-shadow: 0 0 0 2px var(--gold); z-index: 8; }

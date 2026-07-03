@@ -72,6 +72,9 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
       - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-}
+      - EDITING_STATE_DIR=/app/.state/chapter-editing
+    volumes:
+      - "romanzo_gabriele_mcp_state:/app/.state"
     depends_on:
       romanzo_gabriele_be:
         condition: service_healthy
@@ -133,3 +136,4 @@ networks:
 
 volumes:
   romanzo_gabriele_neo4j_data:
+  romanzo_gabriele_mcp_state:

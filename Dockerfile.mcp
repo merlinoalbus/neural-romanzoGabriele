@@ -32,6 +32,11 @@ COPY --from=build /app/dist ./dist
 COPY mcp-server/package.json ./
 COPY mcp-server/instructions.md ./dist/instructions.md
 
+# Editorial working state (session/blocks/findings/decisions/rewrites) lives here as JSON files,
+# never as graph nodes. Mount a volume on this path in production or it is lost on redeploy.
+RUN mkdir -p /app/.state/chapter-editing && chown -R appuser:appgroup /app/.state
+ENV EDITING_STATE_DIR=/app/.state/chapter-editing
+
 ENV NODE_ENV=production
 ENV MCP_PORT=3002
 

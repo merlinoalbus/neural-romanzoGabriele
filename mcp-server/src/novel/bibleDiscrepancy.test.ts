@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { GraphEdge, GraphNode } from '../graph/neo4jStore.js';
 import type { BibleCandidate } from './bibleCandidates.js';
-import { buildBibleDiscrepancyReport } from './bibleDiscrepancy.js';
+import { buildBibleDiscrepancyReport, buildCanonDiscrepancyReport, buildSemanticDiscrepancies, type SemanticDiscrepancyOptions } from './bibleDiscrepancy.js';
 
 function node(input: Partial<GraphNode> & { id: string; type: string; label: string; content?: string }): GraphNode {
   return {
@@ -267,4 +267,72 @@ test('buildBibleDiscrepancyReport blocks intra-batch opposing edges', () => {
 
   assert.equal(report.hasBlockingDiscrepancies, true);
   assert.ok(report.discrepancies.some((item) => item.code === 'intra_batch_opposing_edge_kind_conflict' && item.blocking));
+});
+
+function fakeSemanticOptions(input: { score: number; matchNode: GraphNode }): SemanticDiscrepancyOptions {
+  return {
+    embedText: async () => [0.1, 0.2, 0.3],
+    semanticSearch: async () => [{ node: input.matchNode, score: input.score }],
+  };
+}
+
+test('buildSemanticDiscrepancies blocks near-identical meaning even with completely different wording', async () => {
+  const existing = node({ id: 'n-1', type: 'secret', label: 'Il segreto del ciondolo', content: 'Nessuno conosce la vera origine del ciondolo del Nonno.' });
+  const candidate = nodeCandidate({ candidateId: 'cand-paraphrase', targetType: 'secret', label: 'Origine misteriosa del gioiello', content: 'Il gioiello di famiglia porta con se un passato che tutti ignorano.' });
+
+  const discrepancies = await buildSemanticDiscrepancies([candidate], fakeSemanticOptions({ score: 0.95, matchNode: existing }));
+
+  assert.equal(discrepancies.length, 1);
+  assert.equal(discrepancies[0].code, 'possible_duplicate_or_alias_semantic');
+  assert.equal(discrepancies[0].blocking, true);
+});
+
+test('buildSemanticDiscrepancies raises only a non-blocking advisory in the mid-similarity band', async () => {
+  const existing = node({ id: 'n-2', type: 'secret', label: 'Altro segreto' });
+  const candidate = nodeCandidate({ candidateId: 'cand-mid', targetType: 'secret', label: 'Segreto diverso', content: 'Testo diverso.' });
+
+  const discrepancies = await buildSemanticDiscrepancies([candidate], fakeSemanticOptions({ score: 0.85, matchNode: existing }));
+
+  assert.equal(discrepancies.length, 1);
+  assert.equal(discrepancies[0].code, 'semantic_proximity_review');
+  assert.equal(discrepancies[0].severity, 'warning');
+  assert.equal(discrepancies[0].blocking, false);
+});
+
+test('buildSemanticDiscrepancies stays silent below the review threshold', async () => {
+  const existing = node({ id: 'n-3', type: 'secret', label: 'Segreto scollegato' });
+  const candidate = nodeCandidate({ candidateId: 'cand-low', targetType: 'secret', label: 'Segreto indipendente', content: 'Testo indipendente.' });
+
+  const discrepancies = await buildSemanticDiscrepancies([candidate], fakeSemanticOptions({ score: 0.4, matchNode: existing }));
+
+  assert.equal(discrepancies.length, 0);
+});
+
+test('buildSemanticDiscrepancies never throws when the embeddings provider fails', async () => {
+  const candidate = nodeCandidate({ candidateId: 'cand-fail', targetType: 'secret', label: 'X', content: 'Y' });
+  const discrepancies = await buildSemanticDiscrepancies([candidate], {
+    embedText: async () => {
+      throw new Error('provider down');
+    },
+    semanticSearch: async () => [],
+  });
+  assert.deepEqual(discrepancies, []);
+});
+
+test('buildCanonDiscrepancyReport without semantic options behaves exactly like the lexical-only report', async () => {
+  const candidate = nodeCandidate({ candidateId: 'cand-plain', targetType: 'secret', label: 'Segreto qualsiasi', content: 'Testo qualsiasi.' });
+  const lexical = buildBibleDiscrepancyReport([candidate], [], []);
+  const combined = await buildCanonDiscrepancyReport([candidate], [], []);
+  assert.deepEqual(combined, lexical);
+});
+
+test('buildCanonDiscrepancyReport merges semantic discrepancies into the lexical report and recomputes blocking', async () => {
+  const existing = node({ id: 'n-4', type: 'secret', label: 'Segreto originale', content: 'Il segreto originale.' });
+  const candidate = nodeCandidate({ candidateId: 'cand-semantic', targetType: 'secret', label: 'Segreto riformulato', content: 'Testo riformulato senza parole in comune.' });
+
+  const report = await buildCanonDiscrepancyReport([candidate], [existing], [], fakeSemanticOptions({ score: 0.99, matchNode: existing }));
+
+  assert.equal(report.hasBlockingDiscrepancies, true);
+  assert.ok(report.discrepancies.some((item) => item.code === 'possible_duplicate_or_alias_semantic'));
+  assert.equal(report.summary.blocking, report.discrepancies.filter((item) => item.blocking).length);
 });

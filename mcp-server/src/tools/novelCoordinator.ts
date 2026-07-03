@@ -447,7 +447,8 @@ Istruzioni per il Verificatore:
      - Genera un report dettagliato specificando i codici errore (es. 'character_trait_contradiction', 'missing_theme_nodes', 'pending_edge_candidates_missing_endpoints').
      - Ripassa la palla all'Esecutore indicando le modifiche necessarie per superare il gate.
    - **PASS (Approva)**: Se non ci sono blocker, la densità semantica è ottimale, e il punteggio è soddisfatto:
-     - Procedi all'ingestion finale invocando 'novel_commit_bible_candidates' (per la Bibbia) o finalizzando la bozza tramite il tool di save/assemble per i capitoli.
+     - Per la Bibbia: procedi con 'novel_commit_bible_candidates'.
+     - Per un capitolo: il testo finale entra nel grafo una sola volta, mai a bozze. Estrai i fatti con 'novel_extract_chapter_candidates' e committali con 'novel_commit_chapter_candidates', che valida SOLO contro il resto del canone già consolidato (mai contro bozze proprie di sessioni precedenti, che non esistono per costruzione) con lo stesso gate lessicale+semantico bloccante della Bibbia. Solo dopo, 'novel_save_final_chapter' aggiorna in place il nodo 'chapter' canonico.
      - Fornisci conferma scritta dell'avvenuta scrittura con statistiche finali del grafo (nodi scritti, archi creati).`;
         }
 

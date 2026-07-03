@@ -64,17 +64,19 @@ export function embeddingText(input: { type: string; label: string; content: str
   return [`type: ${input.type}`, `label: ${input.label}`, `content: ${input.content}`].join('\n') + metadata;
 }
 
-export async function embedText(
-  text: string,
-  settings: EmbeddingSettings = getEmbeddingSettings(),
-  fetchImpl: FetchLike = globalThis.fetch,
-): Promise<number[]> {
-  const resolved = requireEmbeddingSettings(settings);
-  if (resolved.provider !== 'openai-compatible') {
-    throw new EmbeddingConfigurationError(`Unsupported embeddings provider: ${resolved.provider}`);
-  }
-  if (!fetchImpl) throw new EmbeddingConfigurationError('fetch is not available in this runtime');
+export class RetryableEmbeddingError extends Error {
+  readonly retryable = true;
+}
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function embedTextOnce(
+  text: string,
+  resolved: EmbeddingSettings,
+  fetchImpl: FetchLike,
+): Promise<number[]> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), resolved.timeoutMs);
   try {
@@ -83,18 +85,27 @@ export async function embedText(
       input: text,
     };
     if (resolved.dimensions > 0) body.dimensions = resolved.dimensions;
-    const response = await fetchImpl(`${resolved.baseUrl}/embeddings`, {
-      method: 'POST',
-      headers: {
-        authorization: `Bearer ${resolved.apiKey}`,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
+    let response: Response;
+    try {
+      response = await fetchImpl(`${resolved.baseUrl}/embeddings`, {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${resolved.apiKey}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+    } catch (err) {
+      // Network failure or timeout abort: transient, worth retrying.
+      throw new RetryableEmbeddingError(`embedding_provider_network_error: ${String(err)}`);
+    }
     if (!response.ok) {
       const message = await response.text().catch(() => '');
-      throw new Error(`embedding_provider_error: ${response.status} ${response.statusText}${message ? ` - ${message}` : ''}`);
+      const detail = `embedding_provider_error: ${response.status} ${response.statusText}${message ? ` - ${message}` : ''}`;
+      // 429 (rate limit) and 5xx are transient; other 4xx (auth, bad request) will not succeed on retry.
+      if (response.status === 429 || response.status >= 500) throw new RetryableEmbeddingError(detail);
+      throw new Error(detail);
     }
     const payload = (await response.json()) as { data?: Array<{ embedding?: unknown }> };
     const vector = payload.data?.[0]?.embedding;
@@ -108,4 +119,42 @@ export async function embedText(
   } finally {
     clearTimeout(timer);
   }
+}
+
+export interface EmbedTextRetryOptions {
+  maxRetries?: number;
+  baseDelayMs?: number;
+}
+
+/**
+ * Embeds a single text, retrying transient failures (timeouts, network errors, 429/5xx) with
+ * exponential backoff. Configuration errors and permanent provider errors (4xx other than 429,
+ * malformed response) fail immediately without retrying.
+ */
+export async function embedText(
+  text: string,
+  settings: EmbeddingSettings = getEmbeddingSettings(),
+  fetchImpl: FetchLike = globalThis.fetch,
+  retry: EmbedTextRetryOptions = {},
+): Promise<number[]> {
+  const resolved = requireEmbeddingSettings(settings);
+  if (resolved.provider !== 'openai-compatible') {
+    throw new EmbeddingConfigurationError(`Unsupported embeddings provider: ${resolved.provider}`);
+  }
+  if (!fetchImpl) throw new EmbeddingConfigurationError('fetch is not available in this runtime');
+
+  const maxRetries = retry.maxRetries ?? 2;
+  const baseDelayMs = retry.baseDelayMs ?? 300;
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await embedTextOnce(text, resolved, fetchImpl);
+    } catch (err) {
+      lastError = err;
+      const retryable = err instanceof RetryableEmbeddingError;
+      if (!retryable || attempt === maxRetries) throw err;
+      await sleep(baseDelayMs * 2 ** attempt);
+    }
+  }
+  throw lastError;
 }

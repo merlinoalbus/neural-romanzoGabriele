@@ -60,6 +60,12 @@ export const MCP_TOOL_NAMES = {
   novel_attach_generated_image: 'novel_attach_generated_image',
   novel_verify_ingestion_threshold: 'novel_verify_ingestion_threshold',
   novel_get_coordination_prompt: 'novel_get_coordination_prompt',
+  novel_extract_chapter_candidates: 'novel_extract_chapter_candidates',
+  novel_commit_chapter_candidates: 'novel_commit_chapter_candidates',
+  novel_chapter_candidate_packet: 'novel_chapter_candidate_packet',
+  novel_chapter_validation_packet: 'novel_chapter_validation_packet',
+  novel_chapter_postwrite_status: 'novel_chapter_postwrite_status',
+  novel_scan_revision_impact: 'novel_scan_revision_impact',
 } as const;
 
 export type McpToolName = typeof MCP_TOOL_NAMES[keyof typeof MCP_TOOL_NAMES];

@@ -39,7 +39,9 @@ In locale puo essere esposto separatamente tramite `MCP_HOST_PORT`, usando `MCP_
 7. Leggere `sectionMappedOnly` e `claimMappedOnly` come segnali di mapping incompleto, non come piena copertura semantica.
 8. Importare bozze reali dei capitoli come materiale di lavoro.
 9. Prima di scrivere o revisionare, richiamare il context packet del capitolo.
-10. Salvare gli output degli step editoriali come lavoro operativo, non come canone.
+10. Il lavoro editoriale in corso (sessione, blocchi, finding, decisioni, riscritture, seam review, visual brief) non è mai un nodo del grafo: vive in un file di sessione, mai in Neo4j. Il grafo riceve solo il capitolo finale approvato.
+11. Una revisione aggiorna il nodo `chapter` esistente in place (stessa chiave `type`+`label`): non crea mai un nodo di bozza separato. Nessuna stratificazione di nodi vecchi accanto a nuovi.
+12. Un capitolo entra nel grafo una sola volta, già nella sua versione definitiva: i fatti estratti dal testo finale si validano SOLO contro il resto del canone già consolidato, mai contro bozze proprie di sessioni precedenti.
 
 I dati canonici devono sempre mantenere provenienza chiara. Le proposte creative o di revisione devono rimanere distinguibili dal canone approvato.
 
@@ -141,7 +143,7 @@ Relazioni da preferire a `related_to`:
 
 `related_to` resta un fallback ammesso, ma il coverage report lo segnala per futura tipizzazione.
 
-Tool workflow editoriale:
+Tool workflow editoriale (stato in un file di sessione, mai nel grafo — solo `novel_save_final_chapter` scrive canone, aggiornando il nodo `chapter` esistente in place):
 
 - `novel_start_editing_session`
 - `novel_split_chapter_blocks`
@@ -153,3 +155,12 @@ Tool workflow editoriale:
 - `novel_save_final_chapter`
 - `novel_create_visual_brief`
 - `novel_attach_generated_image`
+
+Tool pipeline capitolo (mirror della Bibbia, ma validazione in un solo passaggio contro il resto del canone — mai contro bozze proprie di sessioni precedenti):
+
+- `novel_extract_chapter_candidates`
+- `novel_commit_chapter_candidates`
+- `novel_chapter_candidate_packet`
+- `novel_chapter_validation_packet`
+- `novel_chapter_postwrite_status`
+- `novel_scan_revision_impact`

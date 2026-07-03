@@ -15,10 +15,11 @@ import {
   type BibleCandidateGranularity,
 } from '../novel/bibleCandidates.js';
 import { buildBibleCoverageReport, buildChapterContextPacket } from '../novel/bibleCoverage.js';
-import { buildBibleDiscrepancyReport } from '../novel/bibleDiscrepancy.js';
+import { buildCanonDiscrepancyReport } from '../novel/bibleDiscrepancy.js';
 import { buildBibleSectionsPlan, previewBibleSection, type BibleSectionsPlan } from '../novel/bibleSections.js';
 import { composeRecallQuery } from '../novel/context.js';
 import { normalizeChapterLabel, NOVEL_NODE_TYPES } from '../novel/domain.js';
+import { embedNodesInline, semanticDiscrepancyOptionsIfConfigured } from '../services/embeddingSync.js';
 import { errorObj, toolError, toolStructured } from './responseHelpers.js';
 
 const jsonObj = z.record(z.string(), z.unknown());
@@ -1138,7 +1139,7 @@ async function commitBibleCandidate(
   return { edge };
 }
 
-async function missingEdgeEndpointsForBatch(loaded: Array<{ candidate: BibleCandidate }>): Promise<Array<{ candidateId: string; endpoint: 'from' | 'to'; type: string; label: string }>> {
+export async function missingEdgeEndpointsForBatch(loaded: Array<{ candidate: BibleCandidate }>): Promise<Array<{ candidateId: string; endpoint: 'from' | 'to'; type: string; label: string }>> {
   const plannedNodes = new Set<string>();
   for (const { candidate } of loaded) {
     if (candidate.candidateKind === 'node' && candidate.targetType && candidate.label) {
@@ -1223,12 +1224,22 @@ function edgeFromQueryRecord(row: QueryRecord): kg.GraphEdge {
   };
 }
 
-function isCanonicalNarrativeNode(node: kg.GraphNode): boolean {
-  const canonStatus = typeof node.metadata.canonStatus === 'string' ? node.metadata.canonStatus : '';
-  return canonStatus === 'canonical' || canonStatus === '';
+// A node needs an EXPLICIT canonStatus:'canonical' to count as canon. Treating a missing
+// canonStatus as canonical-by-default would let a node written by hand via the generic
+// kg_add_node/kg_upsert_node tools (bypassing novel_commit_bible_candidates/
+// novel_commit_chapter_candidates) silently infiltrate the canonical graph without ever
+// passing the discrepancy gate.
+export function isCanonicalNarrativeNode(node: kg.GraphNode): boolean {
+  return node.metadata.canonStatus === 'canonical';
 }
 
-async function loadGlobalCanonicalNarrativeGraph(): Promise<{ nodes: kg.GraphNode[]; edges: kg.GraphEdge[] }> {
+/**
+ * Loads every canonical narrative node/edge in the project — the "rest of canon" both
+ * `novel_commit_bible_candidates` and `novel_commit_chapter_candidates` validate new candidates
+ * against. Not Bible-specific: it scans all COMMITTABLE_CANON_NODE_TYPES regardless of whether
+ * they originated from the Bible or from a canonized chapter.
+ */
+export async function loadGlobalCanonicalNarrativeGraph(): Promise<{ nodes: kg.GraphNode[]; edges: kg.GraphEdge[] }> {
   const projectId = config.projectId;
   const nodeRows = await kg.runQuery(`
     MATCH (n:Entity {projectId: $projectId})
@@ -1411,10 +1422,11 @@ export function registerNovelBibleTools(server: McpServer): void {
           return toolError('NOVEL_COMMIT_CANDIDATES_MISSING_ENDPOINTS', 'One or more edge candidates reference missing endpoints.', { missingEndpoints });
         }
         const globalGraph = await loadGlobalCanonicalNarrativeGraph();
-        const discrepancyReport = buildBibleDiscrepancyReport(
+        const discrepancyReport = await buildCanonDiscrepancyReport(
           loaded.map(({ candidate }) => candidate),
           globalGraph.nodes,
           globalGraph.edges,
+          semanticDiscrepancyOptionsIfConfigured(),
         );
         if (discrepancyReport.hasBlockingDiscrepancies) {
           return toolError(
@@ -1440,6 +1452,7 @@ export function registerNovelBibleTools(server: McpServer): void {
           const committed = await commitBibleCandidate(item.candidate, item.node, { committedNodeByEndpoint });
           if (committed.edge) committedEdges.push(committed.edge);
         }
+        await embedNodesInline(committedNodes.map((node) => node.id));
         return toolStructured({
           ok: true,
           summary: {

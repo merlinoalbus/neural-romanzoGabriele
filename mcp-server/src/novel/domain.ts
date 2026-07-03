@@ -48,7 +48,6 @@ export const NOVEL_NODE_TYPES = [
   'symbol',
   'theme',
   'timeline_event',
-  'typesetting_pass',
   'visual_brief',
   'world_rule',
 ] as const;
@@ -108,4 +107,20 @@ export type EditorialDecisionStatus = typeof EDITORIAL_DECISION_STATUSES[number]
 
 export function normalizeChapterLabel(chapterNumber: number): string {
   return `Capitolo ${chapterNumber}`;
+}
+
+/**
+ * Prologo/Epilogo are `chapter` nodes too (see outline.ts's chapterInfo()), but identified by a
+ * fixed label instead of a chapterNumber. Every tool that resolves/creates a chapter node accepts
+ * EITHER chapterNumber OR role, so the editorial pipeline covers every section — numbered
+ * chapters, Prologo and Epilogo alike — not just numbered chapters.
+ */
+export const CHAPTER_SECTION_ROLES = ['prologo', 'epilogo'] as const;
+export type ChapterSectionRole = typeof CHAPTER_SECTION_ROLES[number];
+
+export function resolveChapterSectionLabel(input: { chapterNumber?: number; role?: ChapterSectionRole }): string {
+  if (input.role === 'prologo') return 'Prologo';
+  if (input.role === 'epilogo') return 'Epilogo';
+  if (typeof input.chapterNumber === 'number') return normalizeChapterLabel(input.chapterNumber);
+  throw new Error('missing_chapter_identifier: provide chapterNumber or role');
 }

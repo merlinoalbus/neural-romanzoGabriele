@@ -1,7 +1,7 @@
 import type { GraphEdge, GraphNode } from '../graph/neo4jStore.js';
 import { COMMITTABLE_BIBLE_NODE_TYPES } from './bibleCandidates.js';
 import { groupNarrativeContext, type NarrativeContextGroups } from './context.js';
-import { normalizeChapterLabel } from './domain.js';
+import { resolveChapterSectionLabel, type ChapterSectionRole } from './domain.js';
 
 export interface BibleCoverageFinding {
   code: string;
@@ -31,7 +31,8 @@ export interface BibleCoverageReport {
 
 export interface ChapterContextPacket {
   task: string;
-  chapterNumber: number;
+  chapterNumber?: number;
+  role?: ChapterSectionRole;
   chapterLabel: string;
   query: string;
   context: NarrativeContextGroups;
@@ -350,7 +351,8 @@ export function buildBibleCoverageReport(input: {
 
 export function buildChapterContextPacket(input: {
   task: string;
-  chapterNumber: number;
+  chapterNumber?: number;
+  role?: ChapterSectionRole;
   query: string;
   nodes: GraphNode[];
   coverageReport?: BibleCoverageReport;
@@ -362,7 +364,8 @@ export function buildChapterContextPacket(input: {
   return {
     task: input.task,
     chapterNumber: input.chapterNumber,
-    chapterLabel: normalizeChapterLabel(input.chapterNumber),
+    role: input.role,
+    chapterLabel: resolveChapterSectionLabel({ chapterNumber: input.chapterNumber, role: input.role }),
     query: input.query,
     context,
     counts,

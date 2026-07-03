@@ -98,7 +98,6 @@ services:
         condition: service_healthy
       romanzo_gabriele_neo4j:
         condition: service_healthy
-    user: "1000:1000"
     networks:
       - romanzo_gabriele_network
       - proxy

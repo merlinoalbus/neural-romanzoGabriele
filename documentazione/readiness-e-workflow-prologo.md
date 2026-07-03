@@ -28,9 +28,10 @@ Le sezioni non mappate appartengono quasi tutte alle **schede personaggi** (2.1 
 1. **`get_server_status` risponde `ok:false`** ma solo perché lo storage NAS è volutamente disabilitato (`storage.disabled: true`). Neo4j è connesso. Impatta esclusivamente `kg_attach_asset` e `novel_attach_generated_image` (già disabilitati by design in questo progetto). **Non bloccante.**
 2. **Il nodo `chapter` "Prologo" non esiste ancora nel grafo** (esistono i 40 capitoli numerati; il Prologo oggi è presente solo come `timeline_event` canonico della Bibbia). Non serve crearlo a mano: `novel_start_editing_session` con `role: "prologo"` lo crea automaticamente (upsert con label `Prologo`, `canonStatus: draft`).
 3. **`novel_ingest_chapter_draft` NON accetta `role`** (solo `chapterNumber` numerato): per il Prologo la bozza esterna **non si ingesta come documento**; il testo va passato direttamente a `novel_split_chapter_blocks` dentro la sessione di editing. È il comportamento previsto (regola 9 e 15 di `instructions.md`: il lavoro editoriale vive nel file di sessione, nel grafo entra solo il testo finale).
-4. **`novel_audit_chapter` richiede `chapterNumber`**: per il Prologo non è invocabile; la verifica finale passa da `novel_chapter_validation_packet` + `novel_chapter_postwrite_status` (che accettano `role`).
-5. **Vincolo di riscrittura**: `novel_save_rewrite_block` rifiuta riscritture fuori dal range **85%–140%** della lunghezza del blocco originale.
-6. Il testo del Prologo è già nel repository: `documentazione/prologo-cioccolata-calda-revisione-v2.md` (~3.100 parole di testo). È il "file esterno non agganciato al modello" da usare come input del Processo A.
+4. **Aggiornamenti 2026-07-03 (sera)**: `novel_get_chapter_context_packet` ora accetta anche `role` ("prologo"/"epilogo"); i blocchi editoriali sono AMPI per default (2500 parole, max 20000, capitolo intero ammesso come blocco unico) — il focus lo garantisce il canone del grafo; il fix permessi dello state dir (`/app/.state`) elimina l'EACCES su `novel_start_editing_session`.
+5. **`novel_audit_chapter` richiede `chapterNumber`**: per il Prologo non è invocabile; la verifica finale passa da `novel_chapter_validation_packet` + `novel_chapter_postwrite_status` (che accettano `role`).
+6. **Vincolo di riscrittura**: `novel_save_rewrite_block` rifiuta riscritture fuori dal range **85%–140%** della lunghezza del blocco originale.
+7. Il testo del Prologo è già nel repository: `documentazione/prologo-cioccolata-calda-revisione-v2.md` (~3.100 parole di testo). È il "file esterno non agganciato al modello" da usare come input del Processo A.
 
 ---
 
@@ -72,7 +73,8 @@ atmosfera e voce. Non inventare nulla che non sia nel grafo.
 Ti fornisco il testo del Prologo da revisionare (file
 documentazione/prologo-cioccolata-calda-revisione-v2.md). Usa
 novel_split_chapter_blocks sulla sessione <sessionId> con il testo completo,
-maxWords 600 e persist: true. Riportami l'elenco dei blocchi (numero, prime parole,
+maxWords 2500 e persist: true (se il testo sta in un blocco unico, tienilo intero:
+il focus lo garantisce il canone del grafo, non la dimensione del blocco). Riportami l'elenco dei blocchi (numero, prime parole,
 conteggio parole) e conferma che la somma ricostruisce l'intero testo.
 
 <incolla qui il testo integrale del Prologo>
@@ -252,7 +254,8 @@ così le valido. Presentami la bozza integrale.
 Ho letto la bozza e voglio procedere <eventuali richieste di modifica preliminari>.
 Registrala come materiale di lavoro con novel_ingest_chapter_draft
 (chapterNumber: <N>, title, content, status: "draft") e poi suddividila nella
-sessione con novel_split_chapter_blocks (persist: true, maxWords 600).
+sessione con novel_split_chapter_blocks (persist: true, maxWords 2500 — blocco
+unico se il testo ci sta).
 Riportami blocchi e conteggi. Ricorda: la bozza NON è canone.
 ```
 

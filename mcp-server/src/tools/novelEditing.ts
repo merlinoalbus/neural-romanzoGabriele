@@ -232,7 +232,7 @@ export function registerNovelEditingTools(server: McpServer): void {
     'novel_split_chapter_blocks',
     {
       title: 'Novel split chapter blocks',
-      description: 'Splits a chapter into bounded editorial blocks and optionally persists them into the session file (not the graph). The chapter/Prologo/Epilogo identity is already carried by sessionId.',
+      description: 'Splits a chapter into bounded editorial blocks and optionally persists them into the session file (not the graph). Blocks are LARGE by default (2500 words, up to 20000): focus is guaranteed by the graph canon, not by block size — a whole chapter can be a single block. The chapter/Prologo/Epilogo identity is already carried by sessionId.',
       inputSchema: {
         sessionId: z.string(),
         content: z.string(),
@@ -244,7 +244,7 @@ export function registerNovelEditingTools(server: McpServer): void {
     },
     async ({ sessionId, content, maxWords, persist }) => {
       try {
-        const blocks = splitChapterIntoBlocks(content, maxWords ?? 600);
+        const blocks = splitChapterIntoBlocks(content, maxWords ?? 2500);
         if (!persist) return toolStructured({ ok: true, blocks });
         const state = await readEditingSession(sessionId);
         await writeEditingSession({ ...state, blocks });

@@ -1017,6 +1017,74 @@ const EDITORIAL_STEPS: { id: string; n: string; title: string; role: string; neu
   },
 ];
 
+// Workflow guidato passo-passo (Processo A = revisione di un testo esistente, Processo B =
+// stesura generata dal solo canone): sequenza di prompt da lanciare in ordine, uno per turno,
+// in un'unica chat dedicata alla sezione. Autogenerati sulla sezione scelta: Prologo/Epilogo
+// usano `role`, i capitoli numerati `chapterNumber` (i tool MCP accettano l'uno o l'altro).
+// I token fra parentesi angolari (<sessionId>, <N>, …) si compilano durante la chat.
+interface WorkflowStep { code: string; title: string; hint: string; body: string }
+function buildWorkflowPrompts(path: EditorialPath, chapter: ChapterSummary | null): WorkflowStep[] {
+  const role = chapter?.role === 'prologo' ? 'prologo' : chapter?.role === 'epilogo' ? 'epilogo' : null;
+  const numbered = Boolean(chapter && !role && chapter.number !== null);
+  const phrase = !chapter
+    ? 'la sezione scelta (capitolo/Prologo/Epilogo)'
+    : role === 'prologo' ? 'il Prologo' : role === 'epilogo' ? "l'Epilogo" : `il Capitolo ${chapter.number} «${chapter.title}»`;
+  const ident = role
+    ? `role: "${role}"`
+    : numbered ? `chapterNumber: ${chapter!.number}` : 'chapterNumber: <N> (oppure role: "prologo"/"epilogo")';
+  const titleArg = chapter?.title ? `, title: "${chapter.title}"` : '';
+  const steps: WorkflowStep[] = [];
+  const add = (code: string, title: string, hint: string, body: string): void => { steps.push({ code, title, hint, body }); };
+
+  const preflightExtra = path === 'stesura'
+    ? ` In più: identifica dal grafo i personaggi che compaiono in ${phrase} e verifica se le loro sezioni Bibbia di voce/psicologia ("Linguaggio e 'Voce'", "Evoluzione", "Controlli Operativi per Scrittura AI") risultano tra le sezioni non mappate del coverage report. Se sì, segnalamelo: decido io se completare prima il mapping o procedere comunque.`
+    : '';
+  add(path === 'stesura' ? 'B0' : 'A0', 'Pre-flight check', 'stato del modello prima di partire',
+    `Esegui il pre-flight check per lavorare ${phrase}: chiama get_server_status, kg_embedding_status e novel_bible_coverage_report; leggi anche kg_list_open_questions per eventuali domande aperte pertinenti a questa sezione. Confermami che: Neo4j è connesso, gli embeddings sono completi (0 pending), pendingCandidates=0 e non ci sono finding di severità error. Se emerge un error, fermati e riportamelo senza procedere.${preflightExtra}`);
+
+  if (path === 'stesura') {
+    add('B1', 'Dossier di scrittura', 'solo canone dal grafo, nessuna invenzione',
+      `Prepara il dossier completo per scrivere ${phrase} usando SOLO il grafo: novel_get_chapter_context_packet (task: "stesura ${phrase}"${numbered ? `, chapterNumber: ${chapter!.number}` : ''}); kg_get_node del nodo chapter e kg_neighbors (depth 2) per eventi, thread e vincoli collegati; novel_recall_context sui personaggi coinvolti (stato emotivo, knowledge_state — chi sa cosa in questo punto della storia —, relationship_dynamic, voce); kg_search su style_rule, motif e narrative_constraint applicabili; cronologia con eventi immediatamente precedenti e successivi (archi precedes). Restituiscimi il dossier strutturato: scene attese dalla Bibbia, personaggi con stato e voce al momento della scena, vincoli non negoziabili, cosa NON può ancora essere rivelato al lettore, aggancio con la sezione precedente e successiva. Dichiara esplicitamente ogni punto in cui la Bibbia è silente: lì NON inventare canone, segnalami la scelta narrativa come proposta.`);
+    add('B2', 'Sessione + prima bozza', 'l’IA scrive dal dossier, fuori-Bibbia vietato',
+      `Apri la sessione con novel_start_editing_session (${ident}${titleArg}) e riportami il sessionId. Poi scrivi la PRIMA BOZZA completa di ${phrase} rispettando rigorosamente il dossier del prompt precedente: nessun elemento fuori Bibbia, stato e voce dei personaggi al momento della scena, vincoli di rivelazione, stile e motivi del romanzo, lunghezza adeguata alle altre sezioni. Le micro-scelte non coperte dalla Bibbia (dettagli sensoriali, battute minori) sono ammesse solo se canonicamente neutre: elencale a fine bozza in una sezione "Proposte non canoniche" così le valido. Presentami la bozza integrale.`);
+    add('B3', 'Bozza in blocchi', numbered ? 'ingest come materiale di lavoro + split' : 'split diretto (Prologo/Epilogo: niente ingest)',
+      numbered
+        ? `Ho letto la bozza e voglio procedere <eventuali modifiche preliminari>. Registrala come materiale di lavoro con novel_ingest_chapter_draft (chapterNumber: ${chapter!.number}, title, content, status: "draft") e poi suddividila nella sessione con novel_split_chapter_blocks (sessionId <sessionId>, persist: true, maxWords 600). Riportami blocchi e conteggi. Ricorda: la bozza NON è canone.`
+        : `Ho letto la bozza e voglio procedere <eventuali modifiche preliminari>. Per ${phrase} novel_ingest_chapter_draft non è disponibile (accetta solo capitoli numerati): suddividi direttamente il testo nella sessione con novel_split_chapter_blocks (sessionId <sessionId>, content: <testo della bozza>, persist: true, maxWords 600). Riportami blocchi e conteggi. Ricorda: la bozza NON è canone.`);
+    add('B4', 'Auto-revisione continuity', 'il modello fa il revisore severo di sé stesso',
+      `Ora fai il revisore del tuo stesso testo, con massima severità. Esegui lo step di CONTINUITY blocco per blocco confrontando la bozza con il grafo (kg_recall, kg_semantic_search${numbered ? `) e con novel_audit_chapter (chapterNumber: ${chapter!.number}, content: <bozza>)` : ') — per questa sezione novel_audit_chapter non è disponibile, usa il confronto diretto col canone'}. Cerca in particolare gli errori tipici della generazione: fatti inventati non presenti in Bibbia, personaggi che sanno cose che a questo punto non sanno (knowledge_state), anacronismi, violazioni di narrative_constraint, anticipazioni vietate. Registra tutto con novel_save_editorial_findings (sessionId <sessionId>) e riportami la tabella dei finding.`);
+  } else {
+    add('A1', 'Sessione + contesto canonico', 'apre la sessione e carica i vincoli dal grafo',
+      `Apri la sessione editoriale per ${phrase} con novel_start_editing_session (${ident}${titleArg}) e riportami il sessionId. Poi raccogli il contesto canonico completo per la revisione: novel_get_chapter_context_packet (task: "revisione ${phrase}"${numbered ? `, chapterNumber: ${chapter!.number}` : ''}) e novel_recall_context / kg_recall su personaggi, luoghi, oggetti simbolici e vincoli della sezione. Sintetizzami i vincoli canonici vigenti: cronologia e date, stati di conoscenza (chi sa cosa), oggetti simbolici, regole della cornice narrativa se pertinenti (per il Prologo: la narratorCoverageRule del Nonno — mai rivelare che è la sua storia prima dell'Epilogo), atmosfera e voce. Non inventare nulla che non sia nel grafo.`);
+    add('A2', 'Testo in blocchi', 'carica il testo esistente e lo suddivide',
+      `Ti fornisco il testo di ${phrase} da revisionare. ${numbered ? `Registralo prima come materiale di lavoro con novel_ingest_chapter_draft (chapterNumber: ${chapter!.number}, title, content, status: "draft"), poi u` : `Per questa sezione novel_ingest_chapter_draft non è disponibile (accetta solo capitoli numerati): u`}sa novel_split_chapter_blocks sulla sessione <sessionId> con il testo completo, maxWords 600 e persist: true. Riportami l'elenco dei blocchi (numero, prime parole, conteggio parole) e conferma che la somma ricostruisce l'intero testo.\n\n<incolla qui il testo integrale>`);
+    add('A3', 'Revisione continuity', 'confronto blocco per blocco col canone',
+      `Esegui lo step di CONTINUITY su ${phrase}, blocco per blocco. Per ogni blocco confronta il testo con il canone del grafo (kg_recall, kg_semantic_search e i vincoli raccolti al prompt precedente) e verifica: date e cronologia, età e caratterizzazione dei personaggi, coerenza degli oggetti simbolici, stati di conoscenza (nessuno sa cose che a questo punto non sa), assenza di anticipazioni/spoiler vietati dalla Bibbia. Registra ogni problema con novel_save_editorial_findings sulla sessione <sessionId> (categoria continuity, con blockNumber, severità, descrizione e proposta di fix). Riportami la tabella dei finding.`);
+  }
+
+  add(path === 'stesura' ? 'B5' : 'A4', 'Revisione stilistica', 'style_rule, voce, ritmo, dialoghi',
+    `Esegui lo step di STILE su ${phrase}, blocco per blocco, applicando le style_rule e i motivi ricorrenti presenti nel grafo (recuperali con kg_search type "style_rule" e type "motif"): voce del narratore, POV, ritmo, ripetizioni, dialoghi credibili per età e carattere, gestione del mistero senza spiegoni. Registra i finding con novel_save_editorial_findings (categorie style/voice/pacing), senza riscrivere ancora nulla. Riportami l'elenco completo dei finding aperti (continuity + stile) con il loro findingId.`);
+  add(path === 'stesura' ? 'B6' : 'A5', 'Decisioni dell’utente', 'approvi/rifiuti/rinvii ogni finding',
+    `Ecco le mie decisioni sui finding: <per ogni findingId: approved / rejected / deferred, con eventuale nota>. Registrale con novel_save_user_decisions sulla sessione <sessionId> e confermami il quadro: quanti finding approvati andranno applicati in riscrittura, quanti rifiutati, quanti rinviati.`);
+  add(path === 'stesura' ? 'B7' : 'A6', 'Riscrittura blocco per blocco', 'gate 85%–140% enforced dal tool',
+    `Riscrivi il blocco <N> di ${phrase} applicando SOLO i finding approvati che lo riguardano. Vincoli: lunghezza tra 85% e 140% dell'originale (enforced dal tool), nessun fatto nuovo fuori canone, voce e tono invariati. Salva con novel_save_rewrite_block (sessionId <sessionId>, blockNumber <N>, originalText, revisedText, appliedFindingIds, approved: false) e mostrami il diff sintetico originale→revisione con la percentuale di lunghezza. Attendi la mia approvazione prima di passare al blocco successivo. (Ripetere per ogni blocco; dopo il mio ok, risalva con approved: true.)`);
+  add(path === 'stesura' ? 'B8' : 'A7', 'Assemblaggio + seam review', 'testo unificato e saldature invisibili',
+    `Assembla la revisione completa con novel_assemble_chapter_revision (sessionId <sessionId>, expectedBlocks <numero blocchi>). Se mancano blocchi, fermati ed elencameli. Poi rileggi il testo unificato e fai la seam review: transizioni tra blocchi, ripetizioni introdotte dalle riscritture, coerenza interna di tono e ritmo. Salva l'esito con novel_save_seam_review (summary, findings, approved solo dopo il mio ok) e presentami il testo finale completo per lettura.`);
+  if (path === 'revisione') {
+    add('A8', 'Scan impatto (se cambi fatti canonici)', 'solo se la revisione modifica canone già registrato',
+      `La revisione modifica questi fatti già canonici: <elenco: nodo/etichetta → vecchio contenuto → nuovo contenuto>. Esegui novel_scan_revision_impact (${ident}, changedFacts) e riportami i nodi impattati, i conflitti di polarità e gli shift semantici. NON propagare nessuna modifica a cascata: presentami solo il report e le azioni proposte, decido io quali applicare. (Salta questo prompt se la revisione non tocca fatti canonici.)`);
+  }
+  add(path === 'stesura' ? 'B9' : 'A9*', 'Visual brief (opzionale)', 'PRIMA della canonizzazione: chiude la sessione',
+    `Prepara il visual brief della scena chiave di ${phrase} con novel_create_visual_brief sulla sessione ancora aperta (da eseguire PRIMA della canonizzazione, che elimina il file di sessione): sceneSummary, characters, promptIt e promptEn coerenti con l'aspetto canonico dei personaggi al momento della scena (character_state datati). Nota: l'attach dell'immagine da filesystem è disabilitato in questo progetto; il brief resta nel file di sessione.`);
+  add(path === 'stesura' ? 'B10' : 'A10', 'Canonizzazione', 'unico passaggio che scrive il testo nel grafo',
+    `Canonizza ${phrase}: chiama novel_save_final_chapter con sessionId <sessionId>, ${ident}${titleArg}, status "approved" e il testo finale assemblato e approvato. Confermami che il nodo chapter è stato aggiornato in place (canonStatus canonical, finalHash valorizzato) e che il file di sessione è stato eliminato.`);
+  add(path === 'stesura' ? 'B11' : 'A11', 'Estrazione e commit dei fatti', 'la prosa finale diventa nodi/archi canonici',
+    `Estrai i fatti narrativi dal testo finale di ${phrase} con novel_extract_chapter_candidates (${ident}, content: <testo finale>). Poi valida i candidati con novel_chapter_validation_packet e mostrami: candidati estratti, errori di validazione, discrepanze verso il canone esistente (lessicali e semantiche) con la loro severità. Proponimi la lista finale da committare distinguendo nuovi nodi, nuovi archi e candidati da scartare perché duplicati di canone esistente. Attendi il mio ok, poi esegui novel_commit_chapter_candidates solo sui candidati approvati.`);
+  add(path === 'stesura' ? 'B12' : 'A12', 'Post-write e chiusura', 'verifica integrità e aggiorna la memoria della mente',
+    `Chiudi il ciclo: esegui novel_chapter_postwrite_status (${ident}, nodeIds: <id committati>), kg_backfill_embeddings (missingOnly: true), kg_audit_global e novel_bible_coverage_report. Riportami: che tutti i nodi committati esistono, sono canonici e collegati; che non ci sono nodi senza embedding; che l'audit non segnala regressioni. Se questo lavoro risponde a una domanda aperta della mente (kg_list_open_questions), chiudila con kg_update_open_question (resolved, con motivazione). Riepilogami cosa è entrato nel canone con questo ciclo.`);
+  return steps;
+}
+
 function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgNode[]; characters: KgNode[]; chapters: ChapterSummary[]; onOpen: (id: string, type: string) => void }) {
   const [persona, setPersona] = useState('');
   const [persona2, setPersona2] = useState('');
@@ -1087,6 +1155,11 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
     setCopied(id);
   };
   const visibleSteps = EDITORIAL_STEPS.filter((step) => step.paths.includes(editorialPath));
+  const workflowSteps = useMemo(() => buildWorkflowPrompts(editorialPath, selSection), [editorialPath, selSection]);
+  const copyWorkflow = (id: string, body: string): void => {
+    void navigator.clipboard?.writeText(body);
+    setCopied(id);
+  };
   return (
     <div className="novel-panel">
       <div className="novel-head">
@@ -1132,6 +1205,29 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
               <div className="step-actions">
                 <button className="prompt-copy" onClick={() => copyStep(`${step.id}-g`, step.body, false)}>{copied === `${step.id}-g` ? <><Check size={13} />copiato</> : <><Copy size={13} />prompt generico</>}</button>
                 <button className="prompt-copy sect" disabled={!selSection} onClick={() => copyStep(`${step.id}-s`, step.body, true)}>{copied === `${step.id}-s` ? <><Check size={13} />copiato</> : <><Copy size={13} />{selSection ? `per ${sectionTag(selSection)}` : 'per sezione'}</>}</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="novel-block">
+        <h3>Workflow guidato — sessione MCP passo-passo <small>{editorialPath === 'revisione' ? 'Processo A' : 'Processo B'}{selSection ? ` · ${sectionTag(selSection)}` : ''}</small></h3>
+        <p className="novel-note">
+          Prompt <b>autogenerati sulla sezione scelta sopra</b> (Prologo/Epilogo usano <code>role</code>, i capitoli numerati <code>chapterNumber</code>) e sul percorso selezionato. Vanno lanciati <b>in ordine, uno per turno, in un'unica chat dedicata alla sezione</b>; i token fra parentesi angolari (es. <code>&lt;sessionId&gt;</code>, <code>&lt;N&gt;</code>) si compilano durante la chat con i valori restituiti dai tool. Lo stato editoriale è persistito dal server in un file di sessione: se la chat si interrompe, in una chat nuova basta rilanciare <code>novel_start_editing_session</code> con lo stesso <code>sessionId</code> e riprendere dal prompt dove eri rimasto. I processi schedulati della mente (P0–P4) girano invece ciascuno in una chat propria.
+        </p>
+        <div className="step-list">
+          {workflowSteps.map((step) => (
+            <div className="step-card" key={step.code}>
+              <div className="step-h">
+                <span className="step-n">{step.code}</span>
+                <div className="step-ti"><b>{step.title}</b><small>{step.hint}</small></div>
+              </div>
+              <p className="prompt-body">{step.body}</p>
+              <div className="step-actions">
+                <button className="prompt-copy" onClick={() => copyWorkflow(`wf-${step.code}`, step.body)}>
+                  {copied === `wf-${step.code}` ? <><Check size={13} />copiato</> : <><Copy size={13} />copia prompt</>}
+                </button>
               </div>
             </div>
           ))}

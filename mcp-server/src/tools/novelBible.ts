@@ -18,7 +18,7 @@ import { buildBibleCoverageReport, buildChapterContextPacket } from '../novel/bi
 import { buildCanonDiscrepancyReport } from '../novel/bibleDiscrepancy.js';
 import { buildBibleSectionsPlan, previewBibleSection, type BibleSectionsPlan } from '../novel/bibleSections.js';
 import { composeRecallQuery } from '../novel/context.js';
-import { normalizeChapterLabel, NOVEL_NODE_TYPES } from '../novel/domain.js';
+import { CHAPTER_SECTION_ROLES, NOVEL_NODE_TYPES, resolveChapterSectionLabel } from '../novel/domain.js';
 import { embedNodesInline, semanticDiscrepancyOptionsIfConfigured } from '../services/embeddingSync.js';
 import { errorObj, toolError, toolStructured } from './responseHelpers.js';
 
@@ -1878,10 +1878,11 @@ export function registerNovelBibleTools(server: McpServer): void {
     'novel_get_chapter_context_packet',
     {
       title: 'Novel get chapter context packet',
-      description: 'Read-only chapter context packet for editorial agents, based on mapped Bible context, timeline, characters, world rules, style and drafts.',
+      description: 'Read-only chapter context packet for editorial agents, based on mapped Bible context, timeline, characters, world rules, style and drafts. Accepts chapterNumber for numbered chapters, or role ("prologo"/"epilogo") for Prologo/Epilogo.',
       inputSchema: {
         task: z.string(),
-        chapterNumber: z.number().int().positive(),
+        chapterNumber: z.number().int().positive().optional(),
+        role: z.enum(CHAPTER_SECTION_ROLES).optional(),
         query: z.string().optional(),
         characters: z.array(z.string()).optional(),
         sourceId: z.string().optional(),
@@ -1894,7 +1895,8 @@ export function registerNovelBibleTools(server: McpServer): void {
         readOnly: z.boolean().optional(),
         packet: z.object({
           task: z.string(),
-          chapterNumber: z.number(),
+          chapterNumber: z.number().optional(),
+          role: z.enum(CHAPTER_SECTION_ROLES).optional(),
           chapterLabel: z.string(),
           query: z.string(),
           context: contextGroupsZ,
@@ -1906,12 +1908,16 @@ export function registerNovelBibleTools(server: McpServer): void {
       },
       annotations: { title: 'Novel get chapter context packet', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ task, chapterNumber, query, characters, sourceId, includeDrafts, depth, limit }) => {
+    async ({ task, chapterNumber, role, query, characters, sourceId, includeDrafts, depth, limit }) => {
       try {
+        if (chapterNumber === undefined && !role) {
+          return toolError('NOVEL_GET_CHAPTER_CONTEXT_PACKET_BAD_INPUT', 'Provide chapterNumber (numbered chapter) or role (prologo/epilogo).');
+        }
+        const sectionLabel = resolveChapterSectionLabel({ chapterNumber, role });
         const recallQuery = composeRecallQuery({
           task,
           chapterNumber,
-          query: [query, normalizeChapterLabel(chapterNumber), sourceId].filter(Boolean).join(' '),
+          query: [query, sectionLabel, sourceId].filter(Boolean).join(' '),
           characters,
         });
         const [recalled, sections, candidates, canonicalNodes, coverageFindings] = await Promise.all([
@@ -1926,6 +1932,7 @@ export function registerNovelBibleTools(server: McpServer): void {
         const packet = buildChapterContextPacket({
           task,
           chapterNumber,
+          role,
           query: recallQuery,
           nodes: recalled.nodes,
           coverageReport: coverage,
@@ -1933,7 +1940,7 @@ export function registerNovelBibleTools(server: McpServer): void {
         });
         return toolStructured({ ok: true, readOnly: true, packet, coverage });
       } catch (err) {
-        return toolError('NOVEL_GET_CHAPTER_CONTEXT_PACKET_FAILED', `novel_get_chapter_context_packet failed: ${String(err)}`, { task, chapterNumber });
+        return toolError('NOVEL_GET_CHAPTER_CONTEXT_PACKET_FAILED', `novel_get_chapter_context_packet failed: ${String(err)}`, { task, chapterNumber, role });
       }
     },
   );

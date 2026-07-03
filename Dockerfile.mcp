@@ -34,7 +34,10 @@ COPY mcp-server/instructions.md ./dist/instructions.md
 
 # Editorial working state (session/blocks/findings/decisions/rewrites) lives here as JSON files,
 # never as graph nodes. Mount a volume on this path in production or it is lost on redeploy.
-RUN mkdir -p /app/.state/chapter-editing && chown -R appuser:appgroup /app/.state
+# chmod 0777: il servizio puo' girare con un uid arbitrario (user: override nel compose) e il
+# named volume eredita i permessi dall'immagine alla prima inizializzazione - senza questo un
+# uid diverso da appuser riceve EACCES su novel_start_editing_session.
+RUN mkdir -p /app/.state/chapter-editing && chown -R appuser:appgroup /app/.state && chmod -R 0777 /app/.state
 ENV EDITING_STATE_DIR=/app/.state/chapter-editing
 
 ENV NODE_ENV=production

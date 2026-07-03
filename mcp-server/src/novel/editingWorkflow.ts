@@ -70,12 +70,18 @@ function phrase(text: string, fromEnd = false): string {
   return selected.length > 160 ? `${selected.slice(0, 157).trim()}...` : selected;
 }
 
-export function splitChapterIntoBlocks(content: string, maxWords = 600): ChapterBlock[] {
+/**
+ * Blocchi editoriali AMPI per default (2500 parole, fino a 20000): il focus del modello durante
+ * la revisione e' garantito dal canone del grafo (context packet, vincoli, stati datati), non
+ * dalla dimensione del blocco. Un capitolo intero puo' stare in un blocco unico; la suddivisione
+ * resta utile solo per testi molto lunghi o per riscritture chirurgiche.
+ */
+export function splitChapterIntoBlocks(content: string, maxWords = 2500): ChapterBlock[] {
   const text = content.replace(/\r\n/g, '\n').trim();
   if (!text) return [];
   const words = wordsWithPositions(text);
   if (!words.length) return [];
-  const blockSize = Math.max(100, Math.min(Math.trunc(maxWords), 1000));
+  const blockSize = Math.max(100, Math.min(Math.trunc(maxWords), 20000));
   const blocks: ChapterBlock[] = [];
   for (let startWord = 0; startWord < words.length; startWord += blockSize) {
     const endWord = Math.min(startWord + blockSize, words.length) - 1;

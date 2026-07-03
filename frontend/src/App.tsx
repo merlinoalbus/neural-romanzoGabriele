@@ -5,6 +5,7 @@ import {
   commitGraphSnapshotImport,
   dryRunGraphSnapshotImport,
   exportGraphSnapshot,
+  getConfig,
   getChapterPacket,
   getEntityPacket,
   getHealth,
@@ -1307,6 +1308,7 @@ export function App() {
   const [snapshot, setSnapshot] = useState<GraphSnapshot | null>(null);
   const [snapshotFileName, setSnapshotFileName] = useState('');
   const [importResult, setImportResult] = useState<SnapshotImportResult | null>(null);
+  const [serverProjectId, setServerProjectId] = useState<string | null>(null);
   const [chapters, setChapters] = useState<ChapterSummary[]>([]);
   const [chapterPacket, setChapterPacket] = useState<ChapterPacket | null>(null);
   const [characters, setCharacters] = useState<KgNode[]>([]);
@@ -1501,6 +1503,11 @@ export function App() {
     void refreshStats().catch((err) => setError(String(err)));
   }, [refreshStats]);
 
+  // Server projectId, used as confirmProjectId for a replaceProject import without a prior dry-run.
+  useEffect(() => {
+    void getConfig().then((cfg) => setServerProjectId(cfg.projectId)).catch(() => undefined);
+  }, []);
+
   useEffect(() => {
     void loadNodes().catch((err) => setError(String(err)));
   }, [loadNodes]);
@@ -1647,13 +1654,17 @@ export function App() {
   }, [importMode, snapshot]);
 
   const runImportCommit = useCallback(async () => {
-    if (!snapshot || !importResult?.ok) return;
+    if (!snapshot) return;
     if (importMode === 'replaceProject' && !window.confirm('Confermi la sostituzione completa del progetto corrente?')) return;
     setAdminBusy(true);
     setError(null);
     setAdminMessage(null);
     try {
-      const result = await commitGraphSnapshotImport(snapshot, importMode, importResult.report.targetProjectId);
+      // The commit re-validates server-side, so a prior dry-run is optional. For replaceProject
+      // the server requires confirmProjectId === its own projectId; use the dry-run's value if
+      // present, otherwise the projectId fetched from /api/config.
+      const confirmProjectId = importResult?.report.targetProjectId ?? serverProjectId ?? undefined;
+      const result = await commitGraphSnapshotImport(snapshot, importMode, confirmProjectId);
       setImportResult(result);
       setAdminMessage(result.ok ? `Import completato: ${result.written?.nodes ?? 0} nodi, ${result.written?.edges ?? 0} archi` : 'Import respinto');
       if (result.ok) {
@@ -1666,7 +1677,7 @@ export function App() {
     } finally {
       setAdminBusy(false);
     }
-  }, [importMode, importResult, loadNodes, refreshStats, snapshot]);
+  }, [importMode, importResult, loadNodes, refreshStats, snapshot, serverProjectId]);
 
   const activeList = tab === 'documents' ? documents : results;
 
@@ -1757,9 +1768,9 @@ export function App() {
                 <div className="admin-line bad">⚠ Cancella l'intero modello attuale prima di ricaricare. Irreversibile.</div>
               )}
               <button className="command-button" onClick={() => void runImportDryRun()} disabled={adminBusy || !snapshot}>
-                Verifica (dry-run)
+                Verifica (dry-run, opzionale)
               </button>
-              <button className="command-button danger" onClick={() => void runImportCommit()} disabled={adminBusy || !snapshot || !importResult?.ok}>
+              <button className="command-button danger" onClick={() => void runImportCommit()} disabled={adminBusy || !snapshot}>
                 {importMode === 'replaceProject' ? 'Applica sostituzione' : 'Applica aggiornamento'}
               </button>
               {snapshotFileName && <div className="admin-line">{snapshotFileName}</div>}

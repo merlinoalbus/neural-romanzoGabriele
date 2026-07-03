@@ -164,6 +164,15 @@ function filenameFromContentDisposition(value: string | null): string {
   return match?.[1] ?? `romanzo-gabriele-graph-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
 }
 
+export interface AppConfig {
+  projectId: string;
+  filesystemStorage: string;
+}
+
+export function getConfig(): Promise<AppConfig> {
+  return getJson<AppConfig>('/api/config');
+}
+
 export function getKgStats(): Promise<KgStats> {
   return getJson<KgStats>('/api/v2/kg/stats');
 }

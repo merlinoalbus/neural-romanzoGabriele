@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import ForceGraph2D from 'react-force-graph-2d';
-import { Activity, BookOpen, Check, Clock, Copy, Database, Download, Feather, FileText, GitBranch, Globe2, ListChecks, Network, PenLine, RefreshCw, ScrollText, Search, ShieldCheck, Sparkles, Upload, Users, X } from 'lucide-react';
+import ForceGraph2D, { type ForceGraphMethods, type LinkObject, type NodeObject } from 'react-force-graph-2d';
+import { Activity, BookOpen, Check, ChevronDown, Clock, Copy, Database, Download, Feather, FileText, GitBranch, Globe2, ListChecks, Network, PenLine, RefreshCw, ScrollText, Search, ShieldCheck, Sparkles, Upload, Users, X } from 'lucide-react';
 import {
   commitGraphSnapshotImport,
   dryRunGraphSnapshotImport,
@@ -152,6 +152,13 @@ const ENTITY_TAB: Partial<Record<string, Tab>> = {
 };
 const KEEP_TAB = new Set<Tab>(['personaggio', 'arco', 'mondo', 'temi', 'stile']);
 
+// Collapsible sidebar sections: which nav group each tab belongs to.
+const TAB_GROUP: Record<Tab, string> = {
+  romanzo: 'Panoramica', timeline: 'Panoramica', coerenza: 'Panoramica',
+  capitolo: 'Entità', personaggio: 'Entità', arco: 'Entità', mondo: 'Entità', temi: 'Entità', stile: 'Entità',
+  editoriale: 'Lavoro', search: 'Lavoro', openPoints: 'Lavoro', documents: 'Lavoro', admin: 'Lavoro',
+};
+
 // Group a character by its canonical category metadata.
 const characterCategory = (node: KgNode): string => metaString(node, 'categoryLabel') ?? 'Altri';
 // Group a theme node by its level in doc branch 1.5; motifs get their own bucket.
@@ -192,6 +199,15 @@ function graphFrom(nodes: KgNode[], edges: KgEdge[]): { nodes: GNode[]; links: G
 
 function openPointTitle(point: OpenPoint): string {
   return point.finding.label.replace(/^plot_thread_inactive:/, '');
+}
+
+// Collapsible header for a sidebar navigation group.
+function NavGroup({ label, open, onToggle }: { label: string; open: boolean; onToggle: () => void }) {
+  return (
+    <button className={`nav-group${open ? ' open' : ''}`} onClick={onToggle} aria-expanded={open}>
+      <ChevronDown size={13} className="nav-caret" />{label}
+    </button>
+  );
 }
 
 function ChapterNavList({ chapters, selectedId, onOpen }: { chapters: ChapterSummary[]; selectedId: string | null; onOpen: (id: string) => void }) {
@@ -837,6 +853,11 @@ const EDITORIAL_STEPS: { id: string; n: string; title: string; role: string; neu
 
 function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgNode[]; characters: KgNode[]; chapters: ChapterSummary[]; onOpen: (id: string, type: string) => void }) {
   const [persona, setPersona] = useState('');
+  const [persona2, setPersona2] = useState('');
+  const [promptChapter, setPromptChapter] = useState('');
+  const [momento, setMomento] = useState('');
+  const [scena, setScena] = useState('');
+  const [elemento, setElemento] = useState('');
   const [section, setSection] = useState('');
   const [copied, setCopied] = useState<string | null>(null);
   const selSection = chapters.find((chapter) => chapter.id === section) ?? null;
@@ -866,9 +887,28 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
     }
     return CHARACTER_CATEGORY_ORDER.filter((key) => map.has(key)).map((key) => ({ key, items: map.get(key)!.slice().sort((a, b) => a.label.localeCompare(b.label)) }));
   }, [characters]);
+  const promptChap = chapters.find((chapter) => chapter.id === promptChapter) ?? null;
+  // Substitute every placeholder for which a value was provided; unfilled ones stay as {TOKEN}.
+  const fillPrompt = (body: string): string => {
+    let text = body;
+    if (persona) text = text.replaceAll('{PERSONAGGIO}', persona);
+    if (persona2) text = text.replaceAll('{ALTRO_PERSONAGGIO}', persona2);
+    if (promptChap) {
+      text = text.replaceAll('{CAPITOLO}', sectionPhrase(promptChap));
+      text = text.replaceAll('{N}', String(promptChap.number ?? promptChap.role ?? ''));
+    }
+    if (momento.trim()) text = text.replaceAll('{MOMENTO}', momento.trim());
+    if (scena.trim()) text = text.replaceAll('{SCENA}', scena.trim());
+    if (elemento.trim()) text = text.replaceAll('{ELEMENTO}', elemento.trim());
+    return text;
+  };
+  const charOptions = () => charGroups.map((group) => (
+    <optgroup key={group.key} label={group.key}>
+      {group.items.map((node) => <option key={node.id} value={node.label}>{node.label}</option>)}
+    </optgroup>
+  ));
   const copyPrompt = (id: string, body: string): void => {
-    const text = persona ? body.replaceAll('{PERSONAGGIO}', persona) : body;
-    void navigator.clipboard?.writeText(text);
+    void navigator.clipboard?.writeText(fillPrompt(body));
     setCopied(id);
   };
   return (
@@ -913,16 +953,45 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
       <section className="novel-block">
         <h3>Prompt preimpostati</h3>
         <div className="persona-pick">
-          <label>Personaggio da impersonare</label>
-          <select value={persona} onChange={(event) => setPersona(event.target.value)}>
-            <option value="">— nessuno (lascio il segnaposto) —</option>
-            {charGroups.map((group) => (
-              <optgroup key={group.key} label={group.key}>
-                {group.items.map((node) => <option key={node.id} value={node.label}>{node.label}</option>)}
-              </optgroup>
-            ))}
-          </select>
-          <span className="persona-hint">sostituisce <code>{'{PERSONAGGIO}'}</code> alla copia. Impersonabile ogni personaggio: protagonisti, principali, forze sovrannaturali, secondari e cornice, o chi compare esplicitamente nel capitolo.</span>
+          <label>Compila i segnaposto (sostituiti alla copia)</label>
+          <div className="prompt-fields">
+            <div className="pf">
+              <label>Personaggio <code>{'{PERSONAGGIO}'}</code></label>
+              <select value={persona} onChange={(event) => setPersona(event.target.value)}>
+                <option value="">— segnaposto —</option>
+                {charOptions()}
+              </select>
+            </div>
+            <div className="pf">
+              <label>Altro personaggio <code>{'{ALTRO_PERSONAGGIO}'}</code></label>
+              <select value={persona2} onChange={(event) => setPersona2(event.target.value)}>
+                <option value="">— segnaposto —</option>
+                {charOptions()}
+              </select>
+            </div>
+            <div className="pf">
+              <label>Capitolo <code>{'{CAPITOLO}'}</code> · <code>{'{N}'}</code></label>
+              <select value={promptChapter} onChange={(event) => setPromptChapter(event.target.value)}>
+                <option value="">— segnaposto —</option>
+                {chapters.map((chapter) => (
+                  <option key={chapter.id} value={chapter.id}>{chapter.role === 'prologo' ? 'Prologo' : chapter.role === 'epilogo' ? 'Epilogo' : `Cap ${chapter.number} — ${chapter.title}`}</option>
+                ))}
+              </select>
+            </div>
+            <div className="pf">
+              <label>Momento <code>{'{MOMENTO}'}</code></label>
+              <input value={momento} onChange={(event) => setMomento(event.target.value)} placeholder={'es. "Cap. 17" o "05/10/2020"'} />
+            </div>
+            <div className="pf wide">
+              <label>Scena <code>{'{SCENA}'}</code></label>
+              <input value={scena} onChange={(event) => setScena(event.target.value)} placeholder="breve descrizione della scena / del contesto" />
+            </div>
+            <div className="pf wide">
+              <label>Elemento <code>{'{ELEMENTO}'}</code></label>
+              <input value={elemento} onChange={(event) => setElemento(event.target.value)} placeholder={'oggetto/elemento da verificare, es. "il ciondolo del Nonno"'} />
+            </div>
+          </div>
+          <span className="persona-hint">Impersonabile ogni personaggio (protagonisti, principali, forze sovrannaturali, secondari, cornice). I campi vuoti restano come <code>{'{…}'}</code> nel prompt copiato, così sai cosa completare a mano.</span>
         </div>
         {PROMPT_GROUPS.map((section) => (
           <div className="prompt-section" key={section.group}>
@@ -936,7 +1005,7 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
                       {copied === prompt.id ? <><Check size={13} />copiato</> : <><Copy size={13} />copia</>}
                     </button>
                   </div>
-                  <p className="prompt-body">{persona ? prompt.body.replaceAll('{PERSONAGGIO}', persona) : prompt.body}</p>
+                  <p className="prompt-body">{fillPrompt(prompt.body)}</p>
                 </div>
               ))}
             </div>
@@ -1076,11 +1145,28 @@ function GraphView({ data, onOpen }: { data: GData; onOpen?: (id: string, type: 
     let raf: number | null = null;
     let seeded = false;
 
-    const fit = (): void => { W = cv.clientWidth || host.clientWidth || 600; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+    // View transform (world -> screen): sx = x * scale + ox. Auto-fits the graph to the canvas.
+    let scale = 1;
+    let ox = 0;
+    let oy = 0;
+    const PAD = 34;
+    const fit = (): void => { W = cv.clientWidth || host.clientWidth || 600; cv.width = W * dpr; cv.height = H * dpr; };
     const seed = (): void => { fit(); const cx = W / 2; const cy = H / 2; const R = Math.min(W, H) / 2 - 42; N.forEach((n, i) => { const a = (i / N.length) * Math.PI * 2; n.x = cx + Math.cos(a) * R * 0.7; n.y = cy + Math.sin(a) * R * 0.7; }); seeded = true; };
     const vis = (n: N): boolean => !offT[n.type];
     const visE = (e: { s: N; d: N; k: string }): boolean => !offK[e.k] && vis(e.s) && vis(e.d);
     const neighbor = (a: N, b: N): boolean => E.some((e) => visE(e) && ((e.s === a && e.d === b) || (e.d === a && e.s === b)));
+    const SX = (x: number): number => x * scale + ox;
+    const SY = (y: number): number => y * scale + oy;
+    // Target transform that centers all visible nodes and fits them into the canvas with padding.
+    const targetFit = (): { s: number; x: number; y: number } => {
+      const vs = N.filter(vis);
+      if (!vs.length) return { s: 1, x: 0, y: 0 };
+      let minX = Infinity; let minY = Infinity; let maxX = -Infinity; let maxY = -Infinity;
+      for (const n of vs) { const r = nodeRadius(n.type) + 18; if (n.x - r < minX) minX = n.x - r; if (n.x + r > maxX) maxX = n.x + r; if (n.y - r < minY) minY = n.y - r; if (n.y + r > maxY) maxY = n.y + r; }
+      const bw = Math.max(1, maxX - minX); const bh = Math.max(1, maxY - minY);
+      const s = Math.min((W - PAD * 2) / bw, (H - PAD * 2) / bh, 1.7);
+      return { s, x: W / 2 - ((minX + maxX) / 2) * s, y: H / 2 - ((minY + maxY) / 2) * s };
+    };
     const tick = (): void => {
       const vs = N.filter(vis);
       for (let i = 0; i < vs.length; i++) {
@@ -1098,42 +1184,54 @@ function GraphView({ data, onOpen }: { data: GData; onOpen?: (id: string, type: 
           fx += (dx / d) * f;
           fy += (dy / d) * f;
         }
-        fx += (W / 2 - a.x) * 0.008;
-        fy += (H / 2 - a.y) * 0.008;
+        fx += (W / 2 - a.x) * 0.01;
+        fy += (H / 2 - a.y) * 0.01;
         a.fx = fx;
         a.fy = fy;
       }
       E.forEach((e) => { if (!visE(e)) return; const dx = e.d.x - e.s.x; const dy = e.d.y - e.s.y; const d = Math.sqrt(dx * dx + dy * dy) || 0.01; const f = (d - 98) * 0.015; const ux = dx / d; const uy = dy / d; e.s.fx += ux * f; e.s.fy += uy * f; e.d.fx -= ux * f; e.d.fy -= uy * f; });
-      vs.forEach((n) => { if (n === drag) return; n.vx = (n.vx + n.fx * alpha) * 0.86; n.vy = (n.vy + n.fy * alpha) * 0.86; n.x = Math.max(26, Math.min(W - 26, n.x + n.vx)); n.y = Math.max(24, Math.min(H - 24, n.y + n.vy)); });
+      vs.forEach((n) => { if (n === drag) return; n.vx = (n.vx + n.fx * alpha) * 0.86; n.vy = (n.vy + n.fy * alpha) * 0.86; n.x += n.vx; n.y += n.vy; if (!Number.isFinite(n.x)) n.x = W / 2; if (!Number.isFinite(n.y)) n.y = H / 2; });
       alpha *= 0.975;
     };
     const draw = (): void => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
-      E.forEach((e) => { if (!visE(e)) return; const hl = !!hover && (e.s === hover || e.d === hover); ctx.strokeStyle = ekColor(e.k); ctx.globalAlpha = hover ? (hl ? 0.95 : 0.1) : 0.5; ctx.lineWidth = hl ? 2 : 1; ctx.beginPath(); ctx.moveTo(e.s.x, e.s.y); ctx.lineTo(e.d.x, e.d.y); ctx.stroke(); });
+      E.forEach((e) => { if (!visE(e)) return; const hl = !!hover && (e.s === hover || e.d === hover); ctx.strokeStyle = ekColor(e.k); ctx.globalAlpha = hover ? (hl ? 0.95 : 0.1) : 0.5; ctx.lineWidth = hl ? 2 : 1; ctx.beginPath(); ctx.moveTo(SX(e.s.x), SY(e.s.y)); ctx.lineTo(SX(e.d.x), SY(e.d.y)); ctx.stroke(); });
       ctx.globalAlpha = 1;
-      if (hover) { ctx.textAlign = 'center'; ctx.font = `10px ${MONO_F}`; E.forEach((e) => { if (!visE(e) || (e.s !== hover && e.d !== hover)) return; ctx.fillStyle = ekColor(e.k); ctx.fillText(e.k, (e.s.x + e.d.x) / 2, (e.s.y + e.d.y) / 2 - 3); }); }
+      if (hover) { ctx.textAlign = 'center'; ctx.font = `10px ${MONO_F}`; E.forEach((e) => { if (!visE(e) || (e.s !== hover && e.d !== hover)) return; ctx.fillStyle = ekColor(e.k); ctx.fillText(e.k, (SX(e.s.x) + SX(e.d.x)) / 2, (SY(e.s.y) + SY(e.d.y)) / 2 - 3); }); }
       N.forEach((n) => {
         if (!vis(n)) return;
         const r = nodeRadius(n.type);
+        const x = SX(n.x);
+        const y = SY(n.y);
         const dim = !!hover && hover !== n && !neighbor(hover, n);
         ctx.globalAlpha = dim ? 0.26 : 1;
-        if (n.frame) { ctx.beginPath(); ctx.arc(n.x, n.y, r + 3, 0, 7); ctx.strokeStyle = '#9b8ce6'; ctx.lineWidth = 1.5; ctx.stroke(); }
-        ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 7); ctx.fillStyle = colorFor(n.type); ctx.fill();
+        if (n.frame) { ctx.beginPath(); ctx.arc(x, y, r + 3, 0, 7); ctx.strokeStyle = '#9b8ce6'; ctx.lineWidth = 1.5; ctx.stroke(); }
+        ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fillStyle = colorFor(n.type); ctx.fill();
         if (n === hover || n === drag) { ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke(); }
         ctx.font = `11px ${SANS_F}`; ctx.fillStyle = '#eaecf2'; ctx.textAlign = 'center';
         const lbl = n.label.length > 26 ? `${n.label.slice(0, 25)}…` : n.label;
-        ctx.fillText(lbl, n.x, n.y + r + 11);
+        ctx.fillText(lbl, x, y + r + 11);
       });
       ctx.globalAlpha = 1;
     };
-    const loop = (): void => { tick(); draw(); if (alpha > 0.02) raf = requestAnimationFrame(loop); else { raf = null; draw(); } };
+    const loop = (): void => {
+      tick();
+      const t = targetFit();
+      const conv = Math.abs(t.s - scale) < 0.003 && Math.abs(t.x - ox) < 0.6 && Math.abs(t.y - oy) < 0.6;
+      scale += (t.s - scale) * 0.14;
+      ox += (t.x - ox) * 0.14;
+      oy += (t.y - oy) * 0.14;
+      draw();
+      if (alpha > 0.02 || !conv) raf = requestAnimationFrame(loop); else raf = null;
+    };
     function reheat(a: number): void { if (!seeded) seed(); else fit(); alpha = Math.max(alpha, a); if (!raf) raf = requestAnimationFrame(loop); }
     const pos = (ev: MouseEvent): { x: number; y: number } => { const r = cv.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top }; };
-    const pick = (p: { x: number; y: number }): N | null => { let best: N | null = null; let bd = 1e9; N.forEach((n) => { if (!vis(n)) return; const dx = n.x - p.x; const dy = n.y - p.y; const d = dx * dx + dy * dy; const rr = nodeRadius(n.type) + 6; if (d < rr * rr && d < bd) { bd = d; best = n; } }); return best; };
+    const pick = (p: { x: number; y: number }): N | null => { let best: N | null = null; let bd = 1e9; N.forEach((n) => { if (!vis(n)) return; const dx = SX(n.x) - p.x; const dy = SY(n.y) - p.y; const d = dx * dx + dy * dy; const rr = nodeRadius(n.type) + 6; if (d < rr * rr && d < bd) { bd = d; best = n; } }); return best; };
     let moved = false;
     const onMove = (ev: MouseEvent): void => {
       const p = pos(ev);
-      if (drag) { drag.x = p.x; drag.y = p.y; drag.vx = 0; drag.vy = 0; moved = true; reheat(0.4); }
+      if (drag) { drag.x = (p.x - ox) / scale; drag.y = (p.y - oy) / scale; drag.vx = 0; drag.vy = 0; moved = true; reheat(0.4); }
       const h = pick(p);
       if (h !== hover) { hover = h; if (!raf) draw(); }
       if (h) { tip.style.opacity = '1'; tip.style.left = `${p.x + 12}px`; tip.style.top = `${p.y + 8}px`; tip.innerHTML = `<b>${h.label}</b><small>${labelFor(h.type)}${h.frame ? ' · cornice' : ''}</small>`; } else tip.style.opacity = '0';
@@ -1185,6 +1283,8 @@ export function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<KgNode | null>(null);
   const [tab, setTab] = useState<Tab>('search');
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ Panoramica: false, 'Entità': false, Lavoro: true });
+  const toggleGroup = useCallback((group: string) => setOpenGroups((state) => ({ ...state, [group]: !state[group] })), []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [adminBusy, setAdminBusy] = useState(false);
@@ -1205,6 +1305,7 @@ export function App() {
   const [health, setHealth] = useState<HealthReport | null>(null);
   const [drafts, setDrafts] = useState<KgNode[]>([]);
   const graphRef = useRef<HTMLDivElement>(null);
+  const fgRef = useRef<ForceGraphMethods<NodeObject<GNode>, LinkObject<GNode, GLink>> | undefined>(undefined);
   const [dims, setDims] = useState({ width: 900, height: 640 });
 
   const selectedOpenPoint = useMemo(
@@ -1400,6 +1501,20 @@ export function App() {
     return () => observer.disconnect();
   }, []);
 
+  // Keep the active tab's nav group open.
+  useEffect(() => {
+    setOpenGroups((state) => (state[TAB_GROUP[tab]] ? state : { ...state, [TAB_GROUP[tab]]: true }));
+  }, [tab]);
+
+  // Re-center + fit the main force graph when its container resizes or the tab is shown.
+  useEffect(() => {
+    if (tab === 'search') {
+      const timer = setTimeout(() => fgRef.current?.zoomToFit(300, 48), 60);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [dims.width, dims.height, tab, graph]);
+
   const runSearch = useCallback(async () => {
     const q = query.trim();
     if (!q) {
@@ -1557,13 +1672,17 @@ export function App() {
 
       <main className="workspace">
         <aside className="sidebar">
-          <div className="nav-group">Panoramica</div>
+          <div className="sidebar-nav">
+          <NavGroup label="Panoramica" open={openGroups['Panoramica']} onToggle={() => toggleGroup('Panoramica')} />
+          {openGroups['Panoramica'] && (
           <div className="tabs" role="tablist">
             <button className={tab === 'romanzo' ? 'active' : ''} onClick={() => { setTab('romanzo'); void loadChapters(); }}><BookOpen size={15} />Romanzo</button>
             <button className={tab === 'timeline' ? 'active' : ''} onClick={() => { setTab('timeline'); void loadTimeline(); }}><Clock size={15} />Timeline</button>
             <button className={tab === 'coerenza' ? 'active' : ''} onClick={() => { setTab('coerenza'); void loadHealth(); }}><Activity size={15} />Coerenza</button>
           </div>
-          <div className="nav-group">Entità</div>
+          )}
+          <NavGroup label="Entità" open={openGroups['Entità']} onToggle={() => toggleGroup('Entità')} />
+          {openGroups['Entità'] && (
           <div className="tabs" role="tablist">
             <button className={tab === 'capitolo' ? 'active' : ''} onClick={() => { setTab('capitolo'); void loadChapters(); }}><ScrollText size={15} />Capitolo</button>
             <button className={tab === 'personaggio' ? 'active' : ''} onClick={() => { setTab('personaggio'); void loadCharacters(); }}><Users size={15} />Personaggi</button>
@@ -1572,7 +1691,9 @@ export function App() {
             <button className={tab === 'temi' ? 'active' : ''} onClick={() => { setTab('temi'); void loadThemes(); }}><Sparkles size={15} />Temi</button>
             <button className={tab === 'stile' ? 'active' : ''} onClick={() => { setTab('stile'); void loadStyle(); }}><Feather size={15} />Stile &amp; Regole</button>
           </div>
-          <div className="nav-group">Lavoro</div>
+          )}
+          <NavGroup label="Lavoro" open={openGroups['Lavoro']} onToggle={() => toggleGroup('Lavoro')} />
+          {openGroups['Lavoro'] && (
           <div className="tabs" role="tablist">
             <button className={tab === 'editoriale' ? 'active' : ''} onClick={() => { setTab('editoriale'); void loadDrafts(); void loadCharacters(); void loadChapters(); }}><PenLine size={15} />Editoriale</button>
             <button className={tab === 'search' ? 'active' : ''} onClick={() => setTab('search')}><Search size={15} />Grafo</button>
@@ -1580,6 +1701,7 @@ export function App() {
             <button className={tab === 'documents' ? 'active' : ''} onClick={() => { setTab('documents'); void loadDocuments(); }}><FileText size={15} />Documenti</button>
             <button className={tab === 'admin' ? 'active' : ''} onClick={() => setTab('admin')}><ShieldCheck size={15} />Admin</button>
           </div>
+          )}
 
           {tab === 'search' && (
             <div className="search-box">
@@ -1642,7 +1764,9 @@ export function App() {
 
           {error && <div className="error-line">{error}</div>}
           {loading && <div className="loading-line">Caricamento</div>}
+          </div>
 
+          <div className="sidebar-scroll">
           {tab === 'openPoints' ? (
             <div className="open-point-list">
               {openPoints.map((point) => (
@@ -1686,6 +1810,7 @@ export function App() {
               {!activeList.length && !loading && <div className="empty-state">Nessun elemento narrativo</div>}
             </div>
           )}
+          </div>
         </aside>
 
         <section className="graph-panel" ref={graphRef}>
@@ -1730,6 +1855,7 @@ export function App() {
             <EditorialePanel drafts={drafts} characters={characters} chapters={chapters} onOpen={(id, type) => void openEntity(id, type)} />
           ) : graph.nodes.length > 0 ? (
             <ForceGraph2D<GNode, GLink>
+              ref={fgRef}
               width={dims.width}
               height={dims.height}
               graphData={graph}
@@ -1741,6 +1867,8 @@ export function App() {
               linkColor={() => 'rgba(71, 85, 105, 0.36)'}
               linkDirectionalArrowLength={4}
               linkDirectionalArrowRelPos={1}
+              cooldownTicks={120}
+              onEngineStop={() => fgRef.current?.zoomToFit(400, 48)}
               onNodeClick={(node) => void expandNode(node.id)}
             />
           ) : (

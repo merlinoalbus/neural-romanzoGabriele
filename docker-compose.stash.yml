@@ -1,0 +1,71 @@
+# =============================================================================
+# Stack stash - volumi NFS verso NAS Synology (Tailscale 100.125.101.31)
+# =============================================================================
+# PREREQUISITO sul NAS (DSM -> Shared Folder 'public' -> NFS Permissions):
+#   - regola per l'IP Tailscale di QUESTA macchina Docker (o subnet 100.64.0.0/10)
+#   - Read/Write
+#   - "Allow connections from non-privileged ports"
+#   - "Allow users to access mounted subfolders"  <-- ESSENZIALE per i subpath
+#
+# L'export NFS del NAS e' /Volume1/public. Le sottocartelle (homes_roberto/...)
+# sono raggiungibili come subpath solo con il flag "subfolders" attivo su DSM.
+# =============================================================================
+
+services:
+  stash:
+    image: stashapp/stash:latest
+    container_name: stash
+    hostname: stash
+    platform: linux/amd64
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Rome
+      - USER=apps
+      - STASH_PORT=9999
+      - STASH_STASH=/data/nas/         # libreria multimediale (sola lettura)
+      - STASH_CACHE=/data/stash-rw/cache/
+      - STASH_GENERATED=/data/stash-rw/generated/
+      - STASH_METADATA=/data/stash-rw/metadata/
+      - NVIDIA_VISIBLE_DEVICES=void
+    volumes:
+      - stash_config:/root/.stash
+      - nas_media:/data/nas:ro
+      - nas_stash_rw:/data/stash-rw:rw
+      - stash_blobs:/blobs
+    user: "0:0"
+    networks:
+      - proxy
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  proxy:
+    external: true
+
+volumes:
+  stash_config:
+    external: true
+
+  # Libreria multimediale (sorgenti) - montata :ro lato container
+  nas_media:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=100.125.101.31,rw,nfsvers=4,hard,timeo=600,retrans=2,noatime,nconnect=4"
+      device: ":/Volume1/public/homes_roberto"
+
+  # Dati pesanti stash (cache/generated/metadata) - montato :rw
+  nas_stash_rw:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=100.125.101.31,rw,nfsvers=4,hard,timeo=600,retrans=2,noatime,nconnect=4"
+      device: ":/Volume1/public/homes_roberto/App/stash/stash-rw"
+
+  # Blobs su NFS dedicato (invariato rispetto all'originale)
+  stash_blobs:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=100.125.101.31,rw,nfsvers=4,hard,timeo=600,retrans=2,noatime,nconnect=4"
+      device: ":/Volume1/public/homes_roberto/App/stash/blobs"

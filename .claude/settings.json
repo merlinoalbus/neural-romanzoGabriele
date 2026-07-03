@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Romanzo_Gabriele"
+    ],
+    "ask": [
+      "mcp__Romanzo_Gabriele__kg_delete_nodes"
+    ]
+  }
+}

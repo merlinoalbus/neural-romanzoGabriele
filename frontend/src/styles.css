@@ -561,3 +561,43 @@ button { font-family: inherit; }
 .chapter-plane.celestial { background: rgba(127, 176, 224, 0.16); color: #9cc4ea; border: 1px solid rgba(127, 176, 224, 0.4); }
 .tl-chip.celestial { border-color: rgba(127, 176, 224, 0.45); color: #cfe0f2; }
 .tl-chip.celestial:hover { border-color: #7fb0e0; background: rgba(127, 176, 224, 0.12); }
+
+/* Editoriale: card della pipeline 7-step */
+.step-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.step-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--panel);
+}
+.step-h { display: flex; align-items: center; gap: 10px; }
+.step-n {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(230, 180, 80, 0.14);
+  border: 1px solid rgba(230, 180, 80, 0.4);
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.step-ti { display: flex; flex-direction: column; line-height: 1.2; }
+.step-ti b { font-size: 13.5px; color: var(--ink); }
+.step-ti small { color: var(--faint); font-size: 11px; }
+.step-neural { margin: 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
+.step-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.prompt-copy.sect { background: rgba(155, 140, 230, 0.12); color: var(--violet); border-color: rgba(155, 140, 230, 0.34); }
+.prompt-copy.sect:hover:not(:disabled) { background: rgba(155, 140, 230, 0.2); }
+.prompt-copy:disabled { opacity: 0.4; cursor: not-allowed; }

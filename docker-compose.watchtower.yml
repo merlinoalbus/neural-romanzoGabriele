@@ -1,0 +1,37 @@
+# =============================================================================
+# Stack watchtower globale - versione con credenziali ghcr via named volume
+# =============================================================================
+# Perche' named volume invece di bind mount /root/.docker/config.json:
+#   Su Docker Desktop il path /root/.docker nella VM e' ambiguo e Docker
+#   ricreava una DIRECTORY vuota al posto del file -> errore "is a directory".
+#   Un named volume ha un percorso deterministico, condiviso senza ambiguita'.
+# DOCKER_CONFIG=/config dice a watchtower di cercare config.json in /config/.
+# =============================================================================
+
+services:
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower_global
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - watchtower_config:/config
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          memory: 24M
+    environment:
+      - DOCKER_CONFIG=/config
+      - DOCKER_API_VERSION=1.40
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_INCLUDE_RESTARTING=true
+      - WATCHTOWER_POLL_INTERVAL=180
+      - WATCHTOWER_ROLLING_RESTART=true
+      - TZ=Europe/Rome
+
+volumes:
+  watchtower_config:

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D, { type ForceGraphMethods, type LinkObject, type NodeObject } from 'react-force-graph-2d';
 import { Activity, BookOpen, Check, ChevronDown, Clock, Copy, Database, Download, Feather, FileText, GitBranch, Globe2, ListChecks, Network, PenLine, RefreshCw, ScrollText, Search, ShieldCheck, Sparkles, Upload, Users, X } from 'lucide-react';
 import {
@@ -591,56 +591,128 @@ function parseDay(value: string | null): number | null {
   return null;
 }
 
+const DAY_MS = 86400000;
+const TL_PAD = 64;
+const TL_MIN_PPD = 0.5;
+const TL_MAX_PPD = 48;
+const TL_LANE_H = 20;
+const TL_MAX_LANES = 9;
+const dmShort = (day: number): string => `${String(new Date(day).getUTCDate()).padStart(2, '0')}/${String(new Date(day).getUTCMonth() + 1).padStart(2, '0')}`;
+const dmFull = (day: number): string => { const d = new Date(day); return `${String(d.getUTCDate()).padStart(2, '0')} ${MONTHS_IT[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+
 function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: TimelineEntry[]; onOpenChapter: (id: string) => void; onOpenEntity: (id: string) => void }) {
   const [hover, setHover] = useState<string | null>(null);
-  const H = 292;
+  const [pxPerDay, setPxPerDay] = useState(0);
+  const [containerW, setContainerW] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const anchorRef = useRef<{ day: number; clientX: number } | null>(null);
+  const ppdRef = useRef(1);
+  const minRef = useRef(0);
 
-  const model = useMemo(() => {
+  const base = useMemo(() => {
     const celestial = entries.filter((entry) => entry.timePlane === 'celestial_past');
     const rest = entries.filter((entry) => entry.timePlane !== 'celestial_past');
     const parsed = rest.map((entry) => ({ entry, day: parseDay(entry.date) }));
     const dated = parsed.filter((p): p is { entry: TimelineEntry; day: number } => p.day != null);
     const frameYear = (day: number): boolean => new Date(day).getUTCFullYear() >= 2050;
-    const mainPts = dated.filter((p) => !frameYear(p.day)).sort((a, b) => a.day - b.day);
-    const framePts = dated.filter((p) => frameYear(p.day)).sort((a, b) => a.day - b.day);
+    const main = dated.filter((p) => !frameYear(p.day)).sort((a, b) => a.day - b.day || a.entry.label.localeCompare(b.entry.label));
+    const frame = dated.filter((p) => frameYear(p.day)).sort((a, b) => a.day - b.day);
     const undated = parsed.filter((p) => p.day == null).map((p) => p.entry);
-
-    const MARGIN = 46;
-    const spineY = 234;
-    const min = mainPts.length ? mainPts[0].day : 0;
-    const max = mainPts.length ? mainPts[mainPts.length - 1].day : 1;
-    const span = Math.max(1, max - min);
-    const monthMs = 1000 * 60 * 60 * 24 * 30.44;
-    const innerW = Math.max(680, Math.round((span / monthMs) * 62));
-    const width = innerW + MARGIN * 2;
-    const xOf = (day: number): number => MARGIN + ((day - min) / span) * innerW;
-
-    const bucket = new Map<number, number>();
-    const staged = mainPts.map((p) => {
-      const x = xOf(p.day);
-      const key = Math.round(x / 13);
-      const stack = bucket.get(key) ?? 0;
-      bucket.set(key, stack + 1);
-      return { entry: p.entry, day: p.day, x, stack };
-    });
-    const maxStack = staged.reduce((m, n) => Math.max(m, n.stack), 0);
-    const rowH = Math.max(7, Math.min(14, (spineY - 44) / Math.max(1, maxStack)));
-    const nodes = staged.map((n) => ({ ...n, y: spineY - 16 - n.stack * rowH }));
-
-    const ticks: { x: number; label: string }[] = [];
-    if (mainPts.length) {
-      const start = new Date(min);
-      let cur = Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1);
-      while (cur <= max + monthMs) {
-        const d = new Date(cur);
-        ticks.push({ x: xOf(cur), label: d.getUTCMonth() === 0 ? `${MONTHS_IT[0]} ${d.getUTCFullYear()}` : MONTHS_IT[d.getUTCMonth()] });
-        cur = Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
-      }
-    }
-    return { nodes, framePts, undated, celestial, width, spineY, MARGIN, ticks };
+    const min = main.length ? main[0].day : 0;
+    const max = main.length ? main[main.length - 1].day : min + DAY_MS;
+    return { main, frame, undated, celestial, min, max, spanDays: Math.max(1, (max - min) / DAY_MS) };
   }, [entries]);
 
-  const hovered = model.nodes.find((n) => n.entry.id === hover) ?? null;
+  // Track the real container width (ResizeObserver fires after layout, so clientWidth is valid).
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return undefined;
+    const ro = new ResizeObserver(() => setContainerW(el.clientWidth));
+    ro.observe(el);
+    setContainerW(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
+  // Initial fit-to-width once the container has a measured width.
+  useEffect(() => {
+    if (pxPerDay > 0 || containerW <= 0) return;
+    setPxPerDay(Math.min(TL_MAX_PPD, Math.max(TL_MIN_PPD, (containerW - TL_PAD * 2) / base.spanDays)) || 3);
+  }, [containerW, base.spanDays, pxPerDay]);
+
+  const ppd = pxPerDay || 3;
+  ppdRef.current = ppd;
+  minRef.current = base.min;
+
+  const layout = useMemo(() => {
+    const laneRight: number[] = [];
+    const items = base.main.map((p) => {
+      const x = ((p.day - base.min) / DAY_MS) * ppd + TL_PAD;
+      const labelW = Math.min(240, 62 + p.entry.label.length * 6.1);
+      let lane = -1;
+      for (let i = 0; i < laneRight.length; i++) { if (laneRight[i] <= x - 10) { lane = i; break; } }
+      if (lane === -1 && laneRight.length < TL_MAX_LANES) { lane = laneRight.length; laneRight.push(0); }
+      if (lane !== -1) laneRight[lane] = x + labelW;
+      return { entry: p.entry, day: p.day, x, lane };
+    });
+    const usedLanes = Math.max(1, laneRight.length);
+    const spineY = 14 + usedLanes * TL_LANE_H + 12;
+    const width = ((base.max - base.min) / DAY_MS) * ppd + TL_PAD * 2 + 240;
+    const ticks: { x: number; label: string; major: boolean }[] = [];
+    const dayTicks: number[] = [];
+    if (base.main.length) {
+      const s = new Date(base.min);
+      let cur = Date.UTC(s.getUTCFullYear(), s.getUTCMonth(), 1);
+      let first = true;
+      while (cur <= base.max + DAY_MS * 31) {
+        const d = new Date(cur);
+        const x = ((cur - base.min) / DAY_MS) * ppd + TL_PAD;
+        const major = d.getUTCMonth() === 0 || first;
+        ticks.push({ x, label: major ? `${MONTHS_IT[d.getUTCMonth()]} ${d.getUTCFullYear()}` : MONTHS_IT[d.getUTCMonth()], major });
+        cur = Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
+        first = false;
+      }
+      if (ppd >= 13) for (let day = base.min; day <= base.max; day += DAY_MS) dayTicks.push(((day - base.min) / DAY_MS) * ppd + TL_PAD);
+    }
+    return { items, spineY, width, height: spineY + 34, ticks, dayTicks };
+  }, [base, ppd]);
+
+  // Restore the scroll position so the zoom stays anchored under the cursor / viewport centre.
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    const a = anchorRef.current;
+    if (el && a) { el.scrollLeft = ((a.day - base.min) / DAY_MS) * ppd + TL_PAD - a.clientX; anchorRef.current = null; }
+  }, [ppd, base.min]);
+
+  // Ctrl/⌘ + wheel to zoom (native non-passive listener so preventDefault works).
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return undefined;
+    const handler = (ev: WheelEvent): void => {
+      if (!(ev.ctrlKey || ev.metaKey)) return;
+      ev.preventDefault();
+      const clientX = ev.clientX - el.getBoundingClientRect().left;
+      const day = minRef.current + ((el.scrollLeft + clientX - TL_PAD) / ppdRef.current) * DAY_MS;
+      anchorRef.current = { day, clientX };
+      setPxPerDay((v) => Math.min(TL_MAX_PPD, Math.max(TL_MIN_PPD, (v || 3) * (ev.deltaY < 0 ? 1.2 : 1 / 1.2))));
+    };
+    el.addEventListener('wheel', handler, { passive: false });
+    return () => el.removeEventListener('wheel', handler);
+  }, []);
+
+  const zoomBtn = (factor: number): void => {
+    const el = scrollRef.current;
+    const clientX = el ? el.clientWidth / 2 : 300;
+    const day = base.min + ((((el?.scrollLeft ?? 0) + clientX) - TL_PAD) / ppd) * DAY_MS;
+    anchorRef.current = { day, clientX };
+    setPxPerDay((v) => Math.min(TL_MAX_PPD, Math.max(TL_MIN_PPD, (v || 3) * factor)));
+  };
+  const fit = (): void => {
+    const w = containerW || scrollRef.current?.clientWidth || 900;
+    anchorRef.current = null;
+    setPxPerDay(Math.min(TL_MAX_PPD, Math.max(TL_MIN_PPD, (w - TL_PAD * 2) / base.spanDays)) || 3);
+    if (scrollRef.current) scrollRef.current.scrollLeft = 0;
+  };
+
   const openEntry = (entry: TimelineEntry): void => { if (entry.chapterId) onOpenChapter(entry.chapterId); else onOpenEntity(entry.id); };
 
   return (
@@ -648,67 +720,79 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
       <div className="novel-head">
         <h2>Timeline del romanzo</h2>
         <p className="novel-sub">
-          <b>{entries.length}</b> eventi lungo la spina temporale. Storia principale 2020–2021; cornice 2080 a parte. Hover per il dettaglio, click per aprire il capitolo/evento. L'altezza dei punti segnala i periodi più densi.
+          Cronologia <b>proporzionale</b> della storia principale: gli eventi sono in ordine di data e distanziati secondo il tempo reale (i vuoti tra i beat si vedono). Trascina la barra per scorrere, <b>Ctrl/⌘ + rotellina</b> o i pulsanti per lo zoom; click su un evento per aprirlo.
         </p>
       </div>
-      <div className="tl-legend">
-        <span><i className="tl-key main" /> storia principale <b>{model.nodes.length}</b></span>
-        <span><i className="tl-key frame" /> cornice 2080 <b>{model.framePts.length}</b></span>
-        {model.celestial.length > 0 && <span><i className="tl-key celestial" /> passato celeste <b>{model.celestial.length}</b></span>}
-        {model.undated.length > 0 && <span><i className="tl-key none" /> non datati <b>{model.undated.length}</b></span>}
+      <div className="tl2-bar">
+        <div className="tl-legend">
+          <span><i className="tl-key main" /> storia principale <b>{base.main.length}</b></span>
+          {base.frame.length > 0 && <span><i className="tl-key frame" /> cornice 2080 <b>{base.frame.length}</b></span>}
+          {base.celestial.length > 0 && <span><i className="tl-key celestial" /> passato celeste <b>{base.celestial.length}</b></span>}
+          {base.undated.length > 0 && <span><i className="tl-key none" /> non datati <b>{base.undated.length}</b></span>}
+        </div>
+        <div className="tl2-zoom">
+          {base.main.length > 0 && <span className="tl2-span">{dmFull(base.min)} → {dmFull(base.max)}</span>}
+          <button onClick={() => zoomBtn(1 / 1.4)} title="Zoom indietro" aria-label="Zoom indietro">−</button>
+          <button onClick={fit} title="Adatta alla finestra">Adatta</button>
+          <button onClick={() => zoomBtn(1.4)} title="Zoom avanti" aria-label="Zoom avanti">+</button>
+        </div>
       </div>
 
-      {model.nodes.length > 0 && (
-        <div className="tl-scroll">
-          <svg className="tl-svg" width={model.width} height={H} viewBox={`0 0 ${model.width} ${H}`} role="img" aria-label="Timeline storia principale">
-            <defs>
-              <linearGradient id="tlspine" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0" stopColor="#e6b450" />
-                <stop offset="0.75" stopColor="#c6a06a" />
-                <stop offset="1" stopColor="#9b8ce6" />
-              </linearGradient>
-            </defs>
-            {model.ticks.map((t, i) => (
-              <g key={i}>
-                <line x1={t.x} y1={42} x2={t.x} y2={model.spineY} stroke="#242b3d" strokeWidth="1" strokeDasharray="2 5" />
-                <text x={t.x} y={model.spineY + 20} fill="#6a7288" fontSize="10" textAnchor="middle" fontFamily="ui-monospace, monospace">{t.label}</text>
-              </g>
-            ))}
-            <line x1={model.MARGIN} y1={model.spineY} x2={model.width - model.MARGIN} y2={model.spineY} stroke="url(#tlspine)" strokeWidth="3" strokeLinecap="round" />
-            {model.nodes.map((n) => {
-              const active = hover === n.entry.id;
+      {base.main.length > 0 && (
+        <div className="tl2-scroll" ref={scrollRef}>
+          <div className="tl2-canvas" style={{ width: layout.width, height: layout.height }}>
+            {layout.ticks.map((t, i) => {
+              const next = layout.ticks[i + 1]?.x ?? layout.width;
               return (
-                <g key={n.entry.id} className="tl-node" onMouseEnter={() => setHover(n.entry.id)} onMouseLeave={() => setHover((h) => (h === n.entry.id ? null : h))} onClick={() => openEntry(n.entry)}>
-                  <line x1={n.x} y1={n.y} x2={n.x} y2={model.spineY} stroke={active ? '#e6b450' : '#39415a'} strokeWidth="1" />
-                  <circle cx={n.x} cy={n.y} r={active ? 6.5 : 4.5} fill={active ? '#fff' : '#e6b450'} stroke="#e6b450" strokeWidth={active ? 2 : 0} />
-                </g>
+                <div key={`m${i}`}>
+                  {i % 2 === 0 && <div className="tl2-band" style={{ left: t.x, width: next - t.x }} />}
+                  <div className={`tl2-grid${t.major ? ' major' : ''}`} style={{ left: t.x, height: layout.spineY }} />
+                  <div className="tl2-monthlab" style={{ left: t.x, top: layout.spineY + 7 }}>{t.label}</div>
+                </div>
               );
             })}
-            {hovered && (() => {
-              const label = hovered.entry.label.length > 46 ? `${hovered.entry.label.slice(0, 45)}…` : hovered.entry.label;
-              const chapter = hovered.entry.chapterId ? `Cap ${hovered.entry.chapterNumber ?? '·'}${hovered.entry.chapterTitle ? ` · ${hovered.entry.chapterTitle}` : ''}` : 'non ancorato a un capitolo';
-              const boxW = 250;
-              const bx = Math.max(6, Math.min(model.width - boxW - 6, hovered.x - boxW / 2));
-              const below = hovered.y < 96;
-              const by = below ? hovered.y + 14 : hovered.y - 74;
+            {layout.dayTicks.map((x, i) => <div key={`d${i}`} className="tl2-daytick" style={{ left: x, height: layout.spineY }} />)}
+            <div className="tl2-spine" style={{ top: layout.spineY, left: TL_PAD - 10, width: layout.width - (TL_PAD - 10) - 220 }} />
+            {layout.items.map((n) => {
+              const active = hover === n.entry.id;
+              const cardTop = 14 + n.lane * TL_LANE_H;
               return (
-                <g className="tl-tip" pointerEvents="none">
-                  <rect x={bx} y={by} width={boxW} height={62} rx={8} fill="#0c0f18" stroke="#2a3145" />
-                  <text x={bx + 12} y={by + 20} fill="#eaecf2" fontSize="12.5" fontWeight="600">{label}</text>
-                  <text x={bx + 12} y={by + 38} fill="#e6b450" fontSize="11" fontFamily="ui-monospace, monospace">{hovered.entry.date ?? '—'}</text>
-                  <text x={bx + 12} y={by + 54} fill="#9aa3b8" fontSize="11">{chapter.length > 40 ? `${chapter.slice(0, 39)}…` : chapter}</text>
-                </g>
+                <div key={n.entry.id}>
+                  {n.lane >= 0 && <div className="tl2-conn" style={{ left: n.x, top: cardTop + 17, height: layout.spineY - (cardTop + 17) }} />}
+                  {n.lane >= 0 && (
+                    <button
+                      className={`tl2-card${active ? ' active' : ''}`}
+                      style={{ left: n.x, top: cardTop }}
+                      onMouseEnter={() => setHover(n.entry.id)}
+                      onMouseLeave={() => setHover((h) => (h === n.entry.id ? null : h))}
+                      onClick={() => openEntry(n.entry)}
+                      title={`${n.entry.label} — ${dmFull(n.day)}${n.entry.chapterId ? ` · Cap ${n.entry.chapterNumber ?? '·'}` : ''}`}
+                    >
+                      <span className="tl2-card-d">{dmShort(n.day)}</span>
+                      <span className="tl2-card-t">{n.entry.label}</span>
+                    </button>
+                  )}
+                  <button
+                    className={`tl2-dot${active ? ' active' : ''}${n.entry.chapterId ? '' : ' free'}`}
+                    style={{ left: n.x, top: layout.spineY }}
+                    onMouseEnter={() => setHover(n.entry.id)}
+                    onMouseLeave={() => setHover((h) => (h === n.entry.id ? null : h))}
+                    onClick={() => openEntry(n.entry)}
+                    title={`${n.entry.label} — ${dmFull(n.day)}`}
+                    aria-label={`${n.entry.label} — ${dmFull(n.day)}`}
+                  />
+                </div>
               );
-            })()}
-          </svg>
+            })}
+          </div>
         </div>
       )}
 
-      {model.framePts.length > 0 && (
+      {base.frame.length > 0 && (
         <section className="novel-block">
-          <h3><span className="chapter-plane frame">cornice</span> 2080 <small>{model.framePts.length}</small></h3>
+          <h3><span className="chapter-plane frame">cornice</span> 2080 <small>{base.frame.length}</small></h3>
           <div className="tl-frame-rail">
-            {model.framePts.map((p) => (
+            {base.frame.map((p) => (
               <button key={p.entry.id} className="tl-chip frame" onClick={() => openEntry(p.entry)}>
                 <span className="tl-chip-date">{p.entry.date ?? '—'}</span>
                 {p.entry.label}
@@ -718,27 +802,27 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
         </section>
       )}
 
-      {model.celestial.length > 0 && (
+      {base.celestial.length > 0 && (
         <section className="novel-block">
-          <h3><span className="chapter-plane celestial">passato celeste</span> pre-storia <small>{model.celestial.length}</small></h3>
+          <h3><span className="chapter-plane celestial">passato celeste</span> pre-storia <small>{base.celestial.length}</small></h3>
           <p className="novel-note">Eventi del passato angelico (pre-2020) fuori dalla cronologia terrena: si "sbloccano" quando i personaggi ne prendono consapevolezza. Collegati a Gabriel/Lisa e ancorati via <span className="edge-kind">revealed_in</span> al capitolo della rivelazione.</p>
           <div className="tl-frame-rail">
-            {model.celestial.map((entry) => (
+            {base.celestial.map((entry) => (
               <button key={entry.id} className="tl-chip celestial" onClick={() => openEntry(entry)}>{entry.label}</button>
             ))}
           </div>
         </section>
       )}
 
-      {model.undated.length > 0 && (
+      {base.undated.length > 0 && (
         <section className="novel-block">
-          <h3>Eventi non datati <small>{model.undated.length}</small></h3>
+          <h3>Eventi non datati <small>{base.undated.length}</small></h3>
           <p className="novel-note">Senza data derivabile dal capitolo collegato — candidati alla bonifica (ancoraggio a un capitolo).</p>
           <div className="tl-frame-rail">
-            {model.undated.slice(0, 60).map((entry) => (
+            {base.undated.slice(0, 60).map((entry) => (
               <button key={entry.id} className="tl-chip none" onClick={() => openEntry(entry)}>{entry.label}</button>
             ))}
-            {model.undated.length > 60 && <span className="muted">+{model.undated.length - 60} altri</span>}
+            {base.undated.length > 60 && <span className="muted">+{base.undated.length - 60} altri</span>}
           </div>
         </section>
       )}

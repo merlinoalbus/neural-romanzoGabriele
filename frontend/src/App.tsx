@@ -648,27 +648,29 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
   useEffect(() => setCluster(null), [ppd]);
 
   const layout = useMemo(() => {
-    const laneRight: number[] = [];
-    const items = base.main.map((p) => {
-      const x = ((p.day - base.min) / DAY_MS) * ppd + TL_PAD;
-      const labelW = Math.min(240, 62 + p.entry.label.length * 6.1);
-      let lane = -1;
-      for (let i = 0; i < laneRight.length; i++) { if (laneRight[i] <= x - 10) { lane = i; break; } }
-      if (lane === -1 && laneRight.length < TL_MAX_LANES) { lane = laneRight.length; laneRight.push(0); }
-      if (lane !== -1) laneRight[lane] = x + labelW;
-      return { entry: p.entry, day: p.day, x, lane };
-    });
-    // Events that could not get a labelled lane (dense/same-date columns) are grouped into
-    // "+N" chips whose popover lists them all — so nothing is unreachable beyond the lane cap.
-    const chipMap = new Map<number, { entry: TimelineEntry; day: number; x: number }[]>();
-    for (const n of items) {
-      if (n.lane >= 0) continue;
-      const key = Math.round(n.x / 42);
-      const arr = chipMap.get(key) ?? [];
-      arr.push({ entry: n.entry, day: n.day, x: n.x });
-      chipMap.set(key, arr);
+    // Level-of-detail clustering: events whose markers would touch merge into one cluster.
+    // Zooming spreads them so clusters split; a multi-event cluster shows a numbered badge on
+    // the spine (always visible) whose popover lists them — no "wall of 8 cards", nothing hidden.
+    const evs = base.main.map((p) => ({ entry: p.entry, day: p.day, x: ((p.day - base.min) / DAY_MS) * ppd + TL_PAD }));
+    const CLUSTER_GAP = 16;
+    const raw: { items: { entry: TimelineEntry; day: number; x: number }[] }[] = [];
+    for (const e of evs) {
+      const last = raw[raw.length - 1];
+      if (last && e.x - last.items[last.items.length - 1].x <= CLUSTER_GAP) last.items.push(e);
+      else raw.push({ items: [e] });
     }
-    const chips = [...chipMap.values()].map((its) => ({ x: Math.min(...its.map((i) => i.x)), items: its.slice().sort((a, b) => a.day - b.day) }));
+    const laneRight: number[] = [];
+    const clusters = raw.map((c) => {
+      const cx = c.items[0].x;
+      let lane = -1;
+      if (c.items.length === 1) {
+        const labelW = Math.min(240, 62 + c.items[0].entry.label.length * 6.1);
+        for (let i = 0; i < laneRight.length; i++) { if (laneRight[i] <= cx - 10) { lane = i; break; } }
+        if (lane === -1 && laneRight.length < TL_MAX_LANES) { lane = laneRight.length; laneRight.push(0); }
+        if (lane !== -1) laneRight[lane] = cx + labelW;
+      }
+      return { cx, items: c.items, lane };
+    });
     const usedLanes = Math.max(1, laneRight.length);
     const spineY = 14 + usedLanes * TL_LANE_H + 12;
     const width = ((base.max - base.min) / DAY_MS) * ppd + TL_PAD * 2 + 240;
@@ -688,7 +690,7 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
       }
       if (ppd >= 13) for (let day = base.min; day <= base.max; day += DAY_MS) dayTicks.push(((day - base.min) / DAY_MS) * ppd + TL_PAD);
     }
-    return { items, chips, spineY, width, height: spineY + 34, ticks, dayTicks };
+    return { clusters, spineY, width, height: spineY + 34, ticks, dayTicks };
   }, [base, ppd]);
 
   // Restore the scroll position so the zoom stays anchored under the cursor / viewport centre.
@@ -735,7 +737,7 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
       <div className="novel-head">
         <h2>Timeline del romanzo</h2>
         <p className="novel-sub">
-          Cronologia <b>proporzionale</b> della storia principale: gli eventi sono in ordine di data e distanziati secondo il tempo reale (i vuoti tra i beat si vedono). Trascina la barra per scorrere, <b>Ctrl/⌘ + rotellina</b> o i pulsanti per lo zoom; click su un evento per aprirlo. Dove più eventi cadono nello stesso punto compare un chip <b>+N</b>: cliccalo per l'elenco completo.
+          Cronologia <b>proporzionale</b> della storia principale: gli eventi sono in ordine di data e distanziati secondo il tempo reale (i vuoti tra i beat si vedono). Trascina la barra per scorrere, <b>Ctrl/⌘ + rotellina</b> o i pulsanti per lo zoom. Dove più eventi sono ravvicinati compare sull'asse un <b>pallino numerato</b>: cliccalo per l'elenco completo; <b>zooma</b> per separarli e far riapparire le etichette.
         </p>
       </div>
       <div className="tl2-bar">
@@ -768,46 +770,53 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
             })}
             {layout.dayTicks.map((x, i) => <div key={`d${i}`} className="tl2-daytick" style={{ left: x, height: layout.spineY }} />)}
             <div className="tl2-spine" style={{ top: layout.spineY, left: TL_PAD - 10, width: layout.width - (TL_PAD - 10) - 220 }} />
-            {layout.items.map((n) => {
-              const active = hover === n.entry.id;
-              const cardTop = 14 + n.lane * TL_LANE_H;
+            {layout.clusters.map((c, i) => {
+              const first = c.items[0];
+              const multi = c.items.length > 1;
+              const active = hover === first.entry.id;
+              const cardTop = 14 + c.lane * TL_LANE_H;
+              const open = (ev: { stopPropagation: () => void }): void => {
+                ev.stopPropagation();
+                if (multi) setCluster({ x: c.cx, items: c.items.map((it) => ({ entry: it.entry, day: it.day })) });
+                else openEntry(first.entry);
+              };
               return (
-                <div key={n.entry.id}>
-                  {n.lane >= 0 && <div className="tl2-conn" style={{ left: n.x, top: cardTop + 17, height: layout.spineY - (cardTop + 17) }} />}
-                  {n.lane >= 0 && (
+                <div key={`cl${i}`}>
+                  {!multi && c.lane >= 0 && <div className="tl2-conn" style={{ left: c.cx, top: cardTop + 17, height: layout.spineY - (cardTop + 17) }} />}
+                  {!multi && c.lane >= 0 && (
                     <button
                       className={`tl2-card${active ? ' active' : ''}`}
-                      style={{ left: n.x, top: cardTop }}
-                      onMouseEnter={() => setHover(n.entry.id)}
-                      onMouseLeave={() => setHover((h) => (h === n.entry.id ? null : h))}
-                      onClick={() => openEntry(n.entry)}
-                      title={`${n.entry.label} — ${dmFull(n.day)}${n.entry.chapterId ? ` · Cap ${n.entry.chapterNumber ?? '·'}` : ''}`}
+                      style={{ left: c.cx, top: cardTop }}
+                      onMouseEnter={() => setHover(first.entry.id)}
+                      onMouseLeave={() => setHover((h) => (h === first.entry.id ? null : h))}
+                      onClick={open}
+                      title={`${first.entry.label} — ${dmFull(first.day)}${first.entry.chapterId ? ` · Cap ${first.entry.chapterNumber ?? '·'}` : ''}`}
                     >
-                      <span className="tl2-card-d">{dmShort(n.day)}</span>
-                      <span className="tl2-card-t">{n.entry.label}</span>
+                      <span className="tl2-card-d">{dmShort(first.day)}</span>
+                      <span className="tl2-card-t">{first.entry.label}</span>
                     </button>
                   )}
-                  <button
-                    className={`tl2-dot${active ? ' active' : ''}${n.entry.chapterId ? '' : ' free'}`}
-                    style={{ left: n.x, top: layout.spineY }}
-                    onMouseEnter={() => setHover(n.entry.id)}
-                    onMouseLeave={() => setHover((h) => (h === n.entry.id ? null : h))}
-                    onClick={() => openEntry(n.entry)}
-                    title={`${n.entry.label} — ${dmFull(n.day)}`}
-                    aria-label={`${n.entry.label} — ${dmFull(n.day)}`}
-                  />
+                  {multi ? (
+                    <button
+                      className="tl2-badge"
+                      style={{ left: c.cx, top: layout.spineY }}
+                      onClick={open}
+                      title={`${c.items.length} eventi ravvicinati (${dmShort(first.day)}–${dmShort(c.items[c.items.length - 1].day)}) — clicca per l'elenco`}
+                    >{c.items.length}</button>
+                  ) : (
+                    <button
+                      className={`tl2-dot${active ? ' active' : ''}${first.entry.chapterId ? '' : ' free'}`}
+                      style={{ left: c.cx, top: layout.spineY }}
+                      onMouseEnter={() => setHover(first.entry.id)}
+                      onMouseLeave={() => setHover((h) => (h === first.entry.id ? null : h))}
+                      onClick={open}
+                      title={`${first.entry.label} — ${dmFull(first.day)}`}
+                      aria-label={`${first.entry.label} — ${dmFull(first.day)}`}
+                    />
+                  )}
                 </div>
               );
             })}
-            {layout.chips.map((c, i) => (
-              <button
-                key={`c${i}`}
-                className="tl2-more"
-                style={{ left: c.x, top: layout.spineY - 22 }}
-                onClick={(ev) => { ev.stopPropagation(); setCluster({ x: c.x, items: c.items }); }}
-                title={`${c.items.length} eventi ravvicinati — clicca per l'elenco`}
-              >+{c.items.length}</button>
-            ))}
             {cluster && (
               <div className="tl2-pop" style={{ left: Math.max(4, Math.min(cluster.x, layout.width - 278)), top: 8 }} onClick={(ev) => ev.stopPropagation()}>
                 <div className="tl2-pop-h">

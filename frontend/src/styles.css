@@ -406,17 +406,27 @@ button { font-family: inherit; }
 /* grouped navigation sub-headers (categoria / tipo / livello) */
 .nav-group-block { margin-bottom: 6px; }
 .nav-sub-head {
+  all: unset;
+  cursor: pointer;
+  box-sizing: border-box;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 12px 4px;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 9px 10px 5px;
   color: var(--gold);
   font-size: 10.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
+  border-radius: 6px;
+  transition: background 0.14s;
 }
-.nav-sub-head b { color: var(--faint); font-weight: 600; }
+.nav-sub-head:hover { background: var(--raised); }
+.nav-sub-head:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.nav-sub-head span { flex: 1 1 auto; min-width: 0; }
+.nav-sub-head b { color: var(--faint); font-weight: 600; margin-left: auto; }
+.nav-sub-head .nav-caret { color: var(--gold); opacity: 0.7; }
+.nav-sub-head:not(.open) .nav-caret { transform: rotate(-90deg); }
 
 /* date chip on character-state pills */
 .chip-date {

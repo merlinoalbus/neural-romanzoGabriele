@@ -11,7 +11,33 @@ env:
   MCP_IMAGE: ghcr.io/merlinoalbus/romanzo-gabriele-neural-mcp
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      mcp: ${{ steps.filter.outputs.mcp }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Detect changed services
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'Dockerfile.backend'
+              - 'server/**'
+            frontend:
+              - 'Dockerfile.frontend'
+              - 'frontend/**'
+            mcp:
+              - 'Dockerfile.mcp'
+              - 'mcp-server/**'
+
   build-backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -40,6 +66,8 @@ jobs:
             ${{ env.BE_IMAGE }}:${{ github.sha }}
 
   build-frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -68,6 +96,8 @@ jobs:
             ${{ env.FE_IMAGE }}:${{ github.sha }}
 
   build-mcp:
+    needs: changes
+    if: needs.changes.outputs.mcp == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read

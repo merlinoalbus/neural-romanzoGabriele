@@ -36,25 +36,37 @@ services:
     user: "1000:1000"
     networks:
       - romanzo_gabriele_network
+    # Monitorato dal watchtower globale (WATCHTOWER_LABEL_ENABLE=true, senza scope).
+    # NON aggiungere una label 'scope': escluderebbe il container dal watchtower globale.
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   romanzo_gabriele_fe:
     image: ghcr.io/merlinoalbus/romanzo-gabriele-neural-frontend:latest
     container_name: romanzo_gabriele_fe
     restart: unless-stopped
-    ports:
-      - "${FE_HOST_PORT:-3000}:80"
+    # Nessuna porta host. Raggiungibile dal cloudflared (stack separato) via rete 'proxy'.
+    # In Cloudflare: Public Hostname -> Service: http://romanzo_gabriele_fe:80
+    expose:
+      - "80"
     depends_on:
       romanzo_gabriele_be:
         condition: service_healthy
     networks:
       - romanzo_gabriele_network
+      - proxy
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   romanzo_gabriele_mcp:
     image: ghcr.io/merlinoalbus/romanzo-gabriele-neural-mcp:latest
     container_name: romanzo_gabriele_mcp
     restart: unless-stopped
-    ports:
-      - "${MCP_HOST_PORT:-3002}:3002"
+    # Nessuna porta host. Raggiungibile dal cloudflared (stack separato) via rete 'proxy'.
+    # In Cloudflare: Public Hostname -> Service: http://romanzo_gabriele_mcp:3002
+    # (proteggi questo hostname con Cloudflare Access)
+    expose:
+      - "3002"
     environment:
       - PROJECT_ID=${PROJECT_ID:-romanzo-gabriele}
       - APP_ENV=${APP_ENV:-production}
@@ -89,14 +101,20 @@ services:
     user: "1000:1000"
     networks:
       - romanzo_gabriele_network
+      - proxy
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   romanzo_gabriele_neo4j:
     image: neo4j:5-community
     container_name: romanzo_gabriele_neo4j
     restart: unless-stopped
-    ports:
-      - "7687:7687"
-      - "7474:7474"
+    # Neo4j COMPLETAMENTE chiuso: nessuna porta host, non esposto su Cloudflare.
+    # Raggiungibile SOLO dai container interni via bolt://romanzo_gabriele_neo4j:7687.
+    # NOTA: script host che usano NEO4J_URI=bolt://localhost:7687 non funzioneranno piu'.
+    expose:
+      - "7687"
+      - "7474"
     environment:
       - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set in the stack environment}
       - HEALTHCHECK_PASSWORD=${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set in the stack environment}
@@ -147,6 +165,11 @@ services:
 networks:
   romanzo_gabriele_network:
     driver: bridge
+  # Rete esterna condivisa dove gira il cloudflared (stack separato).
+  # Frontend e MCP vi si agganciano per farsi raggiungere dal tunnel.
+  proxy:
+    external: true
+    name: proxy
 
 # -----------------------------------------------------------------------------
 # VOLUMI ESTERNI: puntano ai volumi GIA' ESISTENTI creati da Docker Desktop.

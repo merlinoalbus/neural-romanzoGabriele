@@ -293,9 +293,10 @@ function RomanzoPanel({ chapters, selectedId, onOpen }: { chapters: ChapterSumma
 function CapitoloPanel({ packet, onOpen }: { packet: ChapterPacket | null; onOpen: (id: string, type: string) => void }) {
   if (!packet?.chapter) return <div className="graph-empty">Seleziona un capitolo</div>;
   const chapter = packet.chapter;
+  const isBookend = /^(prologo|epilogo)/i.test(chapter.label);
   const number = metaString(chapter, 'chapterNumber');
   const title = metaString(chapter, 'chapterTitle') ?? chapter.label;
-  const plane = metaString(chapter, 'timePlane');
+  const plane = metaString(chapter, 'timePlane') ?? (isBookend ? 'frame' : null);
   const grouped = new Map<string, ChapterPacket['touches']>();
   for (const relation of packet.touches) {
     const list = grouped.get(relation.kind) ?? [];
@@ -309,7 +310,7 @@ function CapitoloPanel({ packet, onOpen }: { packet: ChapterPacket | null; onOpe
   return (
     <div className="novel-panel capitolo">
       <div className="novel-head">
-        <span className="node-type"><span className="dot" style={{ background: colorFor('chapter') }} />capitolo · {isFrame(plane) ? 'cornice' : 'storia principale'}</span>
+        <span className="node-type"><span className="dot" style={{ background: colorFor('chapter') }} />{isBookend ? 'cornice · bookend del racconto' : `capitolo · ${isFrame(plane) ? 'cornice' : 'storia principale'}`}</span>
         <h2>{number ? `${number} · ` : ''}{title}</h2>
       </div>
       <div className="pill-row">

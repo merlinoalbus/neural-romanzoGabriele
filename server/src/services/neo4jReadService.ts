@@ -408,7 +408,10 @@ export interface ChapterPacket {
 export async function chapterPacket(id: string): Promise<ChapterPacket> {
   const pid = config.projectId;
   const chapter = await getNodeById(id, { includeInternal: true });
-  if (!chapter || chapter.type !== 'chapter') {
+  // Prologo/Epilogo are frame `timeline_event` bookends (not `chapter` nodes) but are
+  // navigated from the Capitolo/Romanzo views; accept them so their detail renders.
+  const isBookend = !!chapter && chapter.type !== 'chapter' && /^(prologo|epilogo)/i.test(chapter.label);
+  if (!chapter || (chapter.type !== 'chapter' && !isBookend)) {
     return { chapter: null, prev: [], next: [], touches: [], incomingMentions: [] };
   }
   const prevRecs = await run(

@@ -111,6 +111,7 @@ services:
       - NEO4J_server_memory_heap_initial__size=1G
       - NEO4J_server_memory_heap_max__size=1G
       - NEO4J_server_memory_pagecache_size=1G
+      - NEO4J_server_jvm_additional=--add-modules=jdk.incubator.vector
     healthcheck:
       test: ["CMD-SHELL", "cypher-shell -a bolt://127.0.0.1:7687 -u neo4j -p \"$${HEALTHCHECK_PASSWORD}\" \"RETURN 1\" >/dev/null 2>&1"]
       interval: 10s

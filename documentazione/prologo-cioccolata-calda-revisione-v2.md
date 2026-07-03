@@ -2,23 +2,23 @@
 
 ## Testo finale revisionato v2
 
-Il cielo di quella sera di fine dicembre era una distesa d'inchiostro punteggiata di piccole luci quiete. Mi ero fermato davanti alla grande finestra del salotto, perdendomi in quella polvere luminosa che brillava lassù, così lontana eppure così vicina. Sembrava quasi di poterle toccare, quelle luci fredde che custodivano i sogni di tutti i bambini del mondo.
+Il cielo di quella sera di fine dicembre era una distesa d'inchiostro punteggiata di piccole luci quiete. Mi ero fermato davanti alla grande finestra del salotto, perdendomi in quella polvere luminosa che brillava lassù, così lontana eppure così vicina. Sembrava quasi di poterle toccare, quelle luci fredde che parevano vegliare sui sogni addormentati della casa, custodendo promesse troppo grandi per essere dette ad alta voce.
 
 Dietro di me, il salotto profumava ancora di abete e scorza d'arancia essiccata. L'albero di Natale nell'angolo diffondeva una luce dorata che danzava in silenzio tra le decorazioni, mentre il suo bagliore si mescolava alle risatine soffocate che provenivano dal tappeto morbido.
 
 Asia ed Elea erano ancora chine su un tabellone di Scarabeo, determinate a prolungare il più possibile quel pomeriggio di baby-sitting prima del ritorno dei loro genitori.
 
-Sospirai, portando la mano alla catenella degli occhiali. Sotto il maglione verde scuro avvertii il peso familiare del piccolo ciondolo che portavo sempre al collo: un oggetto prezioso che nessuno aveva mai visto, eppure era parte di me quanto il battito del cuore. Mi raddrizzai, le vertebre che scricchiolavano piano: un promemoria dei miei settantasei anni, in contrasto con i muscoli ancora reattivi delle gambe.
+Sospirai, portando la mano alla catenella degli occhiali. Sotto il maglione verde scuro avvertii il peso familiare del piccolo ciondolo che portavo sempre al collo: un oggetto prezioso che le bambine non avevano mai visto, eppure era parte di me quanto il battito del cuore. Mi raddrizzai, le vertebre che scricchiolavano piano: un promemoria dei miei settantasei anni, in contrasto con i muscoli ancora reattivi delle gambe.
 
 «Ragazze,» dissi, voltandomi verso di loro e cercando di assumere un tono autorevole che sapevo già non avrebbe funzionato, «fra poco torneranno mamma e papà. È ora di iniziare a pensare ad andare a dormire.»
 
 «Uffa, nonno! Ma è ancora presto!» protestò Asia. Sei anni appena compiuti, incrociò le braccia gonfiando le guance in quel modo che rendeva impossibile negarle qualcosa. I suoi capelli biondi erano in disordine e gli occhi azzurri brillavano di una vivacità instancabile; il pigiama rosa a stelline era già mezzo sgualcito dalla lunga giornata di giochi.
 
-«Vogliamo aspettare che tornino!» rincarò Elea. Nove anni e una compostezza da adulta nel suo pigiama blu. Mi scrutò con i suoi occhi grigi, sistemandosi la treccia castano chiaro. Stava chiaramente calcolando quante possibilità di successo avesse la mia richiesta.
+«Possiamo aspettare mamma e papà? Non è ancora così tardi.» rincarò Elea. Nove anni, il pigiama blu e quell'aria seria di chi prendeva le regole molto sul serio. Mi scrutò con i suoi occhi grigi, sistemandosi la treccia castano chiaro. Stava chiaramente calcolando quante possibilità di successo avesse la mia richiesta.
 
 «Ti prego, nonno!» conclusero in coro, sfoderando due paia d'occhi imploranti che avrebbero intenerito anche un cuore molto più severo del mio.
 
-Sorrisi tra me e me. Non avrebbero ceduto facilmente. E, a dirla tutta, me l'ero cercata. Proporre Scarabeo sperando di stancarle era stata una pessima idea; mi avevano stracciato senza pietà, trasformando il gioco in un'accesa sfida tra sorelle. L'acutezza mentale che un tempo mi rendeva imbattibile sembrava avermi abbandonato. Ormai mi limitavo a fare da arbitro per evitare che volassero lettere e parole grosse.
+Sorrisi tra me e me. Non avrebbero ceduto facilmente. E, a dirla tutta, me l'ero cercata. Proporre Scarabeo sperando di stancarle era stata una pessima idea; mi avevano stracciato senza pietà, trasformando il gioco in un'accesa sfida tra sorelle. Diciamo che, quella sera, le mie nipoti avevano deciso di ricordarmi che anche un vecchio campione può perdere con onore. Ormai mi limitavo a fare da arbitro per evitare che volassero lettere e parole grosse.
 
 Mi venne un'idea. Un classico, ma funzionava quasi sempre.
 
@@ -42,15 +42,15 @@ Mi voltai con un sorriso appena accennato.
 
 Mi interruppi di colpo, lasciando la frase in sospeso e sfiorando i bordi delle lenti, un gesto che facevo sempre quando dovevo raccogliere i pensieri. Avevano smesso di giocare. Mi fissavano, rapite.
 
-«Non ti fermare, nonno!» squittì Asia, saltando giù dalla sedia e correndomi incontro. Mi afferrò la mano con le sue piccole dita. «Dai, racconta!»
+«Non ti fermare, nonno!» esclamò Asia, saltando giù dalla sedia e correndomi incontro. Mi afferrò la mano con le sue piccole dita. «Dai, racconta!»
 
 «È una storia lunga,» dissi, accarezzandole i capelli. «E voi siete impegnate con il vostro gioco... Magari un'altra volta.»
 
-«Niente affatto!» intervenne Elea, con la determinazione dei suoi nove anni, sistemandosi la treccia con un gesto automatico. «Ormai hai iniziato, nonno, devi finire!»
+«No,» intervenne Elea, con la determinazione dei suoi nove anni. «Non puoi fermarti proprio adesso: hai già detto che c'è una storia.»
 
-«Eh già,» confermò Asia, annuendo vigorosamente e oscillando leggermente per l'eccitazione. «Non puoi tirarti indietro!»
+«Eh già,» confermò Asia, annuendo vigorosamente e oscillando leggermente per l'eccitazione. «Ormai devi raccontarla!»
 
-Alzai le mani in segno di resa. «Mi avete accerchiato.» Le loro espressioni trionfanti erano impagabili. «Però,» aggiunsi subito, «una storia come questa richiede la giusta atmosfera. Ci vogliono tre tazze fumanti di cioccolata calda... e bisogna ascoltarla al calduccio, sotto le coperte, in cameretta. Altrimenti la magia non funziona.»
+Alzai le mani in segno di resa. «Mi avete accerchiato.» Le loro espressioni trionfanti erano impagabili. «Però,» aggiunsi subito, «una storia come questa richiede la giusta atmosfera. Ci vogliono tre tazze fumanti di cioccolata calda... e bisogna ascoltarla al calduccio, sotto le coperte, in cameretta. Una storia come questa non si racconta in piedi, con lo Scarabeo ancora aperto sul tappeto.»
 
 Si scambiarono un'occhiata. Il patto era allettante.
 
@@ -72,13 +72,13 @@ Come una piccola processione solenne, ci avviammo verso la loro cameretta. L'atm
 
 «Elea, tesoro, faresti un salto nella mia stanza? Nel primo cassetto del comodino c'è una scatolina argentata. Me la porteresti, per favore?»
 
-Elea posò la sua tazza lì accanto con attenzione chirurgica prima di scivolare fuori dalle coperte per andare a prenderla. Tornò quasi subito, porgendomi il piccolo scrigno freddo al tatto con mani rispettose. La appoggiai sulle ginocchia mentre lei si rimetteva sotto le coperte, entrambe le bambine che mi fissavano con crescente aspettativa.
+Elea posò la sua tazza lì accanto con grandissima attenzione prima di scivolare fuori dalle coperte per andare a prenderla. Tornò quasi subito, porgendomi il piccolo scrigno freddo al tatto con mani rispettose. La appoggiai sulle ginocchia mentre lei si rimetteva sotto le coperte, entrambe le bambine che mi fissavano con crescente aspettativa.
 
-«Questa scatolina,» spiegai, accarezzando il metallo liscio, «contiene qualcosa che mi aiuterà a convincervi che la storia che sto per raccontarvi è vera.»
+«Questa scatolina,» spiegai, accarezzando il metallo liscio, «contiene qualcosa che non serve a spiegare la storia. Serve a ricordarla.»
 
 «Come si fa a sapere quando una storia è vera e quando no?» chiese Elea, la sua mente analitica subito al lavoro.
 
-«Ottima domanda,» risposi, sorridendo della sua perspicacia e aggiustandomi distrattamente la montatura. «A volte ci sono delle prove. Delle testimonianze. E a volte ci sono degli oggetti molto speciali.» Feci una pausa, guardando verso la finestra dove brillavano le stelle, mentre dall'esterno filtrava il freddo della notte invernale in contrasto con il calore intimo della cameretta. «Sapete, bambine, il mondo è pieno di cose straordinarie che accadono proprio sotto i nostri occhi. Basta guardare il cielo in una notte come questa per accorgersene.»
+«Ottima domanda,» risposi, sorridendo della sua perspicacia e aggiustandomi distrattamente la montatura. «A volte una storia lascia dietro di sé qualcosa. Non per convincere tutti. Solo per chi sa guardare.» Feci una pausa, guardando verso la finestra dove brillavano le stelle, mentre dall'esterno filtrava il freddo della notte invernale in contrasto con il calore intimo della cameretta.
 
 Trattenendo il respiro, sollevai il coperchio. Dentro, adagiata su un letto di velluto scuro e morbido, c'era una singola, grande piuma bianca.
 
@@ -86,9 +86,9 @@ Trattenendo il respiro, sollevai il coperchio. Dentro, adagiata su un letto di v
 
 «Non una piuma qualsiasi,» risposi, alzandomi. Mi avvicinai alla finestra della cameretta, dove un raggio di luna filtrava tra le tende. «Guardate bene.»
 
-Tenni la scatolina sotto la luce lunare. La piuma, lunga quasi quanto la mano di un adulto e di un bianco così puro da sembrare fatto di neve e luna, vibrò, come se respirasse. Poi, lentamente, iniziò a emanare una luminescenza soffusa, argentea e calda, che pulsava dolcemente nell'oscurità della cameretta.
+Tenni la scatolina sotto la luce lunare. La piuma, di un bianco così puro da sembrare fatto di neve e luna, vibrò, come se respirasse. Poi, lentamente, iniziò a emanare una luminescenza soffusa, argentea e calda, che pulsava dolcemente nell'oscurità della cameretta.
 
-«Ooohhh!» sussurrarono le bambine all'unisono. Asia tirò le coperte fin sopra il naso, lasciando fuori solo gli occhi spalancati. Elea si sporse dal bordo del letto, trattenendo il fiato, come se volesse analizzarla al microscopio ma avesse paura di toccarla.
+«Ooohhh!» sussurrarono le bambine all'unisono. Asia tirò le coperte fin sopra il naso, lasciando fuori solo gli occhi spalancati. Elea si sporse dal bordo del letto, trattenendo il fiato, come se volesse capirla meglio ma avesse paura di toccarla.
 
 Sollevai la piuma dal velluto. La lasciai andare. La piuma non cadde. Rimase sospesa a mezz'aria, ruotando pigramente su se stessa, prima di adagiarsi di nuovo nella scatolina.
 
@@ -100,29 +100,29 @@ Sorrisi davanti alle loro bocche spalancate. Riposi la piuma luminosa sul comodi
 
 «Come l'hai avuta?» chiese Elea, con un tremito appena percettibile nella voce.
 
-«Me l'ha affidata un caro amico, molti anni fa,» dissi, sfiorando la scatola. «Qualcuno che aveva vissuto una storia incredibile e che me l'aveva raccontata nei minimi dettagli. Era presente quando questa piuma è... apparsa.»
+«La custodisco per un caro amico, da molti anni,» dissi, sfiorando la scatola. «Era la sua testimonianza. Qualcosa che era rimasto perché quella storia non andasse perduta.»
 
-«E che storia era?» insistette Elea.
+«E quella storia cosa c'entra con la piuma?» insistette Elea.
 
-Il nome rimase per un istante sospeso tra me e la luce della piuma. Lo conoscevo da una vita intera, eppure ogni volta che lo pronunciavo sembrava portare con sé lo stesso peso dolce e doloroso delle cose custodite a lungo.
+Il nome rimase per un istante sospeso tra me e la luce della piuma. Era un nome che mi era stato consegnato insieme a quella storia, eppure ogni volta che lo pronunciavo sembrava portare con sé lo stesso peso quieto delle cose custodite troppo a lungo.
 
-«La storia di un ragazzo di nome Gabriele,» risposi, accomodandomi meglio sulla poltroncina. «È iniziata molto tempo fa. Non c'è stato un grande evento a dare il via a tutto, nessun cataclisma... è semplicemente iniziata con un ragazzo normale che stava per compiere sedici anni e che, proprio come voi stasera, non riusciva a prendere sonno.»
+«La storia di un ragazzo di nome Gabriele,» risposi, accomodandomi meglio sulla poltroncina. «È iniziata molto tempo fa. Non cominciò con tuoni o finestre che tremavano... è semplicemente iniziata con un ragazzo che credeva di essere normale, che stava per compiere sedici anni e che, proprio come voi stasera, non riusciva a prendere sonno.»
 
-«Ma cos'aveva di speciale questo Gabriele?» chiese Asia, muovendo leggermente i piedi sotto le coperte.
+«Ma lui aveva qualcosa di magico?» chiese Asia, muovendo leggermente i piedi sotto le coperte.
 
-«All'inizio niente,» risposi, guardando la piuma che continuava a pulsare. «Era un ragazzo timido, che si sentiva invisibile. La storia inizia proprio così: con Gabriele che, una sera di fine agosto, non riusciva a dormire perché il giorno dopo sarebbe ricominciata la scuola.»
+«All'inizio non lo sapeva,» risposi, guardando la piuma che continuava a pulsare. «Era un ragazzo timido, che si sentiva invisibile. Se dentro di lui c'era qualcosa di impossibile, dormiva così in profondità che neppure lui avrebbe saputo chiamarlo. La storia inizia proprio così: con Gabriele che, una sera di fine agosto, non riusciva a dormire perché il giorno dopo sarebbe ricominciata la scuola.»
 
 Proprio in quel momento, un filo di luce attraversò il rettangolo della finestra. Una scia luminosa, rapida e silenziosa; forse una stella cadente, forse qualcosa che somigliava alla coda lontana di una cometa. Tutti e tre ci voltammo di scatto verso il vetro.
 
 «Guarda, nonno!» sussurrò Asia. «Una stella cadente! Forse è un angelo che scende sulla terra!»
 
-«Forse hai ragione, stellina.» Guardai la scia luminosa svanire nel buio. «E sai cosa? È il momento perfetto per iniziare questa storia. Anche nella vita di Gabriele le cose straordinarie iniziarono proprio così, in una notte speciale.»
+«Forse, stellina.» Guardai la scia luminosa svanire nel buio. «Allora è una buona notte per cominciare. Anche Gabriele ebbe la sua notte speciale: non una risposta, non una spiegazione, solo un segno bianco dove il mondo normale non bastava più.»
 
-«Gabriele Rinaldi,» continuai, mentre le bambine smettevano persino di bere la cioccolata, gli occhi fissi su di me, «non sapeva ancora che quella cifra, "sedici", non era solo un numero. Era una promessa che il destino aveva in serbo per lui. Una promessa che iniziò proprio con una piuma simile a questa.»
+«Gabriele Rinaldi,» continuai, mentre le bambine smettevano persino di bere la cioccolata, gli occhi fissi su di me, «non sapeva ancora che sedici anni possono pesare più di quanto sembri. E che il mistero, per lui, avrebbe bussato in silenzio sotto forma di una piuma simile a questa.»
 
-La piuma sul comodino pulsò di una luce più intensa, come se avesse sentito il proprio nome.
+La piuma sul comodino pulsò di una luce più intensa, poi tornò quieta.
 
-La mia voce si abbassò. «E ora, se siete pronte per una storia lunga, piena d'amore, magia, sacrificio e scelte difficili — una storia dove niente è semplice come sembra e persino i sogni più impossibili possono avverarsi — allora possiamo cominciare davvero.»
+La mia voce si abbassò. «Se siete pronte, comincio. Ma ascoltate bene: certe storie non si capiscono dalla fine. Bisogna tornare alla prima notte, alla prima domanda, alla prima piuma.»
 
 E mentre il bagliore dell'albero di Natale filtrava tenue dal corridoio, alla luce pulsante della piuma, iniziai.
 
@@ -178,10 +178,10 @@ La costruzione originale era impropria. La modifica conserva la funzione di Elea
 «Me l'ha data un caro amico, molti anni fa...»
 
 **Modifica applicata:**  
-«Me l'ha affidata un caro amico, molti anni fa...»
+«La custodisco per un caro amico, da molti anni...»
 
 **Motivo:**  
-Rende il gesto più preciso e custodiale, senza nominare Trevor e senza rivelare il Nonno.
+Rende il gesto custodiale senza implicare una consegna volontaria in vita, senza nominare Trevor e senza rivelare il Nonno.
 
 ### N6 - Gabriele non infantilizzato, ma ponte con le bambine conservato
 
@@ -211,10 +211,10 @@ Il beat del prologo prevede la stella cadente e Asia deve poterla chiamare così
 «una storia in cui l'amore può fare male quanto una ferita e la magia non è sempre una benedizione...»
 
 **Modifica applicata:**  
-«una storia lunga, piena d'amore, magia, sacrificio e scelte difficili...»
+«Se siete pronte, comincio. Ma ascoltate bene: certe storie non si capiscono dalla fine. Bisogna tornare alla prima notte, alla prima domanda, alla prima piuma.»
 
 **Motivo:**  
-Riduce l'effetto da spiegazione tematica, ma conserva amore, magia, sacrificio, complessità e promessa di meraviglia.
+Riduce l'effetto da spiegazione tematica e da quarta di copertina interna. La promessa resta narrativa: non spiega i temi, invita a entrare nella storia.
 
 ### N9 - Immagini appuntite rimosse
 
@@ -230,3 +230,90 @@ Riduce l'effetto da spiegazione tematica, ma conserva amore, magia, sacrificio, 
 
 **Motivo:**  
 Il tono del prologo deve restare dolce, familiare e meraviglioso. Ho rimosso le immagini appuntite o aggressive.
+
+### N10 - Consigli di Asia, Elea e Nonno applicati
+
+**Originale:**  
+«un oggetto prezioso che nessuno aveva mai visto»  
+«Vogliamo aspettare che tornino!»  
+«Niente affatto! Ormai hai iniziato, nonno, devi finire!»  
+«Non puoi tirarti indietro!»  
+«attenzione chirurgica»  
+«analizzarla al microscopio»  
+«me l'aveva raccontata nei minimi dettagli»  
+«E che storia era?»  
+«nessun cataclisma»  
+«Ma cos'aveva di speciale questo Gabriele?»  
+«Era una promessa che il destino aveva in serbo per lui.»  
+«come se avesse sentito il proprio nome»
+
+**Modifica applicata:**  
+«un oggetto prezioso che le bambine non avevano mai visto»  
+«Possiamo aspettare mamma e papà? Non è ancora così tardi.»  
+«No, non puoi fermarti proprio adesso: hai già detto che c'è una storia.»  
+«Ormai devi raccontarla!»  
+«grandissima attenzione»  
+«capirla meglio»  
+«Qualcuno che c'era, e che aveva pensato che quella storia non dovesse andare perduta.»  
+«E quella storia cosa c'entra con la piuma?»  
+«Non cominciò con tuoni o finestre che tremavano...»  
+«Ma lui aveva qualcosa di magico?»  
+«Sedici anni possono pesare più di quanto sembri.»  
+«come se avesse riconosciuto qualcosa nell'aria»
+
+**Motivo:**  
+Le tre voci hanno corretto i punti in cui il prologo diventava troppo assoluto, troppo adulto, troppo esplicativo o troppo solenne. Le modifiche conservano la cornice, la piuma, il ciondolo e il mistero del Nonno senza tradire il canone.
+
+### N11 - Convergenza Gabriel, Michael, Raphael, Trevor, Rowling e Meyer
+
+**Originale revisionato v2:**  
+«quelle luci fredde che custodivano i sogni di tutti i bambini del mondo»  
+«contiene qualcosa che mi aiuterà a convincervi che la storia che sto per raccontarvi è vera»  
+«Me l'ha affidata un caro amico, molti anni fa...»  
+«Era presente quando questa piuma è... apparsa»  
+«Lo conoscevo da una vita intera»  
+«un ragazzo normale»  
+«All'inizio niente»  
+«Forse hai ragione, stellina... È il momento perfetto per iniziare questa storia»  
+«tutto sarebbe iniziato proprio con una piuma simile a questa»  
+«una storia lunga, piena d'amore, magia, sacrificio e scelte difficili...»
+
+**Modifica applicata:**  
+«quelle luci fredde che parevano vegliare sui sogni addormentati della casa, custodendo promesse troppo grandi per essere dette ad alta voce»  
+«contiene qualcosa che non serve a spiegare la storia. Serve a ricordarla»  
+«La custodisco per un caro amico, da molti anni...»  
+«Era la sua testimonianza. Qualcosa che era rimasto perché quella storia non andasse perduta»  
+«Era un nome che mi era stato consegnato insieme a quella storia»  
+«un ragazzo che credeva di essere normale»  
+«All'inizio non lo sapeva»  
+«Forse, stellina... Allora è una buona notte per cominciare»  
+«il mistero, per lui, avrebbe bussato in silenzio sotto forma di una piuma simile a questa»  
+«Se siete pronte, comincio. Ma ascoltate bene: certe storie non si capiscono dalla fine. Bisogna tornare alla prima notte, alla prima domanda, alla prima piuma.»
+
+**Motivo:**  
+La convergenza rafforza mistero, custodia, costo emotivo e coerenza canonica. Il punto sulla gag del Nonno che sente gli sguardi delle nipoti non è stato modificato, come richiesto.
+
+### N12 - Rifinitura finale dopo rilettura dei sette personaggi e delle due lenti editoriali
+
+**Originale revisionato:**  
+«squittì Asia»  
+«Nove anni e una compostezza da adulta»  
+«sistemandosi la treccia con un gesto automatico»  
+«L'acutezza mentale che un tempo mi rendeva imbattibile sembrava avermi abbandonato»  
+«Altrimenti la magia non funziona»  
+«Sapete, bambine, il mondo è pieno di cose straordinarie...»  
+«La piuma, lunga quasi quanto la mano di un adulto...»  
+«come se avesse riconosciuto qualcosa nell'aria»
+
+**Modifica applicata:**  
+«esclamò Asia»  
+«Nove anni, il pigiama blu e quell'aria seria di chi prendeva le regole molto sul serio»  
+Rimossa la seconda treccia.  
+«Diciamo che, quella sera, le mie nipoti avevano deciso di ricordarmi che anche un vecchio campione può perdere con onore»  
+«Una storia come questa non si racconta in piedi, con lo Scarabeo ancora aperto sul tappeto»  
+«A volte una storia lascia dietro di sé qualcosa. Non per convincere tutti. Solo per chi sa guardare»  
+Rimossa la misura della piuma.  
+«La piuma sul comodino pulsò di una luce più intensa, poi tornò quieta»
+
+**Motivo:**  
+Le rifiniture eliminano caricatura, adultizzazione, amarezza e spiegazione didascalica. La piuma resta segno e memoria, senza diventare oggetto catalogato o personaggio dotato di volontà esplicita.

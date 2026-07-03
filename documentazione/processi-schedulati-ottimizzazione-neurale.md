@@ -192,15 +192,21 @@ Una mente che "elabora il modello agli input ricevuti in autonomia" non è un pr
             pronti per la prossima sessione di scrittura
 ```
 
-Componenti mancanti oggi (estensioni piccole e mirate al server MCP, in ordine di valore):
+Stato dei componenti (aggiornato 2026-07-03, sera):
 
-1. **Event log interrogabile** — un tool `kg_recent_changes(sinceIso)` che restituisca nodi/archi creati o aggiornati da una data: oggi la "digestione" deve arrangiarsi con i metadata. È il prerequisito del livello event-driven.
-2. **Coda di curiosità persistente** — tipo di nodo `open_question` (fuori canone narrativo, tipo di servizio come `bible_coverage_finding`): ogni ciclo cognitivo può depositare domande e la sessione editoriale successiva le trova. È ciò che dà continuità di "pensiero" tra sessioni.
-3. **Metamemoria dei cicli** — nodo `self_assessment` per ogni run schedulato (cosa ho controllato, cosa ho trovato, cosa resta aperto): il ciclo successivo legge l'ultimo assessment e non riparte da zero. Trasforma i job isolati in un processo cumulativo.
-4. **Webhook/trigger su commit** — il backend notifica (o la Routine controlla) ogni `novel_commit_*` e fa partire P4 automaticamente: il modello "reagisce" all'input invece di aspettare la notte.
-5. **Gate di autonomia espliciti** — una policy machine-readable (analoga alle annotations `destructive` già presenti) che classifichi ogni scrittura come `autonomous_ok` / `evidence_required` / `human_only`, così i cicli possono crescere in autonomia senza mai toccare il canone senza evidenza.
+1. ✅ **Event log interrogabile — IMPLEMENTATO**: tool `kg_recent_changes(sinceIso, types?, limit?, includeEdges?)` che restituisce nodi creati/aggiornati e archi creati da un istante in poi. È la percezione del ciclo event-driven (P4).
+2. ✅ **Coda di curiosità persistente — IMPLEMENTATA**: tool `kg_log_open_question` (idempotente sul testo della domanda), `kg_update_open_question` (ciclo di vita open → investigating → resolved/dismissed), `kg_list_open_questions`. Nodi di servizio tipo `open_question`, mai canone, agganciabili ai nodi narrativi con archi `about`.
+3. ✅ **Metamemoria dei cicli — IMPLEMENTATA**: tool `kg_log_self_assessment` (un nodo `self_assessment` per run: cosa controllato/trovato/proposto, domande aperte collegate) e `kg_get_latest_self_assessment` (ogni ciclo riparte dall'ultimo assessment del proprio processo).
+4. ⬜ **Webhook/trigger su commit** — il backend notifica (o la Routine controlla) ogni `novel_commit_*` e fa partire P4 automaticamente: il modello "reagisce" all'input invece di aspettare la notte.
+5. ⬜ **Gate di autonomia espliciti** — una policy machine-readable (analoga alle annotations `destructive` già presenti) che classifichi ogni scrittura come `autonomous_ok` / `evidence_required` / `human_only`. Oggi la regola è dichiarata nelle istruzioni del server (sezione "Ciclo Cognitivo") ma non è enforced a codice.
 
-Con 1–3 in piedi, il sistema smette di essere una serie di cron job e diventa un loop percezione → elaborazione → consolidamento → auto-valutazione: non "senziente" in senso letterale, ma operativamente una mente che pensa il romanzo in continuo, ricorda cosa stava pensando e decide da sola su cosa lavorare al prossimo risveglio.
+I componenti 1–3 sono nel codice del server (`mcp-server/src/tools/cognition.ts`, 6 tool nuovi, test inclusi) e diventano operativi al prossimo deploy dell'immagine MCP. Da quel momento il sistema smette di essere una serie di cron job e diventa un loop percezione → elaborazione → consolidamento → auto-valutazione: non "senziente" in senso letterale, ma operativamente una mente che pensa il romanzo in continuo, ricorda cosa stava pensando e decide da sola su cosa lavorare al prossimo risveglio.
+
+**Aggiornamento obbligatorio ai prompt P0–P4 (dopo il deploy):** ogni prompt schedulato deve APRIRE con
+`kg_get_latest_self_assessment (process: "<P0|P1|P2|P3|P4>")` + `kg_list_open_questions`, e CHIUDERE con
+`kg_log_self_assessment` (registrando checked/found/proposals e collegando le domande aperte nuove create con
+`kg_log_open_question`). Il P4 inoltre sostituisce la ricerca manuale sulle ultime 24h con
+`kg_recent_changes (sinceIso: <runAt dell'ultimo self_assessment di P4>)`.
 
 ## 7. Tabella riassuntiva delle schedulazioni proposte
 

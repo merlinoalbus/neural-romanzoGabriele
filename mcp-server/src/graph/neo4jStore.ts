@@ -1397,3 +1397,60 @@ export async function listDocuments(opts: { sourceType?: string; limit?: number 
   const docs = records.map((record) => nodeFrom(record.get('n')));
   return opts.sourceType ? docs.filter((doc) => doc.metadata.sourceType === opts.sourceType) : docs;
 }
+
+export interface RecentChangesResult {
+  since: string;
+  createdNodes: GraphNode[];
+  updatedNodes: GraphNode[];
+  createdEdges: GraphEdge[];
+  totals: { createdNodes: number; updatedNodes: number; createdEdges: number };
+  truncated: boolean;
+}
+
+/**
+ * Perception layer for the cognitive loop: everything created or updated in the graph since a
+ * given instant. Timestamps are ISO-8601 strings, so plain string comparison is a correct
+ * chronological order. A node whose createdAt >= since is "created"; one only touched after
+ * `since` is "updated".
+ */
+export async function recentChanges(opts: { since: string; types?: string[]; limit?: number; includeEdges?: boolean }): Promise<RecentChangesResult> {
+  const since = opts.since.trim();
+  if (!since) throw new Error('invalid_since: an ISO-8601 timestamp is required');
+  const limit = clampInt(opts.limit, 200, 1, 500);
+  const types = opts.types?.map((type) => type.trim()).filter(Boolean) ?? null;
+  const nodeRecords = await run(
+    `MATCH (n:Entity {projectId:$pid})
+     WHERE coalesce(n.updatedAt, n.createdAt, '') >= $since
+       AND ($types IS NULL OR n.type IN $types)
+     RETURN n ORDER BY coalesce(n.updatedAt, n.createdAt, '') DESC LIMIT $limit`,
+    { pid: pid(), since, types: types?.length ? types : null, limit: neo4j.int(limit + 1) },
+  );
+  const nodes = nodeRecords.map((record) => nodeFrom(record.get('n')));
+  const truncatedNodes = nodes.length > limit;
+  const bounded = truncatedNodes ? nodes.slice(0, limit) : nodes;
+  const createdNodes = bounded.filter((node) => node.createdAt >= since);
+  const updatedNodes = bounded.filter((node) => node.createdAt < since);
+
+  let createdEdges: GraphEdge[] = [];
+  let truncatedEdges = false;
+  if (opts.includeEdges !== false) {
+    const edgeRecords = await run(
+      `MATCH (a:Entity {projectId:$pid})-[r:REL]->(b:Entity {projectId:$pid})
+       WHERE coalesce(r.createdAt, '') >= $since
+       RETURN r, a.id AS fromId, b.id AS toId ORDER BY r.createdAt DESC LIMIT $limit`,
+      { pid: pid(), since, limit: neo4j.int(limit + 1) },
+    );
+    createdEdges = edgeRecords.map((record) => edgeFrom(record.get('r'), String(record.get('fromId')), String(record.get('toId'))));
+    truncatedEdges = createdEdges.length > limit;
+    if (truncatedEdges) createdEdges = createdEdges.slice(0, limit);
+  }
+
+  return {
+    since,
+    createdNodes,
+    updatedNodes,
+    createdEdges,
+    totals: { createdNodes: createdNodes.length, updatedNodes: updatedNodes.length, createdEdges: createdEdges.length },
+    truncated: truncatedNodes || truncatedEdges,
+  };
+}

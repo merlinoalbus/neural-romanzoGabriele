@@ -34,6 +34,7 @@ Usa tipi dominio quando applicabili:
 - `knowledge_state`, `secret`
 - `style_rule`, `glossary_term`, `motif`, `symbol`
 - `continuity_finding`
+- `open_question`, `self_assessment` (nodi di SERVIZIO del ciclo cognitivo: mai canone narrativo, mai da citare come fatti della storia)
 
 `editing_session`, `editorial_finding`, `editorial_decision`, `rewrite_block`, `seam_review`, `visual_brief`, `image_prompt`, `chapter_draft` **non sono piu tipi di nodo del grafo**: sono strutture di un file di sessione, mai canone, mai persistite in Neo4j. `generated_image` resta un tipo dominio ma l'attach da filesystem e' disabilitato.
 
@@ -68,6 +69,16 @@ Usa tipi dominio quando applicabili:
 10bis. Da qui in poi il flusso converge sugli step 9-14 sopra (nessuna scansione di impatto: non esiste una versione precedente del capitolo).
 
 15. Dopo una bozza o un commit, richiama `novel_audit_chapter`, segnala i limiti dei controlli automatici e non presentare ipotesi come canone.
+
+## Ciclo Cognitivo (processi schedulati/event-driven)
+
+I processi di ottimizzazione autonoma usano tre strumenti dedicati:
+
+1. `kg_recent_changes` (percezione): all'avvio di una digestione event-driven, recupera nodi creati/aggiornati e archi creati da un istante ISO in poi; lavora solo su quel perimetro invece di riscandire il grafo.
+2. `kg_log_open_question` / `kg_update_open_question` / `kg_list_open_questions` (coda di curiosita'): ogni domanda che un ciclo non riesce a risolvere va registrata, non persa; ogni ciclo (e ogni sessione editoriale) inizia leggendo le domande aperte. Sono nodi di servizio, mai canone.
+3. `kg_log_self_assessment` / `kg_get_latest_self_assessment` (metamemoria): ogni run schedulato inizia leggendo l'ultimo assessment del proprio processo e riparte da li'; chiude registrando cosa ha controllato, trovato e proposto, con le domande aperte collegate.
+
+Regola di autonomia: i cicli schedulati scrivono in autonomia solo operazioni deterministiche (repair, embeddings) e i nodi di servizio qui sopra; ogni modifica al canone narrativo resta una PROPOSTA nel self_assessment finale.
 
 ## Relazioni Narrative
 

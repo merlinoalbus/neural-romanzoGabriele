@@ -1,0 +1,176 @@
+# =============================================================================
+# Stack Portainer - Romanzo Gabriele Neural
+# =============================================================================
+# Differenze rispetto a docker-compose.yml:
+#   - volumi dichiarati "external" con i NOMI REALI gia' esistenti su disco
+#     (creati da docker compose sotto il progetto "neural-romanzogabriele").
+#     Cosi' lo stack Portainer riusa i volumi PIENI: nessun dato perso.
+#   - rimosso watchtower (gestione aggiornamenti affidata a Portainer).
+#   - rimosso ollama_init (il modello e' gia' nel volume ollama_data).
+#     Se un domani il volume fosse vuoto, vedi la sezione commentata in fondo.
+#   - build: rimosso. Portainer usa le immagini gia' pubblicate su ghcr.io.
+#   - le variabili ${...} vanno messe nella sezione "Environment variables"
+#     dello stack in Portainer (vedi guida).
+# =============================================================================
+
+services:
+  romanzo_gabriele_be:
+    image: ghcr.io/merlinoalbus/romanzo-gabriele-neural-backend:latest
+    container_name: romanzo_gabriele_be
+    restart: unless-stopped
+    expose:
+      - "3001"
+    environment:
+      - PORT=3001
+      - PROJECT_ID=${PROJECT_ID:-romanzo-gabriele}
+      - APP_ENV=${APP_ENV:-production}
+      - APP_VERSION=${APP_VERSION:-0.1.0}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - MCP_SHARED_SECRET=${MCP_SHARED_SECRET:-}
+      - NEO4J_URI=bolt://romanzo_gabriele_neo4j:7687
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set in the stack environment}
+    depends_on:
+      romanzo_gabriele_neo4j:
+        condition: service_healthy
+    user: "1000:1000"
+    networks:
+      - romanzo_gabriele_network
+
+  romanzo_gabriele_fe:
+    image: ghcr.io/merlinoalbus/romanzo-gabriele-neural-frontend:latest
+    container_name: romanzo_gabriele_fe
+    restart: unless-stopped
+    ports:
+      - "${FE_HOST_PORT:-3000}:80"
+    depends_on:
+      romanzo_gabriele_be:
+        condition: service_healthy
+    networks:
+      - romanzo_gabriele_network
+
+  romanzo_gabriele_mcp:
+    image: ghcr.io/merlinoalbus/romanzo-gabriele-neural-mcp:latest
+    container_name: romanzo_gabriele_mcp
+    restart: unless-stopped
+    ports:
+      - "${MCP_HOST_PORT:-3002}:3002"
+    environment:
+      - PROJECT_ID=${PROJECT_ID:-romanzo-gabriele}
+      - APP_ENV=${APP_ENV:-production}
+      - APP_VERSION=${APP_VERSION:-0.1.0}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - MCP_PORT=3002
+      - MCP_SHARED_SECRET=${MCP_SHARED_SECRET:-}
+      - MCP_SSE_KEEPALIVE_MS=${MCP_SSE_KEEPALIVE_MS:-25000}
+      - MCP_SESSION_TTL_MS=${MCP_SESSION_TTL_MS:-1800000}
+      - MCP_SESSION_CLEANUP_INTERVAL_MS=${MCP_SESSION_CLEANUP_INTERVAL_MS:-300000}
+      - BACKEND_URL=http://romanzo_gabriele_be:3001
+      - NEO4J_URI=bolt://romanzo_gabriele_neo4j:7687
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set in the stack environment}
+      - EMBEDDINGS_PROVIDER=${EMBEDDINGS_PROVIDER:-openai-compatible}
+      - EMBEDDINGS_API_KEY=${EMBEDDINGS_API_KEY:-ollama-local}
+      - EMBEDDINGS_BASE_URL=${EMBEDDINGS_BASE_URL:-http://romanzo_gabriele_ollama:11434/v1}
+      - EMBEDDINGS_MODEL=${EMBEDDINGS_MODEL:-qwen3-embedding-8b-ctx8k}
+      - EMBEDDINGS_DIMENSIONS=${EMBEDDINGS_DIMENSIONS:-1536}
+      - EMBEDDINGS_TIMEOUT_MS=${EMBEDDINGS_TIMEOUT_MS:-30000}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-}
+      - EDITING_STATE_DIR=/app/.state/chapter-editing
+    volumes:
+      - "romanzo_gabriele_mcp_state:/app/.state"
+    depends_on:
+      romanzo_gabriele_be:
+        condition: service_healthy
+      romanzo_gabriele_neo4j:
+        condition: service_healthy
+    user: "1000:1000"
+    networks:
+      - romanzo_gabriele_network
+
+  romanzo_gabriele_neo4j:
+    image: neo4j:5-community
+    container_name: romanzo_gabriele_neo4j
+    restart: unless-stopped
+    ports:
+      - "7687:7687"
+      - "7474:7474"
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set in the stack environment}
+      - HEALTHCHECK_PASSWORD=${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set in the stack environment}
+      - NEO4J_dbms_security_auth__minimum__password__length=16
+      - NEO4J_server_memory_heap_initial__size=1G
+      - NEO4J_server_memory_heap_max__size=1G
+      - NEO4J_server_memory_pagecache_size=1G
+      - NEO4J_server_jvm_additional=--add-modules=jdk.incubator.vector
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -a bolt://127.0.0.1:7687 -u neo4j -p \"$${HEALTHCHECK_PASSWORD}\" \"RETURN 1\" >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+    volumes:
+      - "romanzo_gabriele_neo4j_data:/data"
+    networks:
+      - romanzo_gabriele_network
+
+  romanzo_gabriele_ollama:
+    image: ollama/ollama:latest
+    container_name: romanzo_gabriele_ollama
+    restart: unless-stopped
+    expose:
+      - "11434"
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1
+      - OLLAMA_FLASH_ATTENTION=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+    volumes:
+      - "romanzo_gabriele_ollama_data:/root/.ollama"
+    networks:
+      - romanzo_gabriele_network
+
+networks:
+  romanzo_gabriele_network:
+    driver: bridge
+
+# -----------------------------------------------------------------------------
+# VOLUMI ESTERNI: puntano ai volumi GIA' ESISTENTI creati da Docker Desktop.
+# I nomi qui sotto DEVONO combaciare ESATTAMENTE con l'output di:
+#   docker volume ls --filter name=romanzo
+# Se l'output mostra nomi diversi, correggi i campi "name:" prima del deploy.
+# -----------------------------------------------------------------------------
+volumes:
+  romanzo_gabriele_neo4j_data:
+    external: true
+    name: neural-romanzogabriele_romanzo_gabriele_neo4j_data
+  romanzo_gabriele_mcp_state:
+    external: true
+    name: neural-romanzogabriele_romanzo_gabriele_mcp_state
+  romanzo_gabriele_ollama_data:
+    external: true
+    name: neural-romanzogabriele_romanzo_gabriele_ollama_data
+
+# -----------------------------------------------------------------------------
+# NOTA ollama_init (modello embedding):
+# Il modello qwen3-embedding-8b-ctx8k dovrebbe gia' essere nel volume ollama_data.
+# Verifica dopo l'avvio con:
+#   docker exec romanzo_gabriele_ollama ollama list
+# Se NON compare, esegui una tantum (senza bisogno del Modelfile locale):
+#   docker exec romanzo_gabriele_ollama ollama pull qwen3-embedding:8b
+#   docker exec romanzo_gabriele_ollama sh -c 'printf "FROM qwen3-embedding:8b\nPARAMETER num_ctx 8192\n" > /tmp/Modelfile && ollama create qwen3-embedding-8b-ctx8k -f /tmp/Modelfile'
+# -----------------------------------------------------------------------------

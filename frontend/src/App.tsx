@@ -1067,7 +1067,7 @@ function buildWorkflowPrompts(path: EditorialPath, chapter: ChapterSummary | nul
   add(path === 'stesura' ? 'B6' : 'A5', 'Decisioni dell’utente', 'approvi/rifiuti/rinvii ogni finding',
     `Ecco le mie decisioni sui finding: <per ogni findingId: approved / rejected / deferred, con eventuale nota>. Registrale con novel_save_user_decisions sulla sessione <sessionId> e confermami il quadro: quanti finding approvati andranno applicati in riscrittura, quanti rifiutati, quanti rinviati.`);
   add(path === 'stesura' ? 'B7' : 'A6', 'Riscrittura blocco per blocco', 'gate 85%–140% enforced dal tool',
-    `Riscrivi il blocco <N> di ${phrase} applicando SOLO i finding approvati che lo riguardano. Vincoli: lunghezza tra 85% e 140% dell'originale (enforced dal tool), nessun fatto nuovo fuori canone, voce e tono invariati. Salva con novel_save_rewrite_block (sessionId <sessionId>, blockNumber <N>, originalText, revisedText, appliedFindingIds, approved: false) e mostrami il diff sintetico originale→revisione con la percentuale di lunghezza. Attendi la mia approvazione prima di passare al blocco successivo. (Ripetere per ogni blocco; dopo il mio ok, risalva con approved: true.)`);
+    `Riscrivi il blocco <numeroBlocco> di ${phrase} applicando SOLO i finding approvati che lo riguardano. Vincoli: lunghezza tra 85% e 140% dell'originale (enforced dal tool), nessun fatto nuovo fuori canone, voce e tono invariati. Salva con novel_save_rewrite_block (sessionId <sessionId>, blockNumber <numeroBlocco>, originalText, revisedText, appliedFindingIds, approved: false) e mostrami il diff sintetico originale→revisione con la percentuale di lunghezza. Attendi la mia approvazione prima di passare al blocco successivo. (Ripetere per ogni blocco; dopo il mio ok, risalva con approved: true.)`);
   add(path === 'stesura' ? 'B8' : 'A7', 'Assemblaggio + seam review', 'testo unificato e saldature invisibili',
     `Assembla la revisione completa con novel_assemble_chapter_revision (sessionId <sessionId>, expectedBlocks <numero blocchi>). Se mancano blocchi, fermati ed elencameli. Poi rileggi il testo unificato e fai la seam review: transizioni tra blocchi, ripetizioni introdotte dalle riscritture, coerenza interna di tono e ritmo. Poi ANALISI DIFFERENZIALE sull'intero romanzo: con kg_semantic_search confronta descrizioni, immagini ricorrenti e tic linguistici del testo unificato contro i capitoli già canonizzati (sono embeddati nel grafo) e segnala ridondanze o incoerenze immediate col finale del capitolo precedente. Salva l'esito con novel_save_seam_review (summary, findings, approved solo dopo il mio ok) e presentami il testo finale completo per lettura.`);
   if (path === 'revisione') {
@@ -1095,6 +1095,12 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
   const [section, setSection] = useState('');
   const [editorialPath, setEditorialPath] = useState<EditorialPath>('revisione');
   const [copied, setCopied] = useState<string | null>(null);
+  // Valori di sessione del workflow guidato: compilati una volta qui, vengono autocompilati
+  // in ogni prompt A/B al posto dei token <sessionId>/<numeroBlocco>/<numero blocchi>/<id committati>.
+  const [wfSessionId, setWfSessionId] = useState('');
+  const [wfBlocco, setWfBlocco] = useState('');
+  const [wfBlocchiTotali, setWfBlocchiTotali] = useState('');
+  const [wfNodeIds, setWfNodeIds] = useState('');
   const selSection = chapters.find((chapter) => chapter.id === section) ?? null;
   const sectionPhrase = (chapter: ChapterSummary): string =>
     chapter.role === 'prologo' ? 'il Prologo' : chapter.role === 'epilogo' ? "l'Epilogo" : `il Capitolo ${chapter.number} «${chapter.title}»`;
@@ -1156,8 +1162,16 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
   };
   const visibleSteps = EDITORIAL_STEPS.filter((step) => step.paths.includes(editorialPath));
   const workflowSteps = useMemo(() => buildWorkflowPrompts(editorialPath, selSection), [editorialPath, selSection]);
+  const wfSubstitute = (body: string): string => {
+    let text = body;
+    if (wfSessionId.trim()) text = text.replaceAll('<sessionId>', wfSessionId.trim());
+    if (wfBlocco.trim()) text = text.replaceAll('<numeroBlocco>', wfBlocco.trim());
+    if (wfBlocchiTotali.trim()) text = text.replaceAll('<numero blocchi>', wfBlocchiTotali.trim());
+    if (wfNodeIds.trim()) text = text.replaceAll('<id committati>', wfNodeIds.trim());
+    return text;
+  };
   const copyWorkflow = (id: string, body: string): void => {
-    void navigator.clipboard?.writeText(body);
+    void navigator.clipboard?.writeText(wfSubstitute(body));
     setCopied(id);
   };
   return (
@@ -1216,6 +1230,28 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
         <p className="novel-note">
           Prompt <b>autogenerati sulla sezione scelta sopra</b> (Prologo/Epilogo usano <code>role</code>, i capitoli numerati <code>chapterNumber</code>) e sul percorso selezionato. Vanno lanciati <b>in ordine, uno per turno, in un'unica chat dedicata alla sezione</b>; i token fra parentesi angolari (es. <code>&lt;sessionId&gt;</code>, <code>&lt;N&gt;</code>) si compilano durante la chat con i valori restituiti dai tool. Lo stato editoriale è persistito dal server in un file di sessione: se la chat si interrompe, in una chat nuova basta rilanciare <code>novel_start_editing_session</code> con lo stesso <code>sessionId</code> e riprendere dal prompt dove eri rimasto. I processi schedulati della mente (P0–P4) girano invece ciascuno in una chat propria.
         </p>
+        <div className="persona-pick">
+          <label>Valori di sessione (autocompilati nei prompt qui sotto)</label>
+          <div className="prompt-fields">
+            <div className="pf">
+              <label>Session ID <code>{'<sessionId>'}</code></label>
+              <input value={wfSessionId} onChange={(event) => setWfSessionId(event.target.value)} placeholder="es. editing-prologo-a1b2c3d4e5f6" />
+            </div>
+            <div className="pf">
+              <label>Blocco corrente <code>{'<numeroBlocco>'}</code></label>
+              <input value={wfBlocco} onChange={(event) => setWfBlocco(event.target.value)} placeholder="es. 1" />
+            </div>
+            <div className="pf">
+              <label>Totale blocchi <code>{'<numero blocchi>'}</code></label>
+              <input value={wfBlocchiTotali} onChange={(event) => setWfBlocchiTotali(event.target.value)} placeholder="es. 2" />
+            </div>
+            <div className="pf wide">
+              <label>ID nodi committati <code>{'<id committati>'}</code></label>
+              <input value={wfNodeIds} onChange={(event) => setWfNodeIds(event.target.value)} placeholder="es. abc-123, def-456 (dal commit dei candidati)" />
+            </div>
+          </div>
+          <span className="persona-hint">Compila i valori man mano che i tool te li restituiscono (il sessionId da novel_start_editing_session, i blocchi dallo split, gli id dal commit): i prompt successivi si aggiornano da soli. I campi vuoti restano come token <code>{'<…>'}</code> da completare in chat.</span>
+        </div>
         <div className="step-list">
           {workflowSteps.map((step) => (
             <div className="step-card" key={step.code}>
@@ -1223,7 +1259,7 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
                 <span className="step-n">{step.code}</span>
                 <div className="step-ti"><b>{step.title}</b><small>{step.hint}</small></div>
               </div>
-              <p className="prompt-body">{step.body}</p>
+              <p className="prompt-body">{wfSubstitute(step.body)}</p>
               <div className="step-actions">
                 <button className="prompt-copy" onClick={() => copyWorkflow(`wf-${step.code}`, step.body)}>
                   {copied === `wf-${step.code}` ? <><Check size={13} />copiato</> : <><Copy size={13} />copia prompt</>}

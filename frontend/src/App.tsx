@@ -565,7 +565,9 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
   const H = 292;
 
   const model = useMemo(() => {
-    const parsed = entries.map((entry) => ({ entry, day: parseDay(entry.date) }));
+    const celestial = entries.filter((entry) => entry.timePlane === 'celestial_past');
+    const rest = entries.filter((entry) => entry.timePlane !== 'celestial_past');
+    const parsed = rest.map((entry) => ({ entry, day: parseDay(entry.date) }));
     const dated = parsed.filter((p): p is { entry: TimelineEntry; day: number } => p.day != null);
     const frameYear = (day: number): boolean => new Date(day).getUTCFullYear() >= 2050;
     const mainPts = dated.filter((p) => !frameYear(p.day)).sort((a, b) => a.day - b.day);
@@ -604,7 +606,7 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
         cur = Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
       }
     }
-    return { nodes, framePts, undated, width, spineY, MARGIN, ticks };
+    return { nodes, framePts, undated, celestial, width, spineY, MARGIN, ticks };
   }, [entries]);
 
   const hovered = model.nodes.find((n) => n.entry.id === hover) ?? null;
@@ -621,6 +623,7 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
       <div className="tl-legend">
         <span><i className="tl-key main" /> storia principale <b>{model.nodes.length}</b></span>
         <span><i className="tl-key frame" /> cornice 2080 <b>{model.framePts.length}</b></span>
+        {model.celestial.length > 0 && <span><i className="tl-key celestial" /> passato celeste <b>{model.celestial.length}</b></span>}
         {model.undated.length > 0 && <span><i className="tl-key none" /> non datati <b>{model.undated.length}</b></span>}
       </div>
 
@@ -679,6 +682,18 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
                 <span className="tl-chip-date">{p.entry.date ?? '—'}</span>
                 {p.entry.label}
               </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {model.celestial.length > 0 && (
+        <section className="novel-block">
+          <h3><span className="chapter-plane celestial">passato celeste</span> pre-storia <small>{model.celestial.length}</small></h3>
+          <p className="novel-note">Eventi del passato angelico (pre-2020) fuori dalla cronologia terrena: si "sbloccano" quando i personaggi ne prendono consapevolezza. Collegati a Gabriel/Lisa e ancorati via <span className="edge-kind">revealed_in</span> al capitolo della rivelazione.</p>
+          <div className="tl-frame-rail">
+            {model.celestial.map((entry) => (
+              <button key={entry.id} className="tl-chip celestial" onClick={() => openEntry(entry)}>{entry.label}</button>
             ))}
           </div>
         </section>

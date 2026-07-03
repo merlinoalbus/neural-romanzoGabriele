@@ -596,7 +596,7 @@ const TL_PAD = 64;
 const TL_MIN_PPD = 0.5;
 const TL_MAX_PPD = 48;
 const TL_LANE_H = 20;
-const TL_MAX_LANES = 9;
+const TL_FIXED_H = 400; // fixed timeline canvas height
 const dmShort = (day: number): string => `${String(new Date(day).getUTCDate()).padStart(2, '0')}/${String(new Date(day).getUTCMonth() + 1).padStart(2, '0')}`;
 const dmFull = (day: number): string => { const d = new Date(day); return `${String(d.getUTCDate()).padStart(2, '0')} ${MONTHS_IT[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 
@@ -652,13 +652,17 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
     // Zooming spreads them so clusters split; a multi-event cluster shows a numbered badge on
     // the spine (always visible) whose popover lists them — no "wall of 8 cards", nothing hidden.
     const evs = base.main.map((p) => ({ entry: p.entry, day: p.day, x: ((p.day - base.min) / DAY_MS) * ppd + TL_PAD }));
-    const CLUSTER_GAP = 16;
+    const CLUSTER_GAP = 7;
     const raw: { items: { entry: TimelineEntry; day: number; x: number }[] }[] = [];
     for (const e of evs) {
       const last = raw[raw.length - 1];
       if (last && e.x - last.items[last.items.length - 1].x <= CLUSTER_GAP) last.items.push(e);
       else raw.push({ items: [e] });
     }
+    // Fixed-height canvas: the spine sits near the bottom and labels stack UPWARD from it,
+    // so the extra height becomes room for many more label lanes (fewer events collapse to badges).
+    const spineY = TL_FIXED_H - 44;
+    const maxLanes = Math.max(3, Math.floor((spineY - 16) / TL_LANE_H));
     const laneRight: number[] = [];
     const clusters = raw.map((c) => {
       const cx = c.items[0].x;
@@ -666,13 +670,11 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
       if (c.items.length === 1) {
         const labelW = Math.min(240, 62 + c.items[0].entry.label.length * 6.1);
         for (let i = 0; i < laneRight.length; i++) { if (laneRight[i] <= cx - 10) { lane = i; break; } }
-        if (lane === -1 && laneRight.length < TL_MAX_LANES) { lane = laneRight.length; laneRight.push(0); }
+        if (lane === -1 && laneRight.length < maxLanes) { lane = laneRight.length; laneRight.push(0); }
         if (lane !== -1) laneRight[lane] = cx + labelW;
       }
       return { cx, items: c.items, lane };
     });
-    const usedLanes = Math.max(1, laneRight.length);
-    const spineY = 14 + usedLanes * TL_LANE_H + 12;
     const width = ((base.max - base.min) / DAY_MS) * ppd + TL_PAD * 2 + 240;
     const ticks: { x: number; label: string; major: boolean }[] = [];
     const dayTicks: number[] = [];
@@ -690,7 +692,7 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
       }
       if (ppd >= 13) for (let day = base.min; day <= base.max; day += DAY_MS) dayTicks.push(((day - base.min) / DAY_MS) * ppd + TL_PAD);
     }
-    return { clusters, spineY, width, height: spineY + 34, ticks, dayTicks };
+    return { clusters, spineY, width, height: TL_FIXED_H, ticks, dayTicks };
   }, [base, ppd]);
 
   // Restore the scroll position so the zoom stays anchored under the cursor / viewport centre.
@@ -762,7 +764,7 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
               const next = layout.ticks[i + 1]?.x ?? layout.width;
               return (
                 <div key={`m${i}`}>
-                  {i % 2 === 0 && <div className="tl2-band" style={{ left: t.x, width: next - t.x }} />}
+                  {i % 2 === 0 && <div className="tl2-band" style={{ left: t.x, width: next - t.x, height: layout.spineY }} />}
                   <div className={`tl2-grid${t.major ? ' major' : ''}`} style={{ left: t.x, height: layout.spineY }} />
                   <div className="tl2-monthlab" style={{ left: t.x, top: layout.spineY + 7 }}>{t.label}</div>
                 </div>
@@ -774,7 +776,7 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
               const first = c.items[0];
               const multi = c.items.length > 1;
               const active = hover === first.entry.id;
-              const cardTop = 14 + c.lane * TL_LANE_H;
+              const cardTop = layout.spineY - (c.lane + 1) * TL_LANE_H - 4;
               const open = (ev: { stopPropagation: () => void }): void => {
                 ev.stopPropagation();
                 if (multi) setCluster({ x: c.cx, items: c.items.map((it) => ({ entry: it.entry, day: it.day })) });
@@ -1430,8 +1432,8 @@ export function App() {
   const [graph, setGraph] = useState<{ nodes: GNode[]; links: GLink[] }>({ nodes: [], links: [] });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<KgNode | null>(null);
-  const [tab, setTab] = useState<Tab>('search');
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ Panoramica: false, 'Entità': false, Lavoro: true });
+  const [tab, setTab] = useState<Tab>('romanzo');
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ Panoramica: true, 'Entità': false, Lavoro: false });
   const toggleGroup = useCallback((group: string) => setOpenGroups((state) => ({ ...state, [group]: !state[group] })), []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1644,6 +1646,11 @@ export function App() {
   useEffect(() => {
     void loadNodes().catch((err) => setError(String(err)));
   }, [loadNodes]);
+
+  // Default view is Romanzo: load the chapter list on mount.
+  useEffect(() => {
+    void loadChapters().catch((err) => setError(String(err)));
+  }, [loadChapters]);
 
   useEffect(() => {
     const element = graphRef.current;

@@ -711,7 +711,7 @@ button { font-family: inherit; }
   overscroll-behavior-x: contain;
 }
 .tl2-canvas { position: relative; min-width: 100%; }
-.tl2-band { position: absolute; top: 0; bottom: 26px; background: rgba(255, 255, 255, 0.016); pointer-events: none; }
+.tl2-band { position: absolute; top: 0; background: rgba(255, 255, 255, 0.016); pointer-events: none; }
 .tl2-grid { position: absolute; top: 0; width: 1px; background: #212940; pointer-events: none; }
 .tl2-grid.major { background: #384675; }
 .tl2-daytick { position: absolute; top: 0; width: 1px; background: rgba(120, 130, 160, 0.05); pointer-events: none; }

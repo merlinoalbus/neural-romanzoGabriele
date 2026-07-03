@@ -408,19 +408,32 @@ function GroupedNavList({ nodes, groupOf, order, selectedId, onOpen }: { nodes: 
     });
     return keys.map((key) => ({ key, items: map.get(key)! }));
   }, [nodes, groupOf, order]);
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+  const toggle = (key: string): void => setCollapsed((state) => {
+    const next = new Set(state);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    return next;
+  });
   return (
     <div className="result-list">
-      {groups.map((group) => (
+      {groups.map((group) => {
+        const open = !collapsed.has(group.key);
+        return (
         <div className="nav-group-block" key={group.key}>
-          <div className="nav-sub-head"><span>{group.key}</span><b>{group.items.length}</b></div>
-          {group.items.map((node) => (
+          <button className={`nav-sub-head${open ? ' open' : ''}`} onClick={() => toggle(group.key)} aria-expanded={open}>
+            <ChevronDown size={12} className="nav-caret" />
+            <span>{group.key}</span>
+            <b>{group.items.length}</b>
+          </button>
+          {open && group.items.map((node) => (
             <button key={node.id} className={selectedId === node.id ? 'result active' : 'result'} onClick={() => onOpen(node)}>
               <span className="dot" style={{ background: colorFor(node.type) }} />
               <span className="result-main"><b>{node.label}</b><small>{labelFor(node.type)}</small></span>
             </button>
           ))}
         </div>
-      ))}
+        );
+      })}
       {!nodes.length && <div className="empty-state">Nessun elemento</div>}
     </div>
   );

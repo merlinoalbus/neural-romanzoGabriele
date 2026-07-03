@@ -17,6 +17,7 @@ import { registerSandboxTools } from './tools/sandbox.js';
 import { registerNovelCoordinatorTools } from './tools/novelCoordinator.js';
 import { registerNovelChapterCandidateTools } from './tools/novelChapterCandidates.js';
 import { registerNovelRevisionImpactTools } from './tools/novelRevisionImpact.js';
+import { registerCognitionTools } from './tools/cognition.js';
 
 const EMBEDDED_FALLBACK_INSTRUCTIONS = `# Rete Neurale Romanzo Gabriele MCP
 
@@ -42,6 +43,7 @@ function registerTools(server: McpServer): void {
   registerNovelCoordinatorTools(server);
   registerNovelChapterCandidateTools(server);
   registerNovelRevisionImpactTools(server);
+  registerCognitionTools(server);
 }
 
 function createMcpServer(): McpServer {

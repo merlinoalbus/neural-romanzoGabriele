@@ -220,6 +220,10 @@ function RomanzoPanel({ chapters, selectedId, onOpen }: { chapters: ChapterSumma
   const interludes = chapters.filter((chapter) => chapter.number != null && isFrame(chapter.timePlane)).length;
   const hasPro = chapters.some((chapter) => chapter.role === 'prologo');
   const hasEpi = chapters.some((chapter) => chapter.role === 'epilogo');
+  const frameNodes = useMemo(
+    () => chapters.filter((chapter) => chapter.frameOrder != null).sort((a, b) => (a.frameOrder ?? 0) - (b.frameOrder ?? 0)),
+    [chapters],
+  );
   return (
     <div className="novel-panel">
       <div className="novel-head">
@@ -229,6 +233,26 @@ function RomanzoPanel({ chapters, selectedId, onOpen }: { chapters: ChapterSumma
           Ogni riga apre la Vista Capitolo.
         </p>
       </div>
+
+      {frameNodes.length > 0 && (
+        <section className="frame-plane">
+          <h3><span className="chapter-plane frame">piano cornice</span> la serata del racconto · Nonno → nipoti, 27/12/2080 <small>{frameNodes.length}</small></h3>
+          <p className="novel-note">Sequenza a sé (il tempo del racconto). Ogni interludio resta ancorato anche al punto della storia principale che commenta.</p>
+          <div className="frame-rail">
+            {frameNodes.map((node, index) => (
+              <div className="frame-step" key={node.id}>
+                <button className={`frame-card${selectedId === node.id ? ' active' : ''}`} onClick={() => onOpen(node.id)}>
+                  <span className="frame-badge">{node.role === 'prologo' ? 'Prologo' : node.role === 'epilogo' ? 'Epilogo' : `Cap ${node.number}`}</span>
+                  <span className="frame-title">{node.title}</span>
+                  {node.number != null && <span className="frame-point">nel racconto ≈ Cap {node.number}</span>}
+                </button>
+                {index < frameNodes.length - 1 && <span className="frame-arrow">→</span>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <div className="chapter-strip">
         {chapters.map((chapter) => (
           <button

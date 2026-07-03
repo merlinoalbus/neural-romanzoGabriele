@@ -328,6 +328,7 @@ export interface ChapterSummary {
   chapterKind: string | null;
   documentChapterLabel: string | null;
   primarySectionKey: string | null;
+  frameOrder: number | null;
   role?: 'prologo' | 'epilogo';
 }
 
@@ -345,6 +346,7 @@ function chapterSummaryFrom(node: GraphNode): ChapterSummary {
     chapterKind: m.chapterKind ? String(m.chapterKind) : null,
     documentChapterLabel: m.documentChapterLabel ? String(m.documentChapterLabel) : null,
     primarySectionKey: m.primarySectionKey ? String(m.primarySectionKey) : null,
+    frameOrder: typeof m.frameOrder === 'number' ? m.frameOrder : m.frameOrder != null && Number.isFinite(Number(m.frameOrder)) ? Number(m.frameOrder) : null,
   };
 }
 

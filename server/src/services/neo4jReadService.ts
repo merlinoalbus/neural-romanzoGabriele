@@ -328,6 +328,8 @@ export interface ChapterSummary {
   chapterKind: string | null;
   documentChapterLabel: string | null;
   primarySectionKey: string | null;
+  frameOrder: number | null;
+  role?: 'prologo' | 'epilogo';
 }
 
 function chapterSummaryFrom(node: GraphNode): ChapterSummary {
@@ -344,14 +346,40 @@ function chapterSummaryFrom(node: GraphNode): ChapterSummary {
     chapterKind: m.chapterKind ? String(m.chapterKind) : null,
     documentChapterLabel: m.documentChapterLabel ? String(m.documentChapterLabel) : null,
     primarySectionKey: m.primarySectionKey ? String(m.primarySectionKey) : null,
+    frameOrder: typeof m.frameOrder === 'number' ? m.frameOrder : m.frameOrder != null && Number.isFinite(Number(m.frameOrder)) ? Number(m.frameOrder) : null,
   };
 }
 
+function bookendFrom(node: GraphNode, role: 'prologo' | 'epilogo'): ChapterSummary {
+  const summary = chapterSummaryFrom(node);
+  return { ...summary, number: null, timePlane: summary.timePlane ?? 'frame', chapterKind: summary.chapterKind ?? 'interlude', role };
+}
+
+// The narrative runs Prologo → Cap 1 … Cap 40 → Epilogo. Prologo/Epilogo are frame
+// timeline_events (2080 cornice), not `chapter` nodes, so they are recovered as the
+// non-chapter bookends of the `precedes` chain and placed before/after the chapters.
 export async function listChapters(): Promise<ChapterSummary[]> {
-  const records = await run("MATCH (n:Entity {projectId:$pid, type:'chapter'}) RETURN n", { pid: config.projectId });
+  const pid = config.projectId;
+  const records = await run("MATCH (n:Entity {projectId:$pid, type:'chapter'}) RETURN n", { pid });
   const chapters = records.map((rec) => chapterSummaryFrom(nodeFrom(rec.get('n'))));
   chapters.sort((a, b) => (a.number ?? Number.MAX_SAFE_INTEGER) - (b.number ?? Number.MAX_SAFE_INTEGER));
-  return chapters;
+  const prologoRecs = await run(
+    `MATCH (p:Entity {projectId:$pid})-[:REL {kind:'precedes'}]->(c:Entity {projectId:$pid, type:'chapter'})
+     WHERE p.type <> 'chapter' AND toLower(p.label) STARTS WITH 'prologo'
+     RETURN p LIMIT 1`,
+    { pid },
+  );
+  const epilogoRecs = await run(
+    `MATCH (c:Entity {projectId:$pid, type:'chapter'})-[:REL {kind:'precedes'}]->(e:Entity {projectId:$pid})
+     WHERE e.type <> 'chapter' AND toLower(e.label) STARTS WITH 'epilogo'
+     RETURN e LIMIT 1`,
+    { pid },
+  );
+  const result: ChapterSummary[] = [];
+  if (prologoRecs.length) result.push(bookendFrom(nodeFrom(prologoRecs[0].get('p')), 'prologo'));
+  result.push(...chapters);
+  if (epilogoRecs.length) result.push(bookendFrom(nodeFrom(epilogoRecs[0].get('e')), 'epilogo'));
+  return result;
 }
 
 export interface ChapterRelation {

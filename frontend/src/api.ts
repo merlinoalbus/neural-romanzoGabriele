@@ -85,6 +85,8 @@ export interface ChapterSummary {
   chapterKind: string | null;
   documentChapterLabel: string | null;
   primarySectionKey: string | null;
+  frameOrder: number | null;
+  role?: 'prologo' | 'epilogo';
 }
 
 export interface ChapterRelation {

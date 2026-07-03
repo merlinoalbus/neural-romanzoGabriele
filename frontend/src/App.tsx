@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { Activity, BookOpen, Clock, Database, Download, FileText, GitBranch, Globe2, ListChecks, Network, PenLine, RefreshCw, ScrollText, Search, ShieldCheck, Upload, Users, X } from 'lucide-react';
+import { Activity, BookOpen, Check, Clock, Copy, Database, Download, Feather, FileText, GitBranch, Globe2, ListChecks, Network, PenLine, RefreshCw, ScrollText, Search, ShieldCheck, Sparkles, Upload, Users, X } from 'lucide-react';
 import {
   commitGraphSnapshotImport,
   dryRunGraphSnapshotImport,
@@ -54,6 +54,23 @@ const TYPE_COLORS: Record<string, string> = {
   theme: '#8b5cf6',
   timeline_event: '#ea580c',
   world_rule: '#0369a1',
+  power: '#0ea5e9',
+  faction: '#c026d3',
+  artifact: '#a16207',
+  symbol: '#7c3aed',
+  motif: '#9333ea',
+  entity_class: '#0d9488',
+  narrative_constraint: '#b45309',
+  revelation: '#c026d3',
+  secret: '#9f1239',
+  conflict: '#dc2626',
+  character_trait: '#15803d',
+  character_goal: '#0f766e',
+  character_belief: '#166534',
+  character_wound: '#9f1239',
+  emotional_state: '#65a30d',
+  knowledge_state: '#0891b2',
+  editing_session: '#f97316',
   concept: '#7c3aed',
   procedure: '#0891b2',
   decision: '#4f46e5',
@@ -83,12 +100,36 @@ const TYPE_LABELS: Record<string, string> = {
   theme: 'tema',
   timeline_event: 'evento timeline',
   world_rule: 'regola mondo',
+  power: 'potere',
+  faction: 'fazione',
+  artifact: 'oggetto/artefatto',
+  symbol: 'simbolo',
+  motif: 'motivo ricorrente',
+  entity_class: 'classe di entità',
+  narrative_constraint: 'vincolo narrativo',
+  revelation: 'rivelazione',
+  secret: 'segreto',
+  conflict: 'conflitto',
+  character_trait: 'tratto',
+  character_goal: 'obiettivo',
+  character_belief: 'convinzione',
+  character_wound: 'ferita',
+  emotional_state: 'stato emotivo',
+  knowledge_state: 'stato conoscenza',
+  editing_session: 'sessione editing',
 };
 
 const colorFor = (type: string): string => TYPE_COLORS[type] ?? '#334155';
 const labelFor = (type: string): string => TYPE_LABELS[type] ?? type;
 
-type Tab = 'search' | 'romanzo' | 'capitolo' | 'personaggio' | 'arco' | 'timeline' | 'mondo' | 'coerenza' | 'editoriale' | 'openPoints' | 'documents' | 'admin';
+type Tab = 'search' | 'romanzo' | 'capitolo' | 'personaggio' | 'arco' | 'timeline' | 'mondo' | 'temi' | 'stile' | 'coerenza' | 'editoriale' | 'openPoints' | 'documents' | 'admin';
+
+// Worldbuilding / thematic / style node types surfaced by the dedicated views.
+const WORLD_TYPES = ['world_rule', 'power', 'location', 'faction', 'artifact', 'symbol', 'entity_class', 'glossary_term'];
+const THEME_TYPES = ['theme', 'motif'];
+const STYLE_TYPES = ['style_rule', 'narrative_constraint', 'character_voice'];
+// Category order for the character roster (mirrors doc branch 2).
+const CHARACTER_CATEGORY_ORDER = ['Protagonisti', 'Personaggi Principali', 'Forze Sovrannaturali', 'Personaggi Secondari Ricorrenti', 'Personaggi Secondari Funzionali', 'Cornice Narrativa', 'Altri'];
 
 const RESOLVED_KINDS = new Set(['resolves', 'pays_off']);
 // Home tab for a related node when navigating from a panel pill.
@@ -97,8 +138,31 @@ const ENTITY_TAB: Partial<Record<string, Tab>> = {
   plot_thread: 'arco',
   world_rule: 'mondo',
   power: 'mondo',
+  location: 'mondo',
   faction: 'mondo',
+  artifact: 'mondo',
+  symbol: 'mondo',
   entity_class: 'mondo',
+  glossary_term: 'mondo',
+  theme: 'temi',
+  motif: 'temi',
+  style_rule: 'stile',
+  narrative_constraint: 'stile',
+  character_voice: 'stile',
+};
+const KEEP_TAB = new Set<Tab>(['personaggio', 'arco', 'mondo', 'temi', 'stile']);
+
+// Group a character by its canonical category metadata.
+const characterCategory = (node: KgNode): string => metaString(node, 'categoryLabel') ?? 'Altri';
+// Group a theme node by its level in doc branch 1.5; motifs get their own bucket.
+const themeGroup = (node: KgNode): string => {
+  if (node.type === 'motif') return 'Motivi ricorrenti';
+  const key = metaString(node, 'primarySectionKey') ?? metaString(node, 'sectionKey') ?? '';
+  if (key.startsWith('1.5.1')) return 'Livello 1 — Temi architettonici';
+  if (key.startsWith('1.5.2')) return 'Livello 2 — Temi evolutivi';
+  if (key.startsWith('1.5.3')) return 'Livello 3 — Temi relazionali';
+  if (key.startsWith('1.5.4')) return 'Livello 4 — Temi esistenziali';
+  return 'Altri temi';
 };
 
 const isFrame = (plane: string | null): boolean => plane === 'frame';
@@ -139,7 +203,7 @@ function ChapterNavList({ chapters, selectedId, onOpen }: { chapters: ChapterSum
           className={selectedId === chapter.id ? 'result active' : 'result'}
           onClick={() => onOpen(chapter.id)}
         >
-          <span className="chapter-num">{chapter.number ?? '·'}</span>
+          <span className="chapter-num">{chapter.role === 'prologo' ? 'P' : chapter.role === 'epilogo' ? 'E' : (chapter.number ?? '·')}</span>
           <span className="result-main">
             <b>{chapter.title}</b>
             <small>{isFrame(chapter.timePlane) ? 'cornice / interludio' : 'storia principale'}{chapter.date ? ` · ${chapter.date}` : ''}</small>
@@ -152,17 +216,43 @@ function ChapterNavList({ chapters, selectedId, onOpen }: { chapters: ChapterSum
 }
 
 function RomanzoPanel({ chapters, selectedId, onOpen }: { chapters: ChapterSummary[]; selectedId: string | null; onOpen: (id: string) => void }) {
-  const frame = chapters.filter((chapter) => isFrame(chapter.timePlane)).length;
-  const main = chapters.length - frame;
+  const numbered = chapters.filter((chapter) => chapter.number != null).length;
+  const interludes = chapters.filter((chapter) => chapter.number != null && isFrame(chapter.timePlane)).length;
+  const hasPro = chapters.some((chapter) => chapter.role === 'prologo');
+  const hasEpi = chapters.some((chapter) => chapter.role === 'epilogo');
+  const frameNodes = useMemo(
+    () => chapters.filter((chapter) => chapter.frameOrder != null).sort((a, b) => (a.frameOrder ?? 0) - (b.frameOrder ?? 0)),
+    [chapters],
+  );
   return (
     <div className="novel-panel">
       <div className="novel-head">
         <h2>Vista Romanzo</h2>
         <p className="novel-sub">
-          Struttura a cornice · <b>{chapters.length}</b> capitoli ({main} storia · {frame} cornice/interludi).
+          Struttura a cornice · {hasPro ? 'Prologo → ' : ''}<b>{numbered}</b> capitoli ({interludes} interludi cornice){hasEpi ? ' → Epilogo' : ''}.
           Ogni riga apre la Vista Capitolo.
         </p>
       </div>
+
+      {frameNodes.length > 0 && (
+        <section className="frame-plane">
+          <h3><span className="chapter-plane frame">piano cornice</span> la serata del racconto · Nonno → nipoti, 27/12/2080 <small>{frameNodes.length}</small></h3>
+          <p className="novel-note">Sequenza a sé (il tempo del racconto). Ogni interludio resta ancorato anche al punto della storia principale che commenta.</p>
+          <div className="frame-rail">
+            {frameNodes.map((node, index) => (
+              <div className="frame-step" key={node.id}>
+                <button className={`frame-card${selectedId === node.id ? ' active' : ''}`} onClick={() => onOpen(node.id)}>
+                  <span className="frame-badge">{node.role === 'prologo' ? 'Prologo' : node.role === 'epilogo' ? 'Epilogo' : `Cap ${node.number}`}</span>
+                  <span className="frame-title">{node.title}</span>
+                  {node.number != null && <span className="frame-point">nel racconto ≈ Cap {node.number}</span>}
+                </button>
+                {index < frameNodes.length - 1 && <span className="frame-arrow">→</span>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <div className="chapter-strip">
         {chapters.map((chapter) => (
           <button
@@ -170,7 +260,7 @@ function RomanzoPanel({ chapters, selectedId, onOpen }: { chapters: ChapterSumma
             className={`chapter-row${isFrame(chapter.timePlane) ? ' frame' : ''}${selectedId === chapter.id ? ' active' : ''}`}
             onClick={() => onOpen(chapter.id)}
           >
-            <span className="chapter-num">{chapter.number ?? '·'}</span>
+            <span className="chapter-num">{chapter.role === 'prologo' ? 'P' : chapter.role === 'epilogo' ? 'E' : (chapter.number ?? '·')}</span>
             <span className="chapter-ti">
               {chapter.title}
               {chapter.chapterKind === 'interlude' && <small>interludio / cornice</small>}
@@ -281,6 +371,60 @@ function EntityNavList({ nodes, selectedId, onOpen }: { nodes: KgNode[]; selecte
   );
 }
 
+// Navigation list grouped under sub-headers (per category / per type / per level).
+function GroupedNavList({ nodes, groupOf, order, selectedId, onOpen }: { nodes: KgNode[]; groupOf: (node: KgNode) => string; order?: string[]; selectedId: string | null; onOpen: (node: KgNode) => void }) {
+  const groups = useMemo(() => {
+    const map = new Map<string, KgNode[]>();
+    for (const node of nodes) {
+      const key = groupOf(node);
+      const list = map.get(key) ?? [];
+      list.push(node);
+      map.set(key, list);
+    }
+    for (const list of map.values()) list.sort((a, b) => a.label.localeCompare(b.label));
+    const keys = [...map.keys()].sort((a, b) => {
+      const ia = order?.indexOf(a) ?? -1;
+      const ib = order?.indexOf(b) ?? -1;
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      if (ia !== -1) return -1;
+      if (ib !== -1) return 1;
+      return a.localeCompare(b);
+    });
+    return keys.map((key) => ({ key, items: map.get(key)! }));
+  }, [nodes, groupOf, order]);
+  return (
+    <div className="result-list">
+      {groups.map((group) => (
+        <div className="nav-group-block" key={group.key}>
+          <div className="nav-sub-head"><span>{group.key}</span><b>{group.items.length}</b></div>
+          {group.items.map((node) => (
+            <button key={node.id} className={selectedId === node.id ? 'result active' : 'result'} onClick={() => onOpen(node)}>
+              <span className="dot" style={{ background: colorFor(node.type) }} />
+              <span className="result-main"><b>{node.label}</b><small>{labelFor(node.type)}</small></span>
+            </button>
+          ))}
+        </div>
+      ))}
+      {!nodes.length && <div className="empty-state">Nessun elemento</div>}
+    </div>
+  );
+}
+
+// Semantic sections for the character sheet: relations bucketed by the connected node type.
+const CHAR_SECTIONS: { title: string; types: string[] }[] = [
+  { title: 'Temi affrontati', types: ['theme', 'motif'] },
+  { title: 'Aspetto e stati nel tempo', types: ['character_state', 'emotional_state', 'knowledge_state', 'character_trait', 'character_wound', 'character_belief', 'character_goal'] },
+  { title: 'Poteri', types: ['power'] },
+  { title: 'Rivelazioni & segreti', types: ['revelation', 'secret'] },
+  { title: 'Fili narrativi', types: ['plot_thread', 'conflict'] },
+  { title: 'Momenti nella timeline', types: ['timeline_event'] },
+  { title: 'Relazioni', types: ['character', 'relationship_dynamic', 'faction'] },
+  { title: 'Voce narrativa', types: ['character_voice'] },
+];
+const STATE_TYPES = new Set(['character_state', 'emotional_state', 'knowledge_state', 'character_trait', 'character_wound', 'character_belief', 'character_goal']);
+const stateDate = (node: KgNode): string | null => metaString(node, 'startDate') ?? metaString(node, 'date') ?? metaString(node, 'dateStart') ?? metaString(node, 'endDate');
+const stateSortKey = (node: KgNode): string => stateDate(node) ?? metaString(node, 'primarySectionKey') ?? 'zzzz';
+
 function groupTouches(touches: EntityPacket['touches']): Map<string, EntityPacket['touches']> {
   const grouped = new Map<string, EntityPacket['touches']>();
   for (const relation of touches) {
@@ -291,17 +435,61 @@ function groupTouches(touches: EntityPacket['touches']): Map<string, EntityPacke
   return grouped;
 }
 
+function TouchGroups({ grouped, onOpen, node }: { grouped: Map<string, EntityPacket['touches']>; onOpen: (id: string, type: string) => void; node: KgNode }) {
+  return (
+    <>
+      {[...grouped.entries()].map(([kind, list]) => (
+        <div className="touch-group" key={kind}>
+          <span className="edge-kind">{kind}</span>
+          <div className="touch-chips">
+            {list.map((relation) => (
+              <button
+                key={`${kind}-${relation.node.id}`}
+                className="pill touch"
+                title={relation.direction === 'out' ? `${node.label} ${kind} →` : `→ ${kind} ${node.label}`}
+                onClick={() => onOpen(relation.node.id, relation.node.type)}
+              >
+                <span className="dir">{relation.direction === 'out' ? '→' : '←'}</span>
+                <span className="dot" style={{ background: colorFor(relation.node.type) }} />
+                {relation.node.label}
+                <small>{labelFor(relation.node.type)}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 function EntityPanel({ packet, onOpen }: { packet: EntityPacket | null; onOpen: (id: string, type: string) => void }) {
   if (!packet?.node) return <div className="graph-empty">Seleziona un elemento</div>;
   const node = packet.node;
-  const grouped = groupTouches(packet.touches);
+  const isCharacter = node.type === 'character';
   const isArc = node.type === 'plot_thread';
   const resolved = packet.touches.some((relation) => RESOLVED_KINDS.has(relation.kind));
   const graph = packetToGraph(node, packet.touches, packet.incomingMentions);
+  const category = metaString(node, 'categoryLabel');
+
+  // For characters, bucket related nodes into readable sections by node type; the rest stays grouped by edge kind.
+  const usedKeys = new Set<string>();
+  const sections = isCharacter
+    ? CHAR_SECTIONS.map((section) => {
+        const items = packet.touches.filter((relation) => section.types.includes(relation.node.type));
+        items.forEach((relation) => usedKeys.add(`${relation.kind}-${relation.node.id}`));
+        if (section.title.startsWith('Aspetto')) {
+          items.sort((a, b) => stateSortKey(a.node).localeCompare(stateSortKey(b.node)));
+        }
+        return { title: section.title, items };
+      }).filter((section) => section.items.length)
+    : [];
+  const otherTouches = isCharacter ? packet.touches.filter((relation) => !usedKeys.has(`${relation.kind}-${relation.node.id}`)) : packet.touches;
+  const grouped = groupTouches(otherTouches);
+
   return (
     <div className="novel-panel capitolo">
       <div className="novel-head">
-        <span className="node-type"><span className="dot" style={{ background: colorFor(node.type) }} />{labelFor(node.type)}</span>
+        <span className="node-type"><span className="dot" style={{ background: colorFor(node.type) }} />{labelFor(node.type)}{category ? ` · ${category}` : ''}</span>
         <h2>
           {node.label}
           {isArc && <span className={`arc-status ${resolved ? 'resolved' : 'open'}`}>{resolved ? 'risolto' : 'aperto'}</span>}
@@ -309,29 +497,33 @@ function EntityPanel({ packet, onOpen }: { packet: EntityPacket | null; onOpen: 
       </div>
       {node.content && <p className="node-content">{node.content}</p>}
 
-      <section className="novel-block">
-        <h3>Relazioni &amp; collegamenti <small>{packet.touches.length}</small></h3>
-        {grouped.size === 0 && <span className="muted">nessun collegamento</span>}
-        {[...grouped.entries()].map(([kind, list]) => (
-          <div className="touch-group" key={kind}>
-            <span className="edge-kind">{kind}</span>
-            <div className="touch-chips">
-              {list.map((relation) => (
+      {sections.map((section) => (
+        <section className="novel-block" key={section.title}>
+          <h3>{section.title} <small>{section.items.length}</small></h3>
+          <div className="touch-chips">
+            {section.items.map((relation) => {
+              const date = STATE_TYPES.has(relation.node.type) ? stateDate(relation.node) : null;
+              return (
                 <button
-                  key={`${kind}-${relation.node.id}`}
+                  key={`${relation.kind}-${relation.node.id}`}
                   className="pill touch"
-                  title={relation.direction === 'out' ? `${node.label} ${kind} →` : `→ ${kind} ${node.label}`}
                   onClick={() => onOpen(relation.node.id, relation.node.type)}
                 >
-                  <span className="dir">{relation.direction === 'out' ? '→' : '←'}</span>
+                  {date && <span className="chip-date">{date}</span>}
                   <span className="dot" style={{ background: colorFor(relation.node.type) }} />
                   {relation.node.label}
                   <small>{labelFor(relation.node.type)}</small>
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        ))}
+        </section>
+      ))}
+
+      <section className="novel-block">
+        <h3>{isCharacter ? 'Altri collegamenti' : 'Relazioni & collegamenti'} <small>{otherTouches.length}</small></h3>
+        {grouped.size === 0 && <span className="muted">nessun collegamento</span>}
+        <TouchGroups grouped={grouped} onOpen={onOpen} node={node} />
       </section>
 
       {packet.incomingMentions.length > 0 && (
@@ -354,53 +546,172 @@ function EntityPanel({ packet, onOpen }: { packet: EntityPacket | null; onOpen: 
   );
 }
 
+const MONTHS_IT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+function parseDay(value: string | null): number | null {
+  if (!value) return null;
+  const iso = value.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return Date.UTC(+iso[1], +iso[2] - 1, +iso[3]);
+  const dmy = value.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (dmy) return Date.UTC(+dmy[3], +dmy[2] - 1, +dmy[1]);
+  const ym = value.match(/(\d{4})-(\d{2})/);
+  if (ym) return Date.UTC(+ym[1], +ym[2] - 1, 1);
+  const y = value.match(/\b(19|20)\d{2}\b/);
+  if (y) return Date.UTC(+y[0], 0, 1);
+  return null;
+}
+
 function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: TimelineEntry[]; onOpenChapter: (id: string) => void; onOpenEntity: (id: string) => void }) {
-  const groups = useMemo(() => {
-    const main = entries.filter((entry) => entry.timePlane === 'main_story');
-    const frame = entries.filter((entry) => entry.timePlane === 'frame');
-    const unanchored = entries.filter((entry) => entry.timePlane !== 'main_story' && entry.timePlane !== 'frame');
-    return { main, frame, unanchored };
+  const [hover, setHover] = useState<string | null>(null);
+  const H = 292;
+
+  const model = useMemo(() => {
+    const celestial = entries.filter((entry) => entry.timePlane === 'celestial_past');
+    const rest = entries.filter((entry) => entry.timePlane !== 'celestial_past');
+    const parsed = rest.map((entry) => ({ entry, day: parseDay(entry.date) }));
+    const dated = parsed.filter((p): p is { entry: TimelineEntry; day: number } => p.day != null);
+    const frameYear = (day: number): boolean => new Date(day).getUTCFullYear() >= 2050;
+    const mainPts = dated.filter((p) => !frameYear(p.day)).sort((a, b) => a.day - b.day);
+    const framePts = dated.filter((p) => frameYear(p.day)).sort((a, b) => a.day - b.day);
+    const undated = parsed.filter((p) => p.day == null).map((p) => p.entry);
+
+    const MARGIN = 46;
+    const spineY = 234;
+    const min = mainPts.length ? mainPts[0].day : 0;
+    const max = mainPts.length ? mainPts[mainPts.length - 1].day : 1;
+    const span = Math.max(1, max - min);
+    const monthMs = 1000 * 60 * 60 * 24 * 30.44;
+    const innerW = Math.max(680, Math.round((span / monthMs) * 62));
+    const width = innerW + MARGIN * 2;
+    const xOf = (day: number): number => MARGIN + ((day - min) / span) * innerW;
+
+    const bucket = new Map<number, number>();
+    const staged = mainPts.map((p) => {
+      const x = xOf(p.day);
+      const key = Math.round(x / 13);
+      const stack = bucket.get(key) ?? 0;
+      bucket.set(key, stack + 1);
+      return { entry: p.entry, day: p.day, x, stack };
+    });
+    const maxStack = staged.reduce((m, n) => Math.max(m, n.stack), 0);
+    const rowH = Math.max(7, Math.min(14, (spineY - 44) / Math.max(1, maxStack)));
+    const nodes = staged.map((n) => ({ ...n, y: spineY - 16 - n.stack * rowH }));
+
+    const ticks: { x: number; label: string }[] = [];
+    if (mainPts.length) {
+      const start = new Date(min);
+      let cur = Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1);
+      while (cur <= max + monthMs) {
+        const d = new Date(cur);
+        ticks.push({ x: xOf(cur), label: d.getUTCMonth() === 0 ? `${MONTHS_IT[0]} ${d.getUTCFullYear()}` : MONTHS_IT[d.getUTCMonth()] });
+        cur = Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
+      }
+    }
+    return { nodes, framePts, undated, celestial, width, spineY, MARGIN, ticks };
   }, [entries]);
-  const renderRow = (entry: TimelineEntry) => (
-    <div className="tl-event" key={entry.id}>
-      <span className="tl-date">{entry.date ?? '—'}</span>
-      <button className="tl-title" onClick={() => onOpenEntity(entry.id)}>{entry.label}</button>
-      {entry.chapterId ? (
-        <button className="tl-chapter" onClick={() => onOpenChapter(entry.chapterId!)}>
-          Cap {entry.chapterNumber ?? '·'}{entry.chapterTitle ? ` · ${entry.chapterTitle}` : ''}
-        </button>
-      ) : (
-        <span className="tl-chapter none">non ancorato</span>
-      )}
-    </div>
-  );
+
+  const hovered = model.nodes.find((n) => n.entry.id === hover) ?? null;
+  const openEntry = (entry: TimelineEntry): void => { if (entry.chapterId) onOpenChapter(entry.chapterId); else onOpenEntity(entry.id); };
+
   return (
     <div className="novel-panel">
       <div className="novel-head">
-        <h2>Vista Timeline — bi-piano</h2>
+        <h2>Timeline del romanzo</h2>
         <p className="novel-sub">
-          <b>{entries.length}</b> eventi. Data e ordine derivati dal capitolo collegato (archi <span className="edge-kind">part_of</span>/<span className="edge-kind">occurs_in</span>).
-          Gli eventi non ancorati a un capitolo compaiono in fondo.
+          <b>{entries.length}</b> eventi lungo la spina temporale. Storia principale 2020–2021; cornice 2080 a parte. Hover per il dettaglio, click per aprire il capitolo/evento. L'altezza dei punti segnala i periodi più densi.
         </p>
       </div>
-      {groups.main.length > 0 && (
+      <div className="tl-legend">
+        <span><i className="tl-key main" /> storia principale <b>{model.nodes.length}</b></span>
+        <span><i className="tl-key frame" /> cornice 2080 <b>{model.framePts.length}</b></span>
+        {model.celestial.length > 0 && <span><i className="tl-key celestial" /> passato celeste <b>{model.celestial.length}</b></span>}
+        {model.undated.length > 0 && <span><i className="tl-key none" /> non datati <b>{model.undated.length}</b></span>}
+      </div>
+
+      {model.nodes.length > 0 && (
+        <div className="tl-scroll">
+          <svg className="tl-svg" width={model.width} height={H} viewBox={`0 0 ${model.width} ${H}`} role="img" aria-label="Timeline storia principale">
+            <defs>
+              <linearGradient id="tlspine" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#e6b450" />
+                <stop offset="0.75" stopColor="#c6a06a" />
+                <stop offset="1" stopColor="#9b8ce6" />
+              </linearGradient>
+            </defs>
+            {model.ticks.map((t, i) => (
+              <g key={i}>
+                <line x1={t.x} y1={42} x2={t.x} y2={model.spineY} stroke="#242b3d" strokeWidth="1" strokeDasharray="2 5" />
+                <text x={t.x} y={model.spineY + 20} fill="#6a7288" fontSize="10" textAnchor="middle" fontFamily="ui-monospace, monospace">{t.label}</text>
+              </g>
+            ))}
+            <line x1={model.MARGIN} y1={model.spineY} x2={model.width - model.MARGIN} y2={model.spineY} stroke="url(#tlspine)" strokeWidth="3" strokeLinecap="round" />
+            {model.nodes.map((n) => {
+              const active = hover === n.entry.id;
+              return (
+                <g key={n.entry.id} className="tl-node" onMouseEnter={() => setHover(n.entry.id)} onMouseLeave={() => setHover((h) => (h === n.entry.id ? null : h))} onClick={() => openEntry(n.entry)}>
+                  <line x1={n.x} y1={n.y} x2={n.x} y2={model.spineY} stroke={active ? '#e6b450' : '#39415a'} strokeWidth="1" />
+                  <circle cx={n.x} cy={n.y} r={active ? 6.5 : 4.5} fill={active ? '#fff' : '#e6b450'} stroke="#e6b450" strokeWidth={active ? 2 : 0} />
+                </g>
+              );
+            })}
+            {hovered && (() => {
+              const label = hovered.entry.label.length > 46 ? `${hovered.entry.label.slice(0, 45)}…` : hovered.entry.label;
+              const chapter = hovered.entry.chapterId ? `Cap ${hovered.entry.chapterNumber ?? '·'}${hovered.entry.chapterTitle ? ` · ${hovered.entry.chapterTitle}` : ''}` : 'non ancorato a un capitolo';
+              const boxW = 250;
+              const bx = Math.max(6, Math.min(model.width - boxW - 6, hovered.x - boxW / 2));
+              const below = hovered.y < 96;
+              const by = below ? hovered.y + 14 : hovered.y - 74;
+              return (
+                <g className="tl-tip" pointerEvents="none">
+                  <rect x={bx} y={by} width={boxW} height={62} rx={8} fill="#0c0f18" stroke="#2a3145" />
+                  <text x={bx + 12} y={by + 20} fill="#eaecf2" fontSize="12.5" fontWeight="600">{label}</text>
+                  <text x={bx + 12} y={by + 38} fill="#e6b450" fontSize="11" fontFamily="ui-monospace, monospace">{hovered.entry.date ?? '—'}</text>
+                  <text x={bx + 12} y={by + 54} fill="#9aa3b8" fontSize="11">{chapter.length > 40 ? `${chapter.slice(0, 39)}…` : chapter}</text>
+                </g>
+              );
+            })()}
+          </svg>
+        </div>
+      )}
+
+      {model.framePts.length > 0 && (
         <section className="novel-block">
-          <h3><span className="chapter-plane main">storia principale</span> <small>{groups.main.length}</small></h3>
-          <div className="tl-list">{groups.main.map(renderRow)}</div>
+          <h3><span className="chapter-plane frame">cornice</span> 2080 <small>{model.framePts.length}</small></h3>
+          <div className="tl-frame-rail">
+            {model.framePts.map((p) => (
+              <button key={p.entry.id} className="tl-chip frame" onClick={() => openEntry(p.entry)}>
+                <span className="tl-chip-date">{p.entry.date ?? '—'}</span>
+                {p.entry.label}
+              </button>
+            ))}
+          </div>
         </section>
       )}
-      {groups.frame.length > 0 && (
+
+      {model.celestial.length > 0 && (
         <section className="novel-block">
-          <h3><span className="chapter-plane frame">cornice</span> <small>{groups.frame.length}</small></h3>
-          <div className="tl-list">{groups.frame.map(renderRow)}</div>
+          <h3><span className="chapter-plane celestial">passato celeste</span> pre-storia <small>{model.celestial.length}</small></h3>
+          <p className="novel-note">Eventi del passato angelico (pre-2020) fuori dalla cronologia terrena: si "sbloccano" quando i personaggi ne prendono consapevolezza. Collegati a Gabriel/Lisa e ancorati via <span className="edge-kind">revealed_in</span> al capitolo della rivelazione.</p>
+          <div className="tl-frame-rail">
+            {model.celestial.map((entry) => (
+              <button key={entry.id} className="tl-chip celestial" onClick={() => openEntry(entry)}>{entry.label}</button>
+            ))}
+          </div>
         </section>
       )}
-      {groups.unanchored.length > 0 && (
+
+      {model.undated.length > 0 && (
         <section className="novel-block">
-          <h3>Non ancorati <small>{groups.unanchored.length}</small></h3>
-          <div className="tl-list">{groups.unanchored.map(renderRow)}</div>
+          <h3>Eventi non datati <small>{model.undated.length}</small></h3>
+          <p className="novel-note">Senza data derivabile dal capitolo collegato — candidati alla bonifica (ancoraggio a un capitolo).</p>
+          <div className="tl-frame-rail">
+            {model.undated.slice(0, 60).map((entry) => (
+              <button key={entry.id} className="tl-chip none" onClick={() => openEntry(entry)}>{entry.label}</button>
+            ))}
+            {model.undated.length > 60 && <span className="muted">+{model.undated.length - 60} altri</span>}
+          </div>
         </section>
       )}
+
       {!entries.length && <div className="empty-state">Nessun evento timeline</div>}
     </div>
   );
@@ -449,15 +760,95 @@ const AXES: { key: string; label: string; desc: string; semantic?: boolean }[] =
   { key: 'cronologia', label: 'Cronologia', desc: 'Date/ordine coerenti con la timeline e i capitoli adiacenti.' },
 ];
 
-function EditorialePanel({ drafts, onOpen }: { drafts: KgNode[]; onOpen: (id: string, type: string) => void }) {
+const PROMPT_GROUPS: { group: string; prompts: { id: string; title: string; body: string }[] }[] = [
+  {
+    group: 'Preparazione & contesto',
+    prompts: [
+      { id: 'ctx-cap', title: 'Context packet del capitolo', body: 'Usando il modello neurale (MCP Romanzo_Gabriele: novel_recall_context / kg_search / kg_neighbors), preparami il context packet completo per scrivere il {CAPITOLO}: beat e sinossi canonici, personaggi coinvolti con caratterizzazione, voce e aspetto, eventi di timeline e date pertinenti, regole di mondo (world_rule) e vincoli narrativi (narrative_constraint) applicabili, regole di stile/POV (style_rule), fili narrativi (plot_thread) da chiudere o seminare, e i riferimenti (mentions) collegati. Elenca infine le incongruenze potenziali da evitare.' },
+      { id: 'load-char-point', title: 'Carica un personaggio a un punto della storia', body: 'Dammi lo stato canonico di {PERSONAGGIO} esattamente al momento «{MOMENTO}» (es. "Cap. 17" o "05/10/2020"): aspetto fisico in quel momento, stato emotivo, conoscenze/consapevolezza (cosa sa e cosa ignora), poteri disponibili, relazioni attive e loro tono. Ricava tutto dai character_state / emotional_state / knowledge_state ancorati a quella data nel grafo; non inventare nulla oltre il canone.' },
+      { id: 'load-story-ctx', title: 'Carica il contesto della storia a un punto', body: 'Ricostruisci il contesto della storia al momento «{MOMENTO}»: quali capitoli lo precedono, quali eventi di timeline sono già avvenuti, lo stato dei fili narrativi aperti, chi sa cosa, e i vincoli di worldbuilding attivi. Usa gli strumenti MCP per leggere dal grafo e cita i nodi/date.' },
+    ],
+  },
+  {
+    group: 'Personaggi vivi (impersonazione)',
+    prompts: [
+      { id: 'impersona', title: 'Impersona un personaggio in una scena', body: 'Impersona {PERSONAGGIO} attenendoti rigorosamente alla sua natura canonica nel modello neurale (personalità, valori, voce, aspetto, arco, relazioni e stato al momento della scena). Scena: «{SCENA}». Come agisce, cosa pensa, cosa dice? Resta in personaggio e segnala se qualcosa nella scena lo forzerebbe fuori carattere.' },
+      { id: 'interazione', title: 'Fai interagire due personaggi', body: 'Fai interagire {PERSONAGGIO} e {ALTRO_PERSONAGGIO} come due agenti distinti, ciascuno fedele alla propria caratterizzazione canonica e al proprio stato in quel punto della storia. Contesto: «{SCENA}». Improvvisate dialogo e azione per far emergere le dinamiche autentiche (potere, affetto, conflitto). Alla fine sintetizza cosa insegna questa interazione su come scrivere la scena.' },
+      { id: 'autovaluta', title: 'Il personaggio si valuta nel capitolo', body: 'Impersona {PERSONAGGIO} e leggi il testo del {CAPITOLO} qui incollato. Ti riconosci? Indica i punti in cui NON ti riconosci (battute, reazioni, pensieri fuori carattere) citando il testo, e proponi come riscriverli per essere fedele alla tua vera natura canonica. Elenca 3–7 feedback puntuali e concreti.' },
+    ],
+  },
+  {
+    group: 'Revisione & verifica',
+    prompts: [
+      { id: 'assi5', title: 'Revisione sui 5 assi', body: 'Valuta la bozza del {CAPITOLO} (incollata sotto) contro il modello consolidato sui 5 assi: (1) coerenza col canone, (2) ridondanza vs capitoli già scritti, (3) antipattern narrativi, (4) aderenza di stile/POV alle style_rule, (5) cronologia/date. Per ogni rilievo indica: severità, citazione dal testo, riferimento al canone (nodo/sezione), fix proposto.' },
+      { id: 'aspetto', title: 'Coerenza descrittiva dell’aspetto', body: 'Verifica che l’aspetto fisico di {PERSONAGGIO} nel testo incollato sia coerente al 100% con la descrizione canonica nel modello neurale. Per il Nonno: l’aspetto deve essere IDENTICO in ogni scena di cornice (Prologo, Interludi, Epilogo). Segnala ogni discrepanza con citazione del testo e correzione basata sul canone.' },
+      { id: 'verifica-elemento', title: 'Verifica un elemento contro TUTTO il modello', body: 'Prima di affermare qualsiasi cosa su «{ELEMENTO}», verificalo contro l’INTERO modello neurale usando gli strumenti MCP (kg_search, kg_neighbors, kg_get_node): trova TUTTE le occorrenze, gli archi e i vincoli collegati, e controlla la coerenza temporale e causale. Esempio di errore da evitare: dire che il ciondolo del Nonno non poteva essere visto la sera del Prologo, quando nel modello quel ciondolo viene mostrato alle nipoti nell’Epilogo — la stessa sera (27/12/2080). NON dedurre nulla che non sia verificato nel grafo; se un’affermazione contraddice il modello, dillo esplicitamente citando i nodi/archi coinvolti.' },
+      { id: 'prosa-canon', title: 'Estrazione prosa → canone', body: 'Dalla versione approvata del {CAPITOLO} estrai i nuovi dettagli canonici emersi nella prosa (fatti, oggetti, luoghi, relazioni, date, stati dei personaggi) e proponimeli come nodi/archi da consolidare nel modello neurale, con provenienza "chapter-{N}-draft". Prima di scrivere, segnala eventuali contraddizioni col canone esistente e attendi conferma.' },
+    ],
+  },
+];
+
+function EditorialePanel({ drafts, characters, onOpen }: { drafts: KgNode[]; characters: KgNode[]; onOpen: (id: string, type: string) => void }) {
+  const [persona, setPersona] = useState('');
+  const [copied, setCopied] = useState<string | null>(null);
+  const charGroups = useMemo(() => {
+    const map = new Map<string, KgNode[]>();
+    for (const node of characters) {
+      const key = characterCategory(node);
+      const list = map.get(key) ?? [];
+      list.push(node);
+      map.set(key, list);
+    }
+    return CHARACTER_CATEGORY_ORDER.filter((key) => map.has(key)).map((key) => ({ key, items: map.get(key)!.slice().sort((a, b) => a.label.localeCompare(b.label)) }));
+  }, [characters]);
+  const copyPrompt = (id: string, body: string): void => {
+    const text = persona ? body.replaceAll('{PERSONAGGIO}', persona) : body;
+    void navigator.clipboard?.writeText(text);
+    setCopied(id);
+  };
   return (
     <div className="novel-panel">
       <div className="novel-head">
         <h2>Cockpit Editoriale</h2>
         <p className="novel-sub">
-          Plancia dello stato editoriale. La valutazione qualitativa della prosa avviene <b>in chat</b> con il modello sul context packet (canone come ground truth); la pipeline MCP <span className="edge-kind">novel_*</span> persiste bozze e decisioni. Il FE resta di sola lettura.
+          Prompt pronti da incollare in chat con il modello collegato al grafo via <span className="edge-kind">MCP</span>: sfruttano il modello neurale in stesura e revisione. La valutazione qualitativa della prosa avviene in chat sul canone (ground truth); la pipeline <span className="edge-kind">novel_*</span> persiste bozze e decisioni. Il FE resta di sola lettura.
         </p>
       </div>
+
+      <section className="novel-block">
+        <h3>Prompt preimpostati</h3>
+        <div className="persona-pick">
+          <label>Personaggio da impersonare</label>
+          <select value={persona} onChange={(event) => setPersona(event.target.value)}>
+            <option value="">— nessuno (lascio il segnaposto) —</option>
+            {charGroups.map((group) => (
+              <optgroup key={group.key} label={group.key}>
+                {group.items.map((node) => <option key={node.id} value={node.label}>{node.label}</option>)}
+              </optgroup>
+            ))}
+          </select>
+          <span className="persona-hint">sostituisce <code>{'{PERSONAGGIO}'}</code> alla copia. Impersonabile ogni personaggio: protagonisti, principali, forze sovrannaturali, secondari e cornice, o chi compare esplicitamente nel capitolo.</span>
+        </div>
+        {PROMPT_GROUPS.map((section) => (
+          <div className="prompt-section" key={section.group}>
+            <div className="prompt-section-h">{section.group}</div>
+            <div className="prompt-grid">
+              {section.prompts.map((prompt) => (
+                <div className="prompt-card" key={prompt.id}>
+                  <div className="prompt-card-h">
+                    <b>{prompt.title}</b>
+                    <button className="prompt-copy" onClick={() => copyPrompt(prompt.id, prompt.body)} title="Copia negli appunti">
+                      {copied === prompt.id ? <><Check size={13} />copiato</> : <><Copy size={13} />copia</>}
+                    </button>
+                  </div>
+                  <p className="prompt-body">{persona ? prompt.body.replaceAll('{PERSONAGGIO}', persona) : prompt.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+
       <section className="novel-block">
         <h3>Bozze &amp; sessioni <small>{drafts.length}</small></h3>
         {drafts.length === 0 ? (
@@ -483,7 +874,7 @@ function EditorialePanel({ drafts, onOpen }: { drafts: KgNode[]; onOpen: (id: st
             </div>
           ))}
         </div>
-        <p className="novel-note">La ridondanza semantica cross-capitolo si attiva dopo il redeploy NAS + <span className="edge-kind">kg_backfill_embeddings</span> (config Ollama già in main). Gli altri assi sono ancorati alla Bibbia consolidata.</p>
+        <p className="novel-note">La ridondanza semantica cross-capitolo richiede embeddings attivi (attualmente disabilitati, nessun modello locale). Gli altri quattro assi sono ancorati alla Bibbia consolidata e già pienamente operativi.</p>
       </section>
     </div>
   );
@@ -712,6 +1103,8 @@ export function App() {
   const [characters, setCharacters] = useState<KgNode[]>([]);
   const [arcs, setArcs] = useState<KgNode[]>([]);
   const [world, setWorld] = useState<KgNode[]>([]);
+  const [themes, setThemes] = useState<KgNode[]>([]);
+  const [styleGuide, setStyleGuide] = useState<KgNode[]>([]);
   const [entityPacket, setEntityPacket] = useState<EntityPacket | null>(null);
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
   const [health, setHealth] = useState<HealthReport | null>(null);
@@ -812,14 +1205,42 @@ export function App() {
     setLoading(true);
     setError(null);
     try {
-      const [rules, powers] = await Promise.all([listKgNodes(200, 'world_rule'), listKgNodes(200, 'power')]);
-      setWorld([...rules.nodes, ...powers.nodes]);
+      const parts = await Promise.all(WORLD_TYPES.map((type) => listKgNodes(200, type)));
+      setWorld(parts.flatMap((part) => part.nodes));
     } catch (err) {
       setError(String(err));
     } finally {
       setLoading(false);
     }
   }, [world.length]);
+
+  const loadThemes = useCallback(async () => {
+    if (themes.length) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const parts = await Promise.all(THEME_TYPES.map((type) => listKgNodes(200, type)));
+      setThemes(parts.flatMap((part) => part.nodes));
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [themes.length]);
+
+  const loadStyle = useCallback(async () => {
+    if (styleGuide.length) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const parts = await Promise.all(STYLE_TYPES.map((type) => listKgNodes(200, type)));
+      setStyleGuide(parts.flatMap((part) => part.nodes));
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [styleGuide.length]);
 
   const loadHealth = useCallback(async () => {
     setLoading(true);
@@ -854,7 +1275,7 @@ export function App() {
       return;
     }
     setSelectedId(id);
-    setTab((current) => ENTITY_TAB[type] ?? (current === 'personaggio' || current === 'arco' || current === 'mondo' ? current : 'personaggio'));
+    setTab((current) => ENTITY_TAB[type] ?? (KEEP_TAB.has(current) ? current : 'personaggio'));
     setLoading(true);
     setError(null);
     try {
@@ -1053,10 +1474,12 @@ export function App() {
             <button className={tab === 'personaggio' ? 'active' : ''} onClick={() => { setTab('personaggio'); void loadCharacters(); }}><Users size={15} />Personaggi</button>
             <button className={tab === 'arco' ? 'active' : ''} onClick={() => { setTab('arco'); void loadArcs(); }}><GitBranch size={15} />Archi</button>
             <button className={tab === 'mondo' ? 'active' : ''} onClick={() => { setTab('mondo'); void loadWorld(); }}><Globe2 size={15} />Mondo</button>
+            <button className={tab === 'temi' ? 'active' : ''} onClick={() => { setTab('temi'); void loadThemes(); }}><Sparkles size={15} />Temi</button>
+            <button className={tab === 'stile' ? 'active' : ''} onClick={() => { setTab('stile'); void loadStyle(); }}><Feather size={15} />Stile &amp; Regole</button>
           </div>
           <div className="nav-group">Lavoro</div>
           <div className="tabs" role="tablist">
-            <button className={tab === 'editoriale' ? 'active' : ''} onClick={() => { setTab('editoriale'); void loadDrafts(); }}><PenLine size={15} />Editoriale</button>
+            <button className={tab === 'editoriale' ? 'active' : ''} onClick={() => { setTab('editoriale'); void loadDrafts(); void loadCharacters(); }}><PenLine size={15} />Editoriale</button>
             <button className={tab === 'search' ? 'active' : ''} onClick={() => setTab('search')}><Search size={15} />Grafo</button>
             <button className={tab === 'openPoints' ? 'active' : ''} onClick={() => { setTab('openPoints'); void loadOpenPoints(); }}><ListChecks size={15} />Punti aperti</button>
             <button className={tab === 'documents' ? 'active' : ''} onClick={() => { setTab('documents'); void loadDocuments(); }}><FileText size={15} />Documenti</button>
@@ -1146,11 +1569,15 @@ export function App() {
           ) : tab === 'romanzo' || tab === 'capitolo' ? (
             <ChapterNavList chapters={chapters} selectedId={selectedId} onOpen={(id) => void openChapter(id)} />
           ) : tab === 'personaggio' ? (
-            <EntityNavList nodes={characters} selectedId={selectedId} onOpen={(id) => void openEntity(id, 'character')} />
+            <GroupedNavList nodes={characters} groupOf={characterCategory} order={CHARACTER_CATEGORY_ORDER} selectedId={selectedId} onOpen={(node) => void openEntity(node.id, 'character')} />
           ) : tab === 'arco' ? (
             <EntityNavList nodes={arcs} selectedId={selectedId} onOpen={(id) => void openEntity(id, 'plot_thread')} />
           ) : tab === 'mondo' ? (
-            <EntityNavList nodes={world} selectedId={selectedId} onOpen={(id) => void openEntity(id, world.find((node) => node.id === id)?.type ?? 'world_rule')} />
+            <GroupedNavList nodes={world} groupOf={(node) => labelFor(node.type)} order={WORLD_TYPES.map(labelFor)} selectedId={selectedId} onOpen={(node) => void openEntity(node.id, node.type)} />
+          ) : tab === 'temi' ? (
+            <GroupedNavList nodes={themes} groupOf={themeGroup} order={['Livello 1 — Temi architettonici', 'Livello 2 — Temi evolutivi', 'Livello 3 — Temi relazionali', 'Livello 4 — Temi esistenziali', 'Motivi ricorrenti', 'Altri temi']} selectedId={selectedId} onOpen={(node) => void openEntity(node.id, node.type)} />
+          ) : tab === 'stile' ? (
+            <GroupedNavList nodes={styleGuide} groupOf={(node) => labelFor(node.type)} order={STYLE_TYPES.map(labelFor)} selectedId={selectedId} onOpen={(node) => void openEntity(node.id, node.type)} />
           ) : tab === 'timeline' || tab === 'coerenza' || tab === 'editoriale' ? (
             <div className="empty-state">Contenuto nel pannello →</div>
           ) : (
@@ -1198,14 +1625,14 @@ export function App() {
             <RomanzoPanel chapters={chapters} selectedId={selectedId} onOpen={(id) => void openChapter(id)} />
           ) : tab === 'capitolo' ? (
             <CapitoloPanel packet={chapterPacket} onOpen={(id, type) => void openEntity(id, type)} />
-          ) : tab === 'personaggio' || tab === 'arco' || tab === 'mondo' ? (
+          ) : tab === 'personaggio' || tab === 'arco' || tab === 'mondo' || tab === 'temi' || tab === 'stile' ? (
             <EntityPanel packet={entityPacket} onOpen={(id, type) => void openEntity(id, type)} />
           ) : tab === 'timeline' ? (
             <TimelinePanel entries={timeline} onOpenChapter={(id) => void openChapter(id)} onOpenEntity={(id) => void openEntity(id, 'timeline_event')} />
           ) : tab === 'coerenza' ? (
             <CoerenzaPanel health={health} onOpenPoints={() => { setTab('openPoints'); void loadOpenPoints(); }} />
           ) : tab === 'editoriale' ? (
-            <EditorialePanel drafts={drafts} onOpen={(id, type) => void openEntity(id, type)} />
+            <EditorialePanel drafts={drafts} characters={characters} onOpen={(id, type) => void openEntity(id, type)} />
           ) : graph.nodes.length > 0 ? (
             <ForceGraph2D<GNode, GLink>
               width={dims.width}

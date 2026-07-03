@@ -14,6 +14,11 @@
     "docker:config:deploy": "docker compose --env-file .env.deploy.dev -f docker-compose.yml config",
     "docker:config:deploy:tunnel": "docker compose --env-file .env.deploy.dev -f docker-compose.yml -f docker-compose.cloudflare.yml config",
 
+    "docker:build:dev": "docker compose --env-file .env.dev -f docker-compose.yml build",
+    "docker:build:deploy": "docker compose --env-file .env.deploy.dev -f docker-compose.yml build",
+    "docker:build:up:dev": "docker compose --env-file .env.dev -f docker-compose.yml build && docker compose --env-file .env.dev -f docker-compose.yml up -d --remove-orphans",
+    "docker:build:up:deploy": "docker compose --env-file .env.deploy.dev -f docker-compose.yml build && docker compose --env-file .env.deploy.dev -f docker-compose.yml up -d --remove-orphans",
+
     "docker:up:dev": "docker compose --env-file .env.dev -f docker-compose.yml up -d",
     "docker:up:dev:tunnel": "docker compose --env-file .env.dev -f docker-compose.yml -f docker-compose.cloudflare.yml up -d",
     "docker:up:deploy": "docker compose --env-file .env.deploy.dev -f docker-compose.yml up -d",

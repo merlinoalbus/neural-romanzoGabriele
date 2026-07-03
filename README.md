@@ -23,10 +23,13 @@ Portainer esegue:
 - `romanzo_gabriele_be`
 - `romanzo_gabriele_mcp`
 - `romanzo_gabriele_neo4j`
+- `romanzo_gabriele_ollama` + `romanzo_gabriele_ollama_init` — provider di embeddings locale (vedi [Embeddings vettoriali](#embeddings-vettoriali))
 - `romanzo_gabriele_watchtower`
 
 Il server MCP canonico per i connector IA e `https://devrn-romanzo-mcp.nasmerlinoalbus.cloud/mcp`.
 In locale puo essere esposto separatamente tramite `MCP_HOST_PORT`, usando `MCP_URL` come override esplicito negli script.
+
+Con l'overlay `docker-compose.cloudflare.yml` (`romanzo_gabriele_cloudflared`), il tunnel gira su **2 repliche**: pattern standard Cloudflare per alta disponibilita' — piu connettori registrati sullo stesso token, l'edge bilancia/fa failover automaticamente. Gli altri servizi (`fe`, `be`, `mcp`, `neo4j`) restano a istanza singola: `neo4j` perche' Community Edition non fa clustering (scrittore singolo), `ollama` perche' e' legato a un'unica GPU fisica dell'host.
 
 ## Flusso Narrativo
 
@@ -68,6 +71,29 @@ docker compose up -d --build
 
 Il frontend viene servito da `FE_HOST_PORT`; il backend legge Neo4j in sola lettura per la UI; il server MCP scrive nel grafo tramite strumenti controllati.
 
+### Build e deploy di tutti i microservizi
+
+Script root (`package.json`) per costruire in locale (da `Dockerfile.frontend`, `Dockerfile.backend`, `Dockerfile.mcp`) invece di scaricare le immagini gia pubblicate, e avviare l'intero stack — **Cloudflared resta escluso**, va avviato a parte con l'overlay `docker-compose.cloudflare.yml` quando serve:
+
+```bash
+npm run docker:build:dev        # build immagini locali (ambiente dev)
+npm run docker:build:up:dev     # build + avvio completo (ambiente dev)
+npm run docker:build:deploy     # build immagini locali (ambiente deploy)
+npm run docker:build:up:deploy  # build + avvio completo (ambiente deploy)
+```
+
+### Prerequisito GPU per gli embeddings locali (Ollama)
+
+`romanzo_gabriele_ollama` richiede una GPU Nvidia passata al container. Sull'host, una tantum:
+
+```bash
+# installare NVIDIA Container Toolkit, poi:
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+```
+
+Verifica: `docker compose exec romanzo_gabriele_ollama nvidia-smi` deve mostrare la scheda video; il tool MCP `kg_embedding_status` deve riportare `configured: true` dopo il primo avvio di `romanzo_gabriele_ollama_init`.
+
 ## Tool MCP
 
 Tool generici mantenuti:
@@ -84,13 +110,15 @@ Tool generici mantenuti:
 
 Il server MCP supporta embeddings reali OpenAI-compatible per ricerca semantica profonda sul grafo. Non genera vettori fittizi: se il provider non e configurato, `kg_backfill_embeddings` e `kg_semantic_search` restituiscono errore operativo.
 
+**Default: Ollama locale, nessuna chiave a pagamento.** Lo stack include `romanzo_gabriele_ollama` (servizio) e `romanzo_gabriele_ollama_init` (scarica il modello `qwen3-embedding:8b` e lo ricrea con un context window esteso a 8192 token — vedi `ollama/Modelfile.embeddings` — per non troncare in silenzio capitoli lunghi). Il server MCP punta a questo servizio out of the box (`EMBEDDINGS_BASE_URL=http://romanzo_gabriele_ollama:11434/v1`, dimensioni ridotte a 1536 per un indice vettoriale piu leggero). Per usare un provider esterno (OpenAI, Voyage, ecc.) basta sovrascrivere le variabili sotto.
+
 Variabili supportate:
 
 - `EMBEDDINGS_PROVIDER=openai-compatible`
 - `EMBEDDINGS_API_KEY`
-- `EMBEDDINGS_BASE_URL`, default `https://api.openai.com/v1`
-- `EMBEDDINGS_MODEL`
-- `EMBEDDINGS_DIMENSIONS`, opzionale
+- `EMBEDDINGS_BASE_URL`, default locale `http://romanzo_gabriele_ollama:11434/v1`
+- `EMBEDDINGS_MODEL`, default `qwen3-embedding-8b-ctx8k`
+- `EMBEDDINGS_DIMENSIONS`, default `1536`
 - `EMBEDDINGS_TIMEOUT_MS`, default `30000`
 
 Fallback compatibili:

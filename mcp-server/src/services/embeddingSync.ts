@@ -26,6 +26,14 @@ export async function embedNode(nodeId: string, settings: EmbeddingSettings = ge
   try {
     const text = embeddingText(node);
     const vector = await embedText(text, settings);
+    try {
+      // Idempotent (IF NOT EXISTS): makes the semantic gate self-sufficient from the very first
+      // commit after activation, instead of silently depending on someone remembering to run
+      // kg_backfill_embeddings once. A transient failure here must not block the embedding write.
+      await kg.createEmbeddingIndex(vector.length);
+    } catch {
+      // best-effort
+    }
     await kg.writeNodeEmbedding(nodeId, vector, {
       provider: settings.provider,
       model: settings.model,

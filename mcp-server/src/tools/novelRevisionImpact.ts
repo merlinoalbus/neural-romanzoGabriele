@@ -17,6 +17,13 @@ import { errorObj, toolError, toolStructured } from './responseHelpers.js';
 const MAX_NEIGHBORS_PER_FACT = 30;
 const MAX_SEMANTIC_CHECKS_PER_FACT = 15;
 const SEMANTIC_LIKELY_AFFECTED_THRESHOLD = 0.75;
+// Below this cosine similarity between a fact's OLD and NEW content, the meaning has shifted
+// enough to warrant a human read even when hasPolarityConflict (lexical, dictionary-based) does
+// not fire — a rewording can contradict the original fact without using any of the polarity
+// dictionary's phrases. This is a "review recommended" signal, not a contradiction claim: low
+// embedding similarity does not reliably indicate truth-value opposition, only substantial
+// semantic drift.
+const SEMANTIC_MEANING_SHIFT_THRESHOLD = 0.7;
 
 const IMPACT_RELATION_KINDS = [
   'precedes',
@@ -89,7 +96,7 @@ export function registerNovelRevisionImpactTools(server: McpServer): void {
     {
       title: 'Novel scan revision impact',
       description:
-        'Read-only: for each canonical fact a chapter revision changes, walks the graph 1-2 hops to surface nodes that plausibly assumed the OLD version, and flags direct polarity conflicts (e.g. "sa" vs "non sa"). Never rewrites anything — only produces a report for explicit confirmation before the revision session closes. Required on the Revision path, not applicable to a fresh chapter with no prior canonical version.',
+        'Read-only: for each canonical fact a chapter revision changes, walks the graph 1-2 hops to surface nodes that plausibly assumed the OLD version, and flags direct polarity conflicts (e.g. "sa" vs "non sa"). When embeddings are configured, also compares the OLD and NEW content of the changed fact itself by meaning (not just the lexical dictionary) and flags a substantial semantic shift as a review signal — distinct from directPolarityConflict, since low embedding similarity means "reread this," not "this is a contradiction." Never rewrites anything — only produces a report for explicit confirmation before the revision session closes. Required on the Revision path, not applicable to a fresh chapter with no prior canonical version.',
       inputSchema: {
         chapterNumber: z.number().int().positive().optional(),
         role: z.enum(CHAPTER_SECTION_ROLES).optional(),
@@ -102,6 +109,10 @@ export function registerNovelRevisionImpactTools(server: McpServer): void {
           oldContent: z.string(),
           newContent: z.string(),
           directPolarityConflict: z.boolean(),
+          semanticMeaningShift: z.object({
+            similarity: z.number(),
+            reviewRecommended: z.boolean(),
+          }).optional(),
           potentiallyImpactedNodes: z.array(z.object({
             node: nodeZ,
             relationKinds: z.array(z.string()),
@@ -150,6 +161,17 @@ export function registerNovelRevisionImpactTools(server: McpServer): void {
             }
           }
 
+          let semanticMeaningShift: { similarity: number; reviewRecommended: boolean } | undefined;
+          if (semantic && oldContentVector && fact.newContent.trim()) {
+            try {
+              const newContentVector = await semantic.embedText(fact.newContent);
+              const similarity = cosineSimilarity(oldContentVector, newContentVector);
+              semanticMeaningShift = { similarity, reviewRecommended: similarity < SEMANTIC_MEANING_SHIFT_THRESHOLD };
+            } catch {
+              semanticMeaningShift = undefined;
+            }
+          }
+
           const potentiallyImpactedNodes = [];
           for (const [index, neighborNode] of neighborNodes.entries()) {
             let likelyAssumesOldFact: boolean | undefined;
@@ -168,11 +190,15 @@ export function registerNovelRevisionImpactTools(server: McpServer): void {
             });
           }
 
-          impacts.push({ changedNode, oldContent, newContent: fact.newContent, directPolarityConflict, potentiallyImpactedNodes });
+          impacts.push({ changedNode, oldContent, newContent: fact.newContent, directPolarityConflict, semanticMeaningShift, potentiallyImpactedNodes });
         }
 
         const requiresConfirmation = impacts.some(
-          (impact) => impact.directPolarityConflict || impact.potentiallyImpactedNodes.some((entry) => entry.likelyAssumesOldFact) || impact.potentiallyImpactedNodes.length > 0,
+          (impact) =>
+            impact.directPolarityConflict ||
+            impact.semanticMeaningShift?.reviewRecommended ||
+            impact.potentiallyImpactedNodes.some((entry) => entry.likelyAssumesOldFact) ||
+            impact.potentiallyImpactedNodes.length > 0,
         );
 
         return toolStructured({ ok: true, impacts, requiresConfirmation });

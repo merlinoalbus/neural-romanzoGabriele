@@ -1,12 +1,8 @@
 services:
   romanzo_gabriele_cloudflared:
     image: cloudflare/cloudflared:latest
+    container_name: romanzo_gabriele_cloudflared
     restart: unless-stopped
-    # 2 repliche: pattern standard di Cloudflare per l'alta disponibilita' del tunnel — piu
-    # connettori registrati sullo stesso token, l'edge di Cloudflare bilancia/fa failover tra
-    # loro automaticamente. Nessun container_name fisso (conflitterebbe con le repliche).
-    deploy:
-      replicas: 2
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN must be set}
     depends_on:
       - romanzo_gabriele_fe

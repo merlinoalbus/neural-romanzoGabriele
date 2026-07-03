@@ -596,7 +596,7 @@ const TL_PAD = 64;
 const TL_MIN_PPD = 0.5;
 const TL_MAX_PPD = 48;
 const TL_LANE_H = 20;
-const TL_FIXED_H = 700; // fixed timeline canvas height (~3x the old lane-driven height)
+const TL_FIXED_H = 400; // fixed timeline canvas height
 const dmShort = (day: number): string => `${String(new Date(day).getUTCDate()).padStart(2, '0')}/${String(new Date(day).getUTCMonth() + 1).padStart(2, '0')}`;
 const dmFull = (day: number): string => { const d = new Date(day); return `${String(d.getUTCDate()).padStart(2, '0')} ${MONTHS_IT[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 
@@ -1432,8 +1432,8 @@ export function App() {
   const [graph, setGraph] = useState<{ nodes: GNode[]; links: GLink[] }>({ nodes: [], links: [] });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<KgNode | null>(null);
-  const [tab, setTab] = useState<Tab>('search');
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ Panoramica: false, 'Entità': false, Lavoro: true });
+  const [tab, setTab] = useState<Tab>('romanzo');
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ Panoramica: true, 'Entità': false, Lavoro: false });
   const toggleGroup = useCallback((group: string) => setOpenGroups((state) => ({ ...state, [group]: !state[group] })), []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1646,6 +1646,11 @@ export function App() {
   useEffect(() => {
     void loadNodes().catch((err) => setError(String(err)));
   }, [loadNodes]);
+
+  // Default view is Romanzo: load the chapter list on mount.
+  useEffect(() => {
+    void loadChapters().catch((err) => setError(String(err)));
+  }, [loadChapters]);
 
   useEffect(() => {
     const element = graphRef.current;

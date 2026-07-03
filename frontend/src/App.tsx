@@ -604,6 +604,7 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
   const [hover, setHover] = useState<string | null>(null);
   const [pxPerDay, setPxPerDay] = useState(0);
   const [containerW, setContainerW] = useState(0);
+  const [cluster, setCluster] = useState<{ x: number; items: { entry: TimelineEntry; day: number }[] } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<{ day: number; clientX: number } | null>(null);
   const ppdRef = useRef(1);
@@ -643,6 +644,9 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
   ppdRef.current = ppd;
   minRef.current = base.min;
 
+  // A stale popover (anchored at an old x) must close when the scale changes.
+  useEffect(() => setCluster(null), [ppd]);
+
   const layout = useMemo(() => {
     const laneRight: number[] = [];
     const items = base.main.map((p) => {
@@ -654,6 +658,17 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
       if (lane !== -1) laneRight[lane] = x + labelW;
       return { entry: p.entry, day: p.day, x, lane };
     });
+    // Events that could not get a labelled lane (dense/same-date columns) are grouped into
+    // "+N" chips whose popover lists them all — so nothing is unreachable beyond the lane cap.
+    const chipMap = new Map<number, { entry: TimelineEntry; day: number; x: number }[]>();
+    for (const n of items) {
+      if (n.lane >= 0) continue;
+      const key = Math.round(n.x / 42);
+      const arr = chipMap.get(key) ?? [];
+      arr.push({ entry: n.entry, day: n.day, x: n.x });
+      chipMap.set(key, arr);
+    }
+    const chips = [...chipMap.values()].map((its) => ({ x: Math.min(...its.map((i) => i.x)), items: its.slice().sort((a, b) => a.day - b.day) }));
     const usedLanes = Math.max(1, laneRight.length);
     const spineY = 14 + usedLanes * TL_LANE_H + 12;
     const width = ((base.max - base.min) / DAY_MS) * ppd + TL_PAD * 2 + 240;
@@ -673,7 +688,7 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
       }
       if (ppd >= 13) for (let day = base.min; day <= base.max; day += DAY_MS) dayTicks.push(((day - base.min) / DAY_MS) * ppd + TL_PAD);
     }
-    return { items, spineY, width, height: spineY + 34, ticks, dayTicks };
+    return { items, chips, spineY, width, height: spineY + 34, ticks, dayTicks };
   }, [base, ppd]);
 
   // Restore the scroll position so the zoom stays anchored under the cursor / viewport centre.
@@ -720,7 +735,7 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
       <div className="novel-head">
         <h2>Timeline del romanzo</h2>
         <p className="novel-sub">
-          Cronologia <b>proporzionale</b> della storia principale: gli eventi sono in ordine di data e distanziati secondo il tempo reale (i vuoti tra i beat si vedono). Trascina la barra per scorrere, <b>Ctrl/⌘ + rotellina</b> o i pulsanti per lo zoom; click su un evento per aprirlo.
+          Cronologia <b>proporzionale</b> della storia principale: gli eventi sono in ordine di data e distanziati secondo il tempo reale (i vuoti tra i beat si vedono). Trascina la barra per scorrere, <b>Ctrl/⌘ + rotellina</b> o i pulsanti per lo zoom; click su un evento per aprirlo. Dove più eventi cadono nello stesso punto compare un chip <b>+N</b>: cliccalo per l'elenco completo.
         </p>
       </div>
       <div className="tl2-bar">
@@ -740,7 +755,7 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
 
       {base.main.length > 0 && (
         <div className="tl2-scroll" ref={scrollRef}>
-          <div className="tl2-canvas" style={{ width: layout.width, height: layout.height }}>
+          <div className="tl2-canvas" style={{ width: layout.width, height: layout.height }} onClick={() => setCluster(null)}>
             {layout.ticks.map((t, i) => {
               const next = layout.ticks[i + 1]?.x ?? layout.width;
               return (
@@ -784,6 +799,31 @@ function TimelinePanel({ entries, onOpenChapter, onOpenEntity }: { entries: Time
                 </div>
               );
             })}
+            {layout.chips.map((c, i) => (
+              <button
+                key={`c${i}`}
+                className="tl2-more"
+                style={{ left: c.x, top: layout.spineY - 22 }}
+                onClick={(ev) => { ev.stopPropagation(); setCluster({ x: c.x, items: c.items }); }}
+                title={`${c.items.length} eventi ravvicinati — clicca per l'elenco`}
+              >+{c.items.length}</button>
+            ))}
+            {cluster && (
+              <div className="tl2-pop" style={{ left: Math.max(4, Math.min(cluster.x, layout.width - 278)), top: 8 }} onClick={(ev) => ev.stopPropagation()}>
+                <div className="tl2-pop-h">
+                  <b>{cluster.items.length} eventi ravvicinati</b>
+                  <button className="tl2-pop-x" onClick={() => setCluster(null)} aria-label="Chiudi">×</button>
+                </div>
+                <div className="tl2-pop-list">
+                  {cluster.items.map((it) => (
+                    <button key={it.entry.id} className="tl2-pop-row" onClick={() => { openEntry(it.entry); setCluster(null); }}>
+                      <span className="tl2-card-d">{dmShort(it.day)}</span>
+                      <span className="tl2-pop-t">{it.entry.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -58,7 +58,7 @@ test('bulk delete node tool is registered as destructive and idempotent', () => 
   assert.equal(inputSchemaKeys(bulkDelete).includes('dryRun'), true);
 });
 
-test('dryRun is accepted only by the bulk delete node tool', () => {
+test('dryRun is accepted only by tools with a genuine preview mode', () => {
   const server = new McpServer({ name: 'test', version: '1.0.0' });
   registerKnowledgeGraphTools(server);
   registerNovelBibleTools(server);
@@ -71,7 +71,9 @@ test('dryRun is accepted only by the bulk delete node tool', () => {
     .map(([name]) => name)
     .sort();
 
-  assert.deepEqual(toolsWithDryRun, ['kg_delete_nodes']);
+  // kg_backfill_embeddings: dryRun lists the selected candidates without calling the provider
+  // or writing vectors (matches the flow documented in README.md).
+  assert.deepEqual(toolsWithDryRun, ['kg_backfill_embeddings', 'kg_delete_nodes']);
 });
 
 test('embedding runtime tools fail clearly when provider is not configured', async (t: TestContext) => {

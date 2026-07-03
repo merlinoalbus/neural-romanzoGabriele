@@ -451,6 +451,7 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
         limit: z.number().int().positive().optional(),
         type: z.string().optional(),
         missingOnly: z.boolean().optional(),
+        dryRun: z.boolean().optional(),
       },
       outputSchema: {
         ok: z.boolean(),
@@ -466,7 +467,7 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
       },
       annotations: { title: 'KG backfill embeddings', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ limit, type, missingOnly }) => {
+    async ({ limit, type, missingOnly, dryRun }) => {
       const settings = getEmbeddingSettings();
       const runtime = embeddingRuntimeStatus(settings);
       if (!runtime.configured) {
@@ -474,6 +475,16 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
       }
       try {
         const candidates = await kg.listEmbeddingCandidates({ limit, type, missingOnly });
+        if (dryRun) {
+          const planned = candidates.map((node) => ({ id: node.id, type: node.type, label: node.label, textHash: node.embeddingTextHash, status: 'planned' as const }));
+          return toolStructured({
+            ok: true,
+            runtime,
+            graph: await kg.embeddingStatus(),
+            candidates: planned,
+            summary: { selected: candidates.length, embedded: 0, failed: 0 },
+          });
+        }
         const results: Array<z.infer<typeof embeddingCandidateZ>> = [];
         let embedded = 0;
         let failed = 0;
@@ -509,7 +520,7 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
           summary: { selected: candidates.length, embedded, failed },
         });
       } catch (err) {
-        return toolError('KG_BACKFILL_EMBEDDINGS_FAILED', `kg_backfill_embeddings failed: ${String(err)}`, { type, limit, missingOnly });
+        return toolError('KG_BACKFILL_EMBEDDINGS_FAILED', `kg_backfill_embeddings failed: ${String(err)}`, { type, limit, missingOnly, dryRun });
       }
     },
   );

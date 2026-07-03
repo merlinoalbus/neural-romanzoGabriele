@@ -6,3 +6,4 @@ dist
 .env.*
 coverage
 npm-debug.log*
+mcp-server/.state

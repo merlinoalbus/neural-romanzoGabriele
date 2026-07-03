@@ -64,6 +64,13 @@ export const COMMITTABLE_BIBLE_NODE_TYPES = [
 
 export const COMMITTABLE_BIBLE_NODE_TYPE_SET: ReadonlySet<string> = new Set(COMMITTABLE_BIBLE_NODE_TYPES);
 
+/**
+ * Generic aliases: this whitelist of "canonical narrative" node types is not Bible-specific —
+ * it is the same set of committable canon types used by the chapter pipeline (chapterCandidates.ts).
+ */
+export const COMMITTABLE_CANON_NODE_TYPES = COMMITTABLE_BIBLE_NODE_TYPES;
+export const COMMITTABLE_CANON_NODE_TYPE_SET = COMMITTABLE_BIBLE_NODE_TYPE_SET;
+
 export interface BibleCandidateEvidenceSpan {
   startChar?: number;
   endChar?: number;
@@ -99,6 +106,16 @@ export interface BibleCandidate {
   rationale: string;
   metadata: Record<string, unknown>;
 }
+
+/**
+ * Generic aliases for the discrepancy engine (bibleDiscrepancy.ts), which is shared between
+ * the Bible pipeline and the chapter pipeline (chapterCandidates.ts). The shape carries no
+ * Bible-specific assumption beyond field naming: `evidence.sourceId` anchors to whichever
+ * document (Bible section or chapter) produced the candidate.
+ */
+export type ContentCandidate = BibleCandidate;
+export type ContentCandidateEndpoint = BibleCandidateEndpoint;
+export type ContentCandidateEvidence = BibleCandidateEvidence;
 
 export interface SectionForCandidateExtraction {
   id?: string;
@@ -433,3 +450,10 @@ export function validateBibleCandidateForCommit(candidate: BibleCandidate): stri
   }
   return errors;
 }
+
+/**
+ * Generic alias: the validation logic has no Bible-specific behaviour beyond the `bible_claim`
+ * special case (which chapter candidates simply never hit, since they use other committable
+ * types) — reused as-is by the chapter pipeline (chapterCandidates.ts).
+ */
+export const validateContentCandidateForCommit = validateBibleCandidateForCommit;

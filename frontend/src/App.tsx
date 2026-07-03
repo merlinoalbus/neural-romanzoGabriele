@@ -294,7 +294,10 @@ function RomanzoPanel({ chapters, selectedId, onOpen }: { chapters: ChapterSumma
 function CapitoloPanel({ packet, onOpen }: { packet: ChapterPacket | null; onOpen: (id: string, type: string) => void }) {
   if (!packet?.chapter) return <div className="graph-empty">Seleziona un capitolo</div>;
   const chapter = packet.chapter;
-  const isBookend = /^(prologo|epilogo)/i.test(chapter.label);
+  // Prefer the structured `role` metadata (set by the backend for Prologo/Epilogo chapter nodes);
+  // fall back to the label regex only for nodes written before that field existed.
+  const chapterRole = metaString(chapter, 'role');
+  const isBookend = chapterRole === 'prologo' || chapterRole === 'epilogo' || /^(prologo|epilogo)/i.test(chapter.label);
   const number = metaString(chapter, 'chapterNumber');
   const title = metaString(chapter, 'chapterTitle') ?? chapter.label;
   const plane = metaString(chapter, 'timePlane') ?? (isBookend ? 'frame' : null);
@@ -949,7 +952,7 @@ const PROMPT_GROUPS: { group: string; prompts: { id: string; title: string; body
       { id: 'assi5', title: 'Revisione sui 5 assi', body: 'Valuta la bozza del {CAPITOLO} (incollata sotto) contro il modello consolidato sui 5 assi: (1) coerenza col canone, (2) ridondanza vs capitoli già scritti, (3) antipattern narrativi, (4) aderenza di stile/POV alle style_rule, (5) cronologia/date. Per ogni rilievo indica: severità, citazione dal testo, riferimento al canone (nodo/sezione), fix proposto.' },
       { id: 'aspetto', title: 'Coerenza descrittiva dell’aspetto', body: 'Verifica che l’aspetto fisico di {PERSONAGGIO} nel testo incollato sia coerente al 100% con la descrizione canonica nel modello neurale. Per il Nonno: l’aspetto deve essere IDENTICO in ogni scena di cornice (Prologo, Interludi, Epilogo). Segnala ogni discrepanza con citazione del testo e correzione basata sul canone.' },
       { id: 'verifica-elemento', title: 'Verifica un elemento contro TUTTO il modello', body: 'Prima di affermare qualsiasi cosa su «{ELEMENTO}», verificalo contro l’INTERO modello neurale usando gli strumenti MCP (kg_search, kg_neighbors, kg_get_node): trova TUTTE le occorrenze, gli archi e i vincoli collegati, e controlla la coerenza temporale e causale. Esempio di errore da evitare: dire che il ciondolo del Nonno non poteva essere visto la sera del Prologo, quando nel modello quel ciondolo viene mostrato alle nipoti nell’Epilogo — la stessa sera (27/12/2080). NON dedurre nulla che non sia verificato nel grafo; se un’affermazione contraddice il modello, dillo esplicitamente citando i nodi/archi coinvolti.' },
-      { id: 'prosa-canon', title: 'Estrazione prosa → canone', body: 'Dalla versione approvata del {CAPITOLO} estrai i nuovi dettagli canonici emersi nella prosa (fatti, oggetti, luoghi, relazioni, date, stati dei personaggi) e proponimeli come nodi/archi da consolidare nel modello neurale, con provenienza "chapter-{N}-draft". Prima di scrivere, segnala eventuali contraddizioni col canone esistente e attendi conferma.' },
+      { id: 'prosa-canon', title: 'Estrazione prosa → canone', body: 'Dalla versione approvata del {CAPITOLO} estrai i nuovi dettagli canonici emersi nella prosa (fatti, oggetti, luoghi, relazioni, date, stati dei personaggi) usando il modello neurale (MCP Romanzo_Gabriele: novel_extract_chapter_candidates). I candidati sono dati, mai nodi del grafo. Passali a novel_commit_chapter_candidates: valida ogni candidato SOLO contro il resto del canone già consolidato (mai contro bozze precedenti di questo capitolo, che non esistono per costruzione) con un gate sia lessicale sia semantico; se segnala discrepanze bloccanti, elencale e attendi conferma prima di procedere.' },
     ],
   },
 ];
@@ -958,46 +961,59 @@ const STYLE_MODIFIER = 'Art Style: Digital illustrative painting with a semi-rea
 
 // Pipeline editoriale ridisegnata (neural-native): il modello interroga il grafo via MCP
 // invece di rileggere la Bibbia come file statico. {SEZIONE}/{N} sono sostituiti alla copia.
-const EDITORIAL_STEPS: { id: string; n: string; title: string; role: string; neural: string; body: string }[] = [
+// `paths` indica se la fase appartiene al percorso Revisione, Stesura diretta, o a entrambi:
+// una revisione parte da un testo esistente, una stesura diretta lo scrive da zero dalla Bibbia.
+type EditorialPath = 'revisione' | 'stesura';
+const EDITORIAL_STEPS: { id: string; n: string; title: string; role: string; neural: string; body: string; paths: EditorialPath[] }[] = [
   {
-    id: 'ctx', n: '0', title: 'Context packet', role: 'preparazione dal grafo',
+    id: 'ctx', n: '0', title: 'Context packet', role: 'preparazione dal grafo', paths: ['revisione', 'stesura'],
     neural: 'Invece di rileggere tutta la Bibbia: interroga il modello neurale solo per il canone pertinente a questa sezione.',
     body: 'VINCOLANTE: se definisco specifiche operative, applicale in modo puntuale; ignorarle è un errore operativo, non una scelta creativa.\n\nPrima di lavorare {SEZIONE}, costruisci il CONTEXT PACKET interrogando il modello neurale (MCP Romanzo_Gabriele: novel_get_chapter_context_packet oppure kg_search/kg_neighbors). Estrai SOLO il canone pertinente: personaggi coinvolti col loro STATO al momento (aspetto fisico, stato emotivo, cosa sanno/ignorano — character_state/emotional_state/knowledge_state datati); eventi di timeline e date; regole di mondo (world_rule) e vincoli narrativi (narrative_constraint); regole di stile/POV (style_rule); voci dei personaggi (character_voice); fili narrativi (plot_thread) da chiudere o seminare; riferimenti (mentions) e temi affrontati. NON rileggere l\'intera Bibbia: interroga il grafo in modo mirato. Riporta il packet schematizzato per aree tematiche.',
   },
   {
-    id: 'continuity', n: '1', title: 'Continuity & Story Architect', role: 'trama a prova di proiettile',
+    id: 'stesura', n: '0.5', title: 'Stesura da Bibbia', role: 'prima bozza dal solo canone', paths: ['stesura'],
+    neural: 'Nessun testo esistente: la Bibbia/il grafo sono l\'unica fonte per la prima bozza.',
+    body: 'VINCOLANTE: applica le specifiche in modo puntuale; ignorarle è un errore operativo.\n\nNon esiste ancora un testo per {SEZIONE}: usa ESCLUSIVAMENTE il context packet appena costruito (Fase 0) come fonte per la prima bozza. Scrivi {SEZIONE} rispettando rigorosamente: il canone esistente (nessun elemento fuori Bibbia/grafo); lo stato e la voce di ogni personaggio esattamente al momento della scena (character_state/character_voice datati); le regole di mondo e i vincoli narrativi; lo stile/POV da style_rule; i fili narrativi da seminare o chiudere secondo il context packet. DIVIETO: inventare fatti, oggetti, luoghi o relazioni non presenti nel modello neurale — se serve un dettaglio non ancora canonico, segnalalo come ipotesi e chiedi conferma invece di darlo per assodato. OUTPUT: la prima bozza completa di {SEZIONE}, pronta per le fasi successive come se fosse un testo già esistente da revisionare.',
+  },
+  {
+    id: 'continuity', n: '1', title: 'Continuity & Story Architect', role: 'trama a prova di proiettile', paths: ['revisione', 'stesura'],
     neural: 'Incrocia la bozza col GRAFO (non col file): gli stati evolutivi dei personaggi sono già nodi datati.',
     body: 'VINCOLANTE: applica le specifiche in modo puntuale; ignorarle è un errore operativo.\n\nAgisci come Continuity Editor & Story Architect. Con il context packet di {SEZIONE} (dal modello neurale) come ground truth e i capitoli precedenti come manoscritto, analizza il testo che incollo sotto e verifica: rispetto assoluto della timeline; coerenza con gli STATI EVOLUTIVI dei personaggi (es. Trevor fase X, Gabriele con/senza occhiali — leggili dai character_state datati nel grafo); coerenza con tutti gli elementi canonici; assenza di ridondanze intra- e inter-capitolo; plot hole (chi sa cose che non dovrebbe, oggetti che appaiono/scompaiono, comportamenti fuori scheda); coerenza temporale/spaziale/caratteriale/fattuale; fluidità delle giunzioni; funzione narrativa (fa avanzare la storia o è riempitivo?). OUTPUT: report a semaforo — 🔴 ROSSO (contraddizioni col canone/passato), 🟡 GIALLO (ripetizioni/rallentamenti), 🟢 VERDE (rafforza la trama orizzontale). Cita SEMPRE il nodo/arco del grafo a supporto; non affermare nulla che non sia verificato nel modello.',
   },
   {
-    id: 'style', n: '2', title: 'Editor stilistico', role: 'audit riga per riga',
+    id: 'style', n: '2', title: 'Editor stilistico', role: 'audit riga per riga', paths: ['revisione', 'stesura'],
     neural: 'Allinea stile/voce/POV alle style_rule e character_voice del grafo.',
     body: 'VINCOLANTE: applica le specifiche in modo puntuale; ignorarle è un errore operativo.\n\nAgisci come Editor tecnico e stilistico inflessibile, obiettivo best-seller. NON riscrivere ora. Se il testo di {SEZIONE} supera 600 parole, suddividilo in blocchi ≤600 parole ed elencali (numero blocco, n. parole, frase di inizio, frase di fine). Per ogni blocco produci una TABELLA DI INTERVENTO esaustiva, senza tralasciare nulla: ID univoco | Testo originale | Problema rilevato | Suggerimento specifico. Copri: grammatica/sintassi (frasi contorte, refusi), ripetizioni lessicali/concettuali, tell-invece-di-show, ritmo (punti morti/troppo veloci), dialoghi innaturali, avverbi inutili. Allinea voce/POV/lessico alle style_rule e character_voice del modello neurale.',
   },
   {
-    id: 'ghost', n: '3', title: 'Ghost Writer', role: 'riscrittura dei blocchi',
+    id: 'ghost', n: '3', title: 'Ghost Writer', role: 'riscrittura dei blocchi', paths: ['revisione', 'stesura'],
     neural: 'Rispetta voce/carattere/stato evolutivo di ogni personaggio letti dal grafo.',
     body: 'VINCOLANTE: applica le specifiche in modo puntuale; ignorarle è un errore operativo.\n\nAgisci come Senior Ghost Writer. Riscrivi il blocco corrente di {SEZIONE} applicando TUTTI i punti della tabella, mantenendo intatta la voce narrante e lo stile; rispetta voce, carattere e STATO EVOLUTIVO di ogni personaggio (dal grafo). DIVIETI: aggiungere elementi non canonici; sconfinare in blocchi diversi da quello corrente; taglia-incolla di frasi dalla tabella; produrre un riassunto del blocco. GATE LUNGHEZZA: il testo in output deve stare tra l\'85% e il 140% del blocco originale; se sfori, hai proseguito la narrazione o violato un divieto — identifica quale e rifai finché non rientri. OUTPUT: solo il testo finale del blocco, pronto alla pubblicazione + nota di come hai applicato ciascun punto della tabella.',
   },
   {
-    id: 'seam', n: '4', title: 'Saldature & ridondanza', role: 'cuciture invisibili',
+    id: 'seam', n: '4', title: 'Saldature & ridondanza', role: 'cuciture invisibili', paths: ['revisione', 'stesura'],
     neural: 'Confronto differenziale col manoscritto (nodi capitolo); con embeddings attivi diventa semantico.',
     body: 'VINCOLANTE: applica le specifiche in modo puntuale; ignorarle è un errore operativo.\n\nAgisci come Supervisore stilistico. Sul capitolo {SEZIONE} assemblato: (1) rendi INVISIBILI le saldature tra blocchi (riscrivi solo le frasi di raccordo dove serve); (2) verifica coerenza interna inizio↔fine e costanza di tono/atmosfera/registro; (3) verifica che la voce dei personaggi sia credibile, non caricaturale, e rispetti il loro climax emotivo. Poi ANALISI DIFFERENZIALE vs il resto del manoscritto (capitoli precedenti nel grafo): segnala descrizioni fisiche ripetute (aggettivi/frasi già usati), tic linguistici abusati, info-dumping (fatti/retroscena già noti al lettore rispiegati), e coerenza immediata col finale del capitolo precedente (giorno/notte, posizioni, luogo). Se nessun problema: spiega l\'analisi e scrivi "CAPITOLO APPROVATO". Altrimenti elenca puntualmente tutti i fix.',
   },
   {
-    id: 'line', n: '5', title: 'Line editor & impaginazione', role: 'fluidità + tipografia',
+    id: 'impact', n: '4.5', title: 'Scansione impatto revisione', role: 'nodi da rivedere prima di chiudere', paths: ['revisione'],
+    neural: 'Cammina il grafo dal fatto cambiato: mai propagare a cascata in automatico e in silenzio.',
+    body: 'VINCOLANTE: applica le specifiche in modo puntuale; ignorarle è un errore operativo.\n\nSolo perché {SEZIONE} aggiorna un fatto canonico già registrato (non una prima stesura): prima di proseguire, richiama il modello neurale (MCP Romanzo_Gabriele: novel_scan_revision_impact) indicando ogni fatto cambiato rispetto alla versione precedente. Esamina il report: nodi potenzialmente impattati (personaggi, eventi, fili narrativi collegati) ed eventuali conflitti diretti di polarità (es. "sa"/"non sa"). NON riscrivere nulla automaticamente: elenca i nodi da rivedere e chiedi conferma esplicita prima di chiudere la sessione di editing. Se il report non segnala nulla, dichiaralo esplicitamente e prosegui.',
+  },
+  {
+    id: 'line', n: '5', title: 'Line editor & impaginazione', role: 'fluidità + tipografia', paths: ['revisione', 'stesura'],
     neural: 'Formattazione editoriale standard; output solo testo finale.',
     body: 'VINCOLANTE: applica le specifiche in modo puntuale; ignorarle è un errore operativo.\n\nAgisci come Senior Line Editor & Typesetter. FASE 1 — fluidità: analizza ogni frase in relazione alla precedente/successiva, inserisci leganti logici dove il testo è slegato, alterna frasi brevi e lunghe (mantieni lo stile dell\'autore), spezza i muri di testo con a-capo logici. FASE 2 — formattazione tipografica: ogni battuta di dialogo di un personaggio DIVERSO va su NUOVA RIGA; a-capo pulito a fine di ogni paragrafo logico; elimina i doppi spazi. Verifica che ogni frase sia di senso compiuto (niente frasi che si interrompono in aria, modi di dire corretti). OUTPUT: SOLO il testo finale revisionato e impaginato di {SEZIONE}, nient\'altro.',
   },
   {
-    id: 'art', n: '6', title: 'Art Director', role: 'key visual + immagine',
+    id: 'art', n: '6', title: 'Art Director', role: 'key visual + immagine', paths: ['revisione', 'stesura'],
     neural: 'Recupera l\'aspetto canonico dei personaggi AL MOMENTO GIUSTO (character_state datati).',
     body: 'VINCOLANTE: applica le specifiche in modo puntuale; ignorarle è un errore operativo.\n\nAgisci come Direttore della fotografia & Concept Artist. Dal testo di {SEZIONE}: (1) individua il KEY VISUAL MOMENT (il momento più evocativo/rappresentativo); (2) recupera dal modello neurale l\'aspetto CANONICO dei personaggi della scena AL MOMENTO GIUSTO della loro evoluzione (character_state datati: es. Gabriele con/senza occhiali, colore occhi, fisico) + oggetti e luoghi menzionati + illuminazione implicita; (3) costruisci il prompt come [DESCRIZIONE DETTAGLIATA DELLA SCENA] + [STYLE MODIFIER immutabile]. OUTPUT: "Ho identificato la scena: …"; elementi descrittivi dei personaggi recuperati dal grafo; prompt completo in ITALIANO e in INGLESE ottimizzato per IA; genera direttamente l\'immagine.\n\nSTYLE MODIFIER (immutabile, sempre in coda): ' + STYLE_MODIFIER,
   },
   {
-    id: 'ingest', n: '7', title: 'Ingestion prosa → canone', role: 'chiude il ciclo di apprendimento',
-    neural: 'I dettagli del testo finale diventano nodi/archi: i capitoli successivi non saranno ridondanti né incoerenti.',
-    body: 'VINCOLANTE: applica le specifiche in modo puntuale; ignorarle è un errore operativo.\n\nChiuso l\'editing di {SEZIONE}, estrai dalla versione FINALE i nuovi dettagli canonici emersi nella prosa (descrizioni, oggetti, luoghi, episodi, ricordi, relazioni, date, nuovi stati fisici/emotivi/di conoscenza dei personaggi) e proponili come nodi/archi da consolidare nel modello neurale, con provenienza "chapter-{N}-final". PRIMA di scrivere esegui il GATE ANTI-CONTRADDIZIONE: per ogni nuovo dettaglio verifica con kg_search/kg_neighbors che non contraddica il canone esistente; elenca i conflitti e attendi conferma. Solo dopo l\'ok scrivi (kg_upsert_nodes/kg_link_bulk). Obiettivo: mantenere il modello aggiornato così che i capitoli successivi non siano ridondanti né in contraddizione con quanto già consolidato.',
+    id: 'ingest', n: '7', title: 'Ingestion prosa → canone', role: 'chiude il ciclo di apprendimento', paths: ['revisione', 'stesura'],
+    neural: 'I fatti del testo finale diventano nodi/archi validati contro il resto del canone, mai contro bozze precedenti: i capitoli successivi non saranno ridondanti né incoerenti.',
+    body: 'VINCOLANTE: applica le specifiche in modo puntuale; ignorarle è un errore operativo.\n\nChiuso l\'editing di {SEZIONE}, estrai dalla versione FINALE i nuovi dettagli canonici emersi nella prosa (descrizioni, oggetti, luoghi, episodi, ricordi, relazioni, date, nuovi stati fisici/emotivi/di conoscenza dei personaggi) con il modello neurale (MCP Romanzo_Gabriele: novel_extract_chapter_candidates). I candidati sono dati, mai nodi del grafo. Passali a novel_commit_chapter_candidates: valida ogni candidato SOLO contro il resto del canone già consolidato (Bibbia + capitoli già canonizzati) — mai contro bozze precedenti di questa stessa sezione, che non esistono per costruzione — con un gate sia lessicale sia semantico (embeddings); se segnala discrepanze bloccanti, elenca i conflitti e attendi conferma prima di procedere. Solo dopo l\'ok, finalizza con novel_save_final_chapter, che aggiorna in place il nodo canonico di {SEZIONE} (mai una bozza separata). Obiettivo: mantenere il modello aggiornato così che i capitoli successivi non siano ridondanti né in contraddizione con quanto già consolidato.',
   },
 ];
 
@@ -1009,24 +1025,13 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
   const [scena, setScena] = useState('');
   const [elemento, setElemento] = useState('');
   const [section, setSection] = useState('');
+  const [editorialPath, setEditorialPath] = useState<EditorialPath>('revisione');
   const [copied, setCopied] = useState<string | null>(null);
   const selSection = chapters.find((chapter) => chapter.id === section) ?? null;
   const sectionPhrase = (chapter: ChapterSummary): string =>
     chapter.role === 'prologo' ? 'il Prologo' : chapter.role === 'epilogo' ? "l'Epilogo" : `il Capitolo ${chapter.number} «${chapter.title}»`;
   const sectionTag = (chapter: ChapterSummary): string =>
     chapter.role === 'prologo' ? 'Prologo' : chapter.role === 'epilogo' ? 'Epilogo' : `Cap ${chapter.number}`;
-  const copyStep = (id: string, body: string, perSection: boolean): void => {
-    let text: string;
-    if (perSection && selSection) {
-      const phrase = sectionPhrase(selSection);
-      text = body.replaceAll('{SEZIONE}', phrase).replaceAll('{N}', String(selSection.number ?? selSection.role ?? ''))
-        + `\n\n[Sezione mirata: ${phrase} — nodo capitolo id ${selSection.id}. Carica prima il suo context packet dal modello neurale e lavora SOLO su questa sezione.]`;
-    } else {
-      text = body.replaceAll('{SEZIONE}', 'la sezione (capitolo/prologo/epilogo)').replaceAll('{N}', 'N');
-    }
-    void navigator.clipboard?.writeText(text);
-    setCopied(id);
-  };
   const charGroups = useMemo(() => {
     const map = new Map<string, KgNode[]>();
     for (const node of characters) {
@@ -1038,19 +1043,39 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
     return CHARACTER_CATEGORY_ORDER.filter((key) => map.has(key)).map((key) => ({ key, items: map.get(key)!.slice().sort((a, b) => a.label.localeCompare(b.label)) }));
   }, [characters]);
   const promptChap = chapters.find((chapter) => chapter.id === promptChapter) ?? null;
-  // Substitute every placeholder for which a value was provided; unfilled ones stay as {TOKEN}.
-  const fillPrompt = (body: string): string => {
+  // Un solo motore di sostituzione segnaposto, condiviso da entrambi i pannelli (pipeline a fasi
+  // e prompt preimpostati): un valore compilato in un pannello risolve lo stesso token ovunque
+  // compaia. `overrides` permette a copyStep di imporre {SEZIONE}/{N} dalla sezione scelta.
+  const placeholderValues = (): Record<string, string | undefined> => ({
+    PERSONAGGIO: persona || undefined,
+    ALTRO_PERSONAGGIO: persona2 || undefined,
+    CAPITOLO: promptChap ? sectionPhrase(promptChap) : undefined,
+    MOMENTO: momento.trim() || undefined,
+    SCENA: scena.trim() || undefined,
+    ELEMENTO: elemento.trim() || undefined,
+    N: promptChap ? String(promptChap.number ?? promptChap.role ?? '') : undefined,
+  });
+  const substitute = (body: string, overrides: Record<string, string | undefined> = {}): string => {
+    const values = { ...placeholderValues(), ...overrides };
     let text = body;
-    if (persona) text = text.replaceAll('{PERSONAGGIO}', persona);
-    if (persona2) text = text.replaceAll('{ALTRO_PERSONAGGIO}', persona2);
-    if (promptChap) {
-      text = text.replaceAll('{CAPITOLO}', sectionPhrase(promptChap));
-      text = text.replaceAll('{N}', String(promptChap.number ?? promptChap.role ?? ''));
+    for (const [token, value] of Object.entries(values)) {
+      if (value !== undefined) text = text.replaceAll(`{${token}}`, value);
     }
-    if (momento.trim()) text = text.replaceAll('{MOMENTO}', momento.trim());
-    if (scena.trim()) text = text.replaceAll('{SCENA}', scena.trim());
-    if (elemento.trim()) text = text.replaceAll('{ELEMENTO}', elemento.trim());
     return text;
+  };
+  const fillPrompt = (body: string): string => substitute(body);
+  const copyStep = (id: string, body: string, perSection: boolean): void => {
+    let text: string;
+    if (perSection && selSection) {
+      const phrase = sectionPhrase(selSection);
+      text = substitute(body, { SEZIONE: phrase, N: String(selSection.number ?? selSection.role ?? '') })
+        + `\n\n[Sezione mirata: ${phrase} — nodo capitolo id ${selSection.id}. Carica prima il suo context packet dal modello neurale e lavora SOLO su questa sezione.]`;
+    } else {
+      text = substitute(body, { SEZIONE: 'la sezione (capitolo/prologo/epilogo)' });
+      if (text.includes('{N}')) text = text.replaceAll('{N}', 'N');
+    }
+    void navigator.clipboard?.writeText(text);
+    setCopied(id);
   };
   const charOptions = () => charGroups.map((group) => (
     <optgroup key={group.key} label={group.key}>
@@ -1061,6 +1086,7 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
     void navigator.clipboard?.writeText(fillPrompt(body));
     setCopied(id);
   };
+  const visibleSteps = EDITORIAL_STEPS.filter((step) => step.paths.includes(editorialPath));
   return (
     <div className="novel-panel">
       <div className="novel-head">
@@ -1071,8 +1097,20 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
       </div>
 
       <section className="novel-block">
-        <h3>Pipeline editoriale — 7 step (neural-native)</h3>
-        <p className="novel-note">Rispetto al vecchio flusso (che rileggeva l'intera Bibbia come file), qui ogni step interroga il modello neurale via <span className="edge-kind">MCP</span> per il canone esatto. Copia il prompt generico (in attesa del testo) o quello pre-ottimizzato per una sezione specifica.</p>
+        <h3>Pipeline editoriale — 8 fasi core (0-7)</h3>
+        <p className="novel-note">Rispetto al vecchio flusso (che rileggeva l'intera Bibbia come file), qui ogni fase interroga il modello neurale via <span className="edge-kind">MCP</span> per il canone esatto. Copia il prompt generico (in attesa del testo) o quello pre-ottimizzato per una sezione specifica.</p>
+        <div className="persona-pick path-pick">
+          <label>Percorso</label>
+          <div className="path-toggle">
+            <button type="button" className={editorialPath === 'revisione' ? 'active' : ''} onClick={() => setEditorialPath('revisione')}>Revisione di un capitolo già scritto</button>
+            <button type="button" className={editorialPath === 'stesura' ? 'active' : ''} onClick={() => setEditorialPath('stesura')}>Stesura diretta dai punti della Bibbia</button>
+          </div>
+          <span className="persona-hint">
+            {editorialPath === 'revisione'
+              ? 'Parti da un testo esistente: aggiunge la Fase 4.5 (scansione impatto) prima di chiudere una modifica a un fatto già canonico.'
+              : 'Nessun testo esistente: aggiunge la Fase 0.5 (prima bozza scritta solo dal context packet della Bibbia/grafo).'}
+          </span>
+        </div>
         <div className="persona-pick">
           <label>Sezione da lavorare (pre-ottimizza i prompt)</label>
           <select value={section} onChange={(event) => setSection(event.target.value)}>
@@ -1084,7 +1122,7 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
           <span className="persona-hint">{selSection ? `Prompt pre-ottimizzati per ${sectionTag(selSection)}.` : 'Scegli una sezione per pre-ottimizzare i prompt, oppure copia la versione generica.'}</span>
         </div>
         <div className="step-list">
-          {EDITORIAL_STEPS.map((step) => (
+          {visibleSteps.map((step) => (
             <div className="step-card" key={step.id}>
               <div className="step-h">
                 <span className="step-n">{step.n}</span>

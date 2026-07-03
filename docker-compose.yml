@@ -1,6 +1,9 @@
 services:
   romanzo_gabriele_be:
     image: ghcr.io/merlinoalbus/romanzo-gabriele-neural-backend:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
     container_name: romanzo_gabriele_be
     restart: unless-stopped
     expose:
@@ -27,6 +30,9 @@ services:
 
   romanzo_gabriele_fe:
     image: ghcr.io/merlinoalbus/romanzo-gabriele-neural-frontend:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
     container_name: romanzo_gabriele_fe
     restart: unless-stopped
     ports:
@@ -63,15 +69,18 @@ services:
       - NEO4J_URI=bolt://romanzo_gabriele_neo4j:7687
       - NEO4J_USER=${NEO4J_USER:-neo4j}
       - NEO4J_PASSWORD=${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set in the stack environment}
-      - EMBEDDINGS_PROVIDER=${EMBEDDINGS_PROVIDER:-}
-      - EMBEDDINGS_API_KEY=${EMBEDDINGS_API_KEY:-}
-      - EMBEDDINGS_BASE_URL=${EMBEDDINGS_BASE_URL:-}
-      - EMBEDDINGS_MODEL=${EMBEDDINGS_MODEL:-}
-      - EMBEDDINGS_DIMENSIONS=${EMBEDDINGS_DIMENSIONS:-0}
+      - EMBEDDINGS_PROVIDER=${EMBEDDINGS_PROVIDER:-openai-compatible}
+      - EMBEDDINGS_API_KEY=${EMBEDDINGS_API_KEY:-ollama-local}
+      - EMBEDDINGS_BASE_URL=${EMBEDDINGS_BASE_URL:-http://romanzo_gabriele_ollama:11434/v1}
+      - EMBEDDINGS_MODEL=${EMBEDDINGS_MODEL:-qwen3-embedding-8b-ctx8k}
+      - EMBEDDINGS_DIMENSIONS=${EMBEDDINGS_DIMENSIONS:-1536}
       - EMBEDDINGS_TIMEOUT_MS=${EMBEDDINGS_TIMEOUT_MS:-30000}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
       - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-}
+      - EDITING_STATE_DIR=/app/.state/chapter-editing
+    volumes:
+      - "romanzo_gabriele_mcp_state:/app/.state"
     depends_on:
       romanzo_gabriele_be:
         condition: service_healthy
@@ -88,6 +97,9 @@ services:
     image: neo4j:5-community
     container_name: romanzo_gabriele_neo4j
     restart: unless-stopped
+    # Resta a 1 replica: Neo4j Community non supporta clustering. Repliche multiple sullo stesso
+    # volume corromperebbero il database (scrittore singolo); su volumi separati diventerebbero
+    # due grafi indipendenti e divergenti. Un vincolo tecnico, non una scelta di configurazione.
     ports:
       - "7687:7687"
       - "7474:7474"
@@ -106,6 +118,58 @@ services:
       start_period: 30s
     volumes:
       - "romanzo_gabriele_neo4j_data:/data"
+    networks:
+      - romanzo_gabriele_network
+
+  romanzo_gabriele_ollama:
+    image: ollama/ollama:latest
+    container_name: romanzo_gabriele_ollama
+    restart: unless-stopped
+    # Resta a 1 replica: una sola GPU fisica (RTX 4080) e' disponibile sull'host, e non puo'
+    # essere prenotata in esclusiva da due container contemporaneamente. Vincolo hardware, non
+    # una scelta di configurazione.
+    expose:
+      - "11434"
+    environment:
+      # Modello di embedding sempre caricato in VRAM: nessuna latenza di reload tra una chiamata e l'altra.
+      - OLLAMA_KEEP_ALIVE=-1
+      # RTX 4080 (Ada Lovelace) supporta flash attention: meno VRAM, throughput piu alto.
+      - OLLAMA_FLASH_ATTENTION=1
+      # Un solo modello di embedding in uso: nessun altro da tenere caricato in memoria.
+      - OLLAMA_MAX_LOADED_MODELS=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+    volumes:
+      - "romanzo_gabriele_ollama_data:/root/.ollama"
+    networks:
+      - romanzo_gabriele_network
+
+  romanzo_gabriele_ollama_init:
+    image: ollama/ollama:latest
+    container_name: romanzo_gabriele_ollama_init
+    restart: "no"
+    environment:
+      - OLLAMA_HOST=http://romanzo_gabriele_ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "ollama pull qwen3-embedding:8b &&
+      ollama create qwen3-embedding-8b-ctx8k -f /Modelfile.embeddings"
+    volumes:
+      - "./ollama/Modelfile.embeddings:/Modelfile.embeddings:ro"
+    depends_on:
+      romanzo_gabriele_ollama:
+        condition: service_healthy
     networks:
       - romanzo_gabriele_network
 
@@ -133,3 +197,5 @@ networks:
 
 volumes:
   romanzo_gabriele_neo4j_data:
+  romanzo_gabriele_mcp_state:
+  romanzo_gabriele_ollama_data:

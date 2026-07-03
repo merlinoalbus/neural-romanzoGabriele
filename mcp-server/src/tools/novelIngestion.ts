@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import * as kg from '../graph/neo4jStore.js';
@@ -66,20 +65,6 @@ function outlineEntryPreview(entry: OutlineEntry): z.infer<typeof outlineEntryZ>
     chapterNumber: entry.chapterNumber,
     chapterKind: entry.chapterKind,
   };
-}
-
-function draftKey(input: { chapterNumber: number; title?: string; content: string; draftId?: string }): string {
-  if (input.draftId?.trim()) return input.draftId.trim();
-  const hash = crypto
-    .createHash('sha256')
-    .update(String(input.chapterNumber))
-    .update('\n')
-    .update(input.title ?? '')
-    .update('\n')
-    .update(input.content)
-    .digest('hex')
-    .slice(0, 16);
-  return `auto-${hash}`;
 }
 
 function countWords(text: string): number {
@@ -271,6 +256,8 @@ export function registerNovelIngestionTools(server: McpServer): void {
         document: nodeZ.optional(),
         nas: savedSourceZ.optional(),
         chunkCount: z.number().optional(),
+        linterStatus: z.enum(['ok', 'failed']).optional(),
+        linterError: z.string().optional(),
         error: errorObj,
       },
       annotations: { title: 'Novel ingest chapter draft', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
@@ -279,8 +266,11 @@ export function registerNovelIngestionTools(server: McpServer): void {
       try {
         if (!content.trim()) throw new Error('invalid_chapter_draft: content is required');
         const chapterLabel = normalizeChapterLabel(chapterNumber);
-        const key = draftKey({ chapterNumber, title, content, draftId });
-        const sourceId = `chapter-${String(chapterNumber).padStart(3, '0')}-${key}`;
+        // Stable per-chapter identifiers: re-ingesting a revised draft of the SAME chapter must
+        // update the existing document/draft node in place, never stratify a new one alongside it.
+        // `draftId`, when given, is kept only as informational metadata (e.g. "which round"), not
+        // as part of the node's identity.
+        const sourceId = `chapter-${String(chapterNumber).padStart(3, '0')}-draft`;
         const documentResult = await kg.ingestDocument({
           sourceId,
           title: title ?? chapterLabel,
@@ -290,7 +280,7 @@ export function registerNovelIngestionTools(server: McpServer): void {
             sourceType: NOVEL_SOURCE_TYPES.chapterDraft,
             chapterNumber,
             title: title ?? chapterLabel,
-            draftId: key,
+            draftId: draftId?.trim() || undefined,
             status: status ?? 'draft',
           },
           provenance: { source: 'novel_ingest_chapter_draft', sourceId, chapterNumber },
@@ -308,14 +298,14 @@ export function registerNovelIngestionTools(server: McpServer): void {
         });
         const draftWrite = await kg.upsertNode({
           type: 'chapter_draft',
-          label: `${chapterLabel} draft ${key}`,
+          label: `${chapterLabel} draft`,
           content: title ?? chapterLabel,
           metadata: {
             sourceId,
             documentId: documentResult.document.id,
             chapterNumber,
             title: title ?? chapterLabel,
-            draftId: key,
+            draftId: draftId?.trim() || undefined,
             status: status ?? 'draft',
             wordCount: countWords(content),
             charCount: content.length,
@@ -327,18 +317,20 @@ export function registerNovelIngestionTools(server: McpServer): void {
           fromId: draftWrite.node.id,
           toId: chapterWrite.node.id,
           kind: 'part_of',
-          metadata: { chapterNumber, draftId: key },
+          metadata: { chapterNumber, draftId: draftId?.trim() || undefined },
           provenance: { source: 'novel_ingest_chapter_draft', sourceId, chapterNumber },
         });
         await kg.link({
           fromId: draftWrite.node.id,
           toId: documentResult.document.id,
           kind: 'derived_from',
-          metadata: { chapterNumber, draftId: key },
+          metadata: { chapterNumber, draftId: draftId?.trim() || undefined },
           provenance: { source: 'novel_ingest_chapter_draft', sourceId, chapterNumber },
         });
 
         // --- AUTONOMOUS LINTING ON INGEST ---
+        let linterStatus: 'ok' | 'failed' = 'ok';
+        let linterError: string | undefined;
         try {
           const [characters, styleRules, worldRules, themes, timelineEvents, traitsRes, secretsRes] = await Promise.all([
             kg.listNodesByType('character', { limit: 500 }),
@@ -419,6 +411,8 @@ export function registerNovelIngestionTools(server: McpServer): void {
             }
           }
         } catch (linterErr) {
+          linterStatus = 'failed';
+          linterError = String(linterErr);
           console.error('Autonomous ingest linter failed:', linterErr);
         }
 
@@ -429,6 +423,8 @@ export function registerNovelIngestionTools(server: McpServer): void {
           document: documentResult.document,
           nas: documentResult.nas,
           chunkCount: documentResult.chunkCount,
+          linterStatus,
+          linterError,
         });
       } catch (err) {
         return toolError('NOVEL_INGEST_CHAPTER_DRAFT_FAILED', `novel_ingest_chapter_draft failed: ${String(err)}`, { chapterNumber, draftId });

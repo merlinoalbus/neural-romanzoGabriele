@@ -1,5 +1,5 @@
 import type { GraphEdge, GraphNode } from '../graph/neo4jStore.js';
-import type { BibleCandidate, BibleCandidateEndpoint } from './bibleCandidates.js';
+import type { ContentCandidate, ContentCandidateEndpoint } from './bibleCandidates.js';
 
 export type BibleDiscrepancySeverity = 'info' | 'warning' | 'error';
 
@@ -18,8 +18,8 @@ export interface BibleDiscrepancy {
   existingEdgeId?: string;
   existingRelationKind?: string;
   relationKind?: string;
-  from?: BibleCandidateEndpoint;
-  to?: BibleCandidateEndpoint;
+  from?: ContentCandidateEndpoint;
+  to?: ContentCandidateEndpoint;
 }
 
 export interface BibleDiscrepancyReport {
@@ -37,7 +37,7 @@ export interface BibleDiscrepancyReport {
 }
 
 type PlannedNode = {
-  candidate: BibleCandidate;
+  candidate: ContentCandidate;
   type: string;
   label: string;
   content: string;
@@ -45,12 +45,12 @@ type PlannedNode = {
 };
 
 type PlannedEdge = {
-  candidate: BibleCandidate;
+  candidate: ContentCandidate;
   kind: string;
   fromKey: string;
   toKey: string;
-  from: BibleCandidateEndpoint;
-  to: BibleCandidateEndpoint;
+  from: ContentCandidateEndpoint;
+  to: ContentCandidateEndpoint;
 };
 
 const STOPWORDS = new Set([
@@ -142,11 +142,11 @@ function labelSimilarity(a: string, b: string): number {
   return tokenOverlap(left, right);
 }
 
-function contentOf(candidate: BibleCandidate): string {
+function contentOf(candidate: ContentCandidate): string {
   return [candidate.label, candidate.content, candidate.rationale].filter(Boolean).join(' ');
 }
 
-function endpointKey(endpoint: BibleCandidateEndpoint): string {
+function endpointKey(endpoint: ContentCandidateEndpoint): string {
   return `${endpoint.type}::${normalizeText(endpoint.label)}`;
 }
 
@@ -154,7 +154,7 @@ function nodeEndpointKey(node: Pick<GraphNode, 'type' | 'label'>): string {
   return `${node.type}::${normalizeText(node.label)}`;
 }
 
-function hasResolution(candidate: BibleCandidate, resolution: string): boolean {
+function hasResolution(candidate: ContentCandidate, resolution: string): boolean {
   const value = candidate.metadata?.discrepancyResolution;
   if (value === resolution) return true;
   return Array.isArray(value) && value.includes(resolution);
@@ -175,7 +175,12 @@ function hasGenericNegation(value: unknown): boolean {
   return [' non ', ' mai ', ' nessun ', ' nessuna ', ' senza ', ' impossibile ', ' vietato ', ' vietata '].some((phrase) => text.includes(phrase));
 }
 
-function hasPolarityConflict(a: unknown, b: unknown): boolean {
+/**
+ * Exported for reuse by the revision-impact scan (novelRevisionImpact.ts): detects whether two
+ * pieces of text assert opposite things about the same kind of fact (knowledge, permission,
+ * revelation, trust), or diverge in generic negation while still overlapping in topic.
+ */
+export function hasPolarityConflict(a: unknown, b: unknown): boolean {
   const left = polarityProfile(a);
   const right = polarityProfile(b);
   for (const entry of POLARITY_PHRASES) {
@@ -198,14 +203,14 @@ function sameEdgeScope(a: { fromKey: string; toKey: string; kind: string }, b: {
 function addDiscrepancy(
   discrepancies: BibleDiscrepancy[],
   discrepancy: Omit<BibleDiscrepancy, 'blocking' | 'authorized'>,
-  candidate?: BibleCandidate,
+  candidate?: ContentCandidate,
 ): void {
   const authorized = discrepancy.requiredResolution ? Boolean(candidate && hasResolution(candidate, discrepancy.requiredResolution)) : false;
   const blocking = discrepancy.severity === 'error' && !authorized;
   discrepancies.push({ ...discrepancy, authorized: authorized || undefined, blocking });
 }
 
-function plannedNodes(candidates: BibleCandidate[]): PlannedNode[] {
+function plannedNodes(candidates: ContentCandidate[]): PlannedNode[] {
   return candidates
     .filter((candidate) => candidate.candidateKind === 'node' && candidate.targetType && candidate.label)
     .map((candidate) => ({
@@ -217,7 +222,7 @@ function plannedNodes(candidates: BibleCandidate[]): PlannedNode[] {
     }));
 }
 
-function plannedEdges(candidates: BibleCandidate[]): PlannedEdge[] {
+function plannedEdges(candidates: ContentCandidate[]): PlannedEdge[] {
   return candidates
     .filter((candidate) => candidate.candidateKind === 'edge' && candidate.relationKind && candidate.from && candidate.to)
     .map((candidate) => ({
@@ -406,7 +411,7 @@ function compareCandidateEdgeWithCanonical(
 }
 
 export function buildBibleDiscrepancyReport(
-  candidates: BibleCandidate[],
+  candidates: ContentCandidate[],
   canonicalNodes: GraphNode[],
   canonicalEdges: GraphEdge[],
 ): BibleDiscrepancyReport {
@@ -461,5 +466,138 @@ export function buildBibleDiscrepancyReport(
       info,
       blocking,
     },
+  };
+}
+
+// --- Semantic layer -------------------------------------------------------
+// Everything above this line is purely lexical (normalization, token overlap,
+// polarity dictionaries) and catches contradictions only when the wording is
+// close. Embeddings catch the case lexical matching misses: a paraphrase or a
+// reworded contradiction that shares no vocabulary with the canonical node.
+// This layer is additive: it never replaces the lexical gate, only extends it.
+
+const DEFAULT_HIGH_SIMILARITY_THRESHOLD = 0.92;
+const DEFAULT_REVIEW_SIMILARITY_THRESHOLD = 0.8;
+
+export interface SemanticMatch {
+  node: GraphNode;
+  score: number;
+}
+
+export interface SemanticDiscrepancyOptions {
+  embedText: (text: string) => Promise<number[]>;
+  semanticSearch: (vector: number[], opts: { type?: string; limit?: number }) => Promise<SemanticMatch[]>;
+  /** Cosine similarity at or above this value blocks the commit as a likely duplicate/alias. Default 0.92. */
+  highSimilarityThreshold?: number;
+  /** Cosine similarity at or above this value (but below the high threshold) is a non-blocking advisory. Default 0.80. */
+  reviewSimilarityThreshold?: number;
+}
+
+function candidateEmbeddingText(candidate: ContentCandidate): string {
+  return [candidate.label, candidate.content].filter(Boolean).join('\n').trim();
+}
+
+/**
+ * Compares each node candidate against the canonical graph by meaning, not by wording.
+ * Degrades gracefully: any embedding/search failure for a single candidate is skipped,
+ * never thrown — a broken embeddings provider must never block a canonical write that
+ * the lexical gate already approved.
+ */
+export async function buildSemanticDiscrepancies(
+  candidates: ContentCandidate[],
+  options: SemanticDiscrepancyOptions,
+  existingDiscrepancies: BibleDiscrepancy[] = [],
+): Promise<BibleDiscrepancy[]> {
+  const discrepancies: BibleDiscrepancy[] = [];
+  const alreadyFlagged = new Set(
+    existingDiscrepancies
+      .filter((item) => item.blocking && item.existingNodeId)
+      .map((item) => `${item.candidateId}::${item.existingNodeId}`),
+  );
+  const highThreshold = options.highSimilarityThreshold ?? DEFAULT_HIGH_SIMILARITY_THRESHOLD;
+  const reviewThreshold = options.reviewSimilarityThreshold ?? DEFAULT_REVIEW_SIMILARITY_THRESHOLD;
+  const nodeCandidates = candidates.filter(
+    (candidate) => candidate.candidateKind === 'node' && candidate.targetType && (candidate.label?.trim() || candidate.content?.trim()),
+  );
+
+  for (const candidate of nodeCandidates) {
+    const text = candidateEmbeddingText(candidate);
+    if (!text) continue;
+
+    let vector: number[];
+    try {
+      vector = await options.embedText(text);
+    } catch {
+      continue;
+    }
+
+    let matches: SemanticMatch[];
+    try {
+      matches = await options.semanticSearch(vector, { type: candidate.targetType, limit: 5 });
+    } catch {
+      continue;
+    }
+
+    for (const match of matches) {
+      if (normalizeText(match.node.label) === normalizeText(candidate.label ?? '')) continue;
+      const key = `${candidate.candidateId}::${match.node.id}`;
+      if (alreadyFlagged.has(key)) continue;
+
+      if (match.score >= highThreshold) {
+        addDiscrepancy(discrepancies, {
+          candidateId: candidate.candidateId,
+          code: 'possible_duplicate_or_alias_semantic',
+          severity: 'error',
+          message: `Il candidato '${candidate.label ?? candidate.content}' e semanticamente quasi identico (score ${match.score.toFixed(3)}) al nodo canonico '${match.node.label}', pur con formulazione lessicalmente diversa.`,
+          requiredResolution: 'author_approved_merge',
+          existingNodeId: match.node.id,
+          existingNodeType: match.node.type,
+          existingNodeLabel: match.node.label,
+        }, candidate);
+      } else if (match.score >= reviewThreshold) {
+        addDiscrepancy(discrepancies, {
+          candidateId: candidate.candidateId,
+          code: 'semantic_proximity_review',
+          severity: 'warning',
+          message: `Il candidato '${candidate.label ?? candidate.content}' e semanticamente vicino (score ${match.score.toFixed(3)}) al nodo canonico '${match.node.label}': possibile parafrasi o contraddizione riformulata, revisione manuale consigliata.`,
+          existingNodeId: match.node.id,
+          existingNodeType: match.node.type,
+          existingNodeLabel: match.node.label,
+        }, candidate);
+      }
+    }
+  }
+
+  return discrepancies;
+}
+
+/**
+ * Shared entry point for both the Bible pipeline (`novel_commit_bible_candidates`) and the
+ * chapter pipeline (`novel_commit_chapter_candidates`). Runs the lexical gate above (sync,
+ * unchanged, fully covered by existing tests) and layers the semantic gate on top when
+ * embeddings are configured. Without `semantic`, behaves exactly like `buildBibleDiscrepancyReport`.
+ */
+export async function buildCanonDiscrepancyReport(
+  candidates: ContentCandidate[],
+  canonicalNodes: GraphNode[],
+  canonicalEdges: GraphEdge[],
+  semantic?: SemanticDiscrepancyOptions,
+): Promise<BibleDiscrepancyReport> {
+  const lexical = buildBibleDiscrepancyReport(candidates, canonicalNodes, canonicalEdges);
+  if (!semantic) return lexical;
+
+  const semanticDiscrepancies = await buildSemanticDiscrepancies(candidates, semantic, lexical.discrepancies);
+  if (!semanticDiscrepancies.length) return lexical;
+
+  const discrepancies = [...lexical.discrepancies, ...semanticDiscrepancies];
+  const errors = discrepancies.filter((item) => item.severity === 'error').length;
+  const warnings = discrepancies.filter((item) => item.severity === 'warning').length;
+  const info = discrepancies.filter((item) => item.severity === 'info').length;
+  const blocking = discrepancies.filter((item) => item.blocking).length;
+
+  return {
+    discrepancies,
+    hasBlockingDiscrepancies: blocking > 0,
+    summary: { ...lexical.summary, errors, warnings, info, blocking },
   };
 }

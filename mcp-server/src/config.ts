@@ -32,6 +32,10 @@ export const config = {
   embeddingsModel: process.env.EMBEDDINGS_MODEL || process.env.OPENAI_EMBEDDING_MODEL || '',
   embeddingsDimensions: intFromEnv('EMBEDDINGS_DIMENSIONS', 0),
   embeddingsTimeoutMs: intFromEnv('EMBEDDINGS_TIMEOUT_MS', 30_000),
+  // Editorial working state (session, blocks, findings, decisions, rewrites, seam review, visual
+  // briefs) is filesystem-only, never a graph node — see editingSessionStore.ts. Needs a mounted
+  // volume in production or it is lost on container recreation.
+  editingStateDir: process.env.EDITING_STATE_DIR || './.state/chapter-editing',
 } as const;
 
 export type AppEnv = typeof config.appEnv;

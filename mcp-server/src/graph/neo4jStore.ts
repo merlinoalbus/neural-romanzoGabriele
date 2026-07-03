@@ -520,19 +520,27 @@ export async function updateNode(id: string, patch: NodePatch): Promise<GraphNod
   }
   const metadata = patch.metadata ? mergeObj(existing.metadata, patch.metadata) : existing.metadata;
   const provenance = patch.provenance ? mergeObj(existing.provenance, patch.provenance) : existing.provenance;
+  const nextContent = patch.content ?? existing.content;
+  // Staleness detection: if the text an embedding would be computed from has changed since the
+  // last time this node was embedded, clear the stored vector so it falls into the next
+  // `listEmbeddingCandidates({missingOnly:true})` pass instead of silently going stale.
+  const nextEmbeddingTextHash = embeddingTextHash(embeddingText({ type: nextType, label: nextLabel, content: nextContent, metadata }));
   const records = await run(
     `MATCH (n:Entity {id:$id, projectId:$pid})
      SET n.type=$type, n.label=$label, n.content=$content, n.metadata=$metadata, n.provenance=$provenance, n.updatedAt=$updatedAt
+     SET n.embedding = CASE WHEN n.embeddingTextHash IS NULL OR n.embeddingTextHash <> $nextEmbeddingTextHash THEN null ELSE n.embedding END
+     SET n.embeddingTextHash = $nextEmbeddingTextHash
      RETURN n`,
     {
       id,
       pid: pid(),
       type: nextType,
       label: nextLabel,
-      content: patch.content ?? existing.content,
+      content: nextContent,
       metadata: JSON.stringify(metadata),
       provenance: JSON.stringify(provenance),
       updatedAt: nowIso(),
+      nextEmbeddingTextHash,
     },
   );
   return records.length ? nodeFrom(records[0].get('n')) : null;

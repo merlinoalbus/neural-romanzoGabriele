@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { isNovelNodeType, NOVEL_CANON_STATUSES, NOVEL_DRAFT_STATUSES, NOVEL_NODE_TYPES, normalizeChapterLabel } from './domain.js';
+import { isNovelNodeType, NOVEL_CANON_STATUSES, NOVEL_DRAFT_STATUSES, NOVEL_NODE_TYPES, normalizeChapterLabel, resolveChapterSectionLabel } from './domain.js';
 
 test('novel node types are deterministic and unique', () => {
   assert.deepEqual([...NOVEL_NODE_TYPES], [...NOVEL_NODE_TYPES].sort());
@@ -23,4 +23,14 @@ test('novel statuses are deterministic and unique', () => {
 
 test('chapter labels are stable', () => {
   assert.equal(normalizeChapterLabel(12), 'Capitolo 12');
+});
+
+test('resolveChapterSectionLabel covers numbered chapters, Prologo and Epilogo', () => {
+  assert.equal(resolveChapterSectionLabel({ chapterNumber: 5 }), 'Capitolo 5');
+  assert.equal(resolveChapterSectionLabel({ role: 'prologo' }), 'Prologo');
+  assert.equal(resolveChapterSectionLabel({ role: 'epilogo' }), 'Epilogo');
+});
+
+test('resolveChapterSectionLabel throws when neither chapterNumber nor role is given', () => {
+  assert.throws(() => resolveChapterSectionLabel({}), /missing_chapter_identifier/);
 });

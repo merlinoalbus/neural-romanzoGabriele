@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import * as kg from '../graph/neo4jStore.js';
 import { KG_KINDS_LIST } from '../graph/ontology.js';
-import { embedText, embeddingRuntimeStatus, embeddingText, getEmbeddingSettings } from '../services/embeddingService.js';
+import { DEFAULT_EMBEDDINGS_BATCH_SIZE, chunkArray, embedTextCached, embedTexts, embeddingRuntimeStatus, embeddingText, getEmbeddingSettings } from '../services/embeddingService.js';
 import { errorObj, toolError, toolStructured } from './responseHelpers.js';
 
 const jsonObj = z.record(z.string(), z.unknown());
@@ -474,7 +474,7 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
         return toolError('KG_EMBEDDINGS_NOT_CONFIGURED', 'Embeddings provider is not configured; no fake vectors were generated.', { missing: runtime.missing });
       }
       try {
-        const candidates = await kg.listEmbeddingCandidates({ limit, type, missingOnly });
+        const candidates = await kg.listEmbeddingCandidates({ limit, type, missingOnly, model: settings.model });
         if (dryRun) {
           const planned = candidates.map((node) => ({ id: node.id, type: node.type, label: node.label, textHash: node.embeddingTextHash, status: 'planned' as const }));
           return toolStructured({
@@ -488,28 +488,50 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
         const results: Array<z.infer<typeof embeddingCandidateZ>> = [];
         let embedded = 0;
         let failed = 0;
-        let indexReady = false;
-        for (const node of candidates) {
-          const text = embeddingText(node);
-          const textHash = kg.embeddingTextHash(text);
+        const batchSize = settings.batchSize && settings.batchSize > 0 ? settings.batchSize : DEFAULT_EMBEDDINGS_BATCH_SIZE;
+        // Batched: one provider request and one UNWIND write per `batchSize` nodes, instead of
+        // one HTTP call plus one Neo4j write per node.
+        for (const batch of chunkArray(candidates, batchSize)) {
+          const items = batch.map((node) => {
+            const text = embeddingText(node);
+            return { node, text, textHash: kg.embeddingTextHash(text) };
+          });
           try {
-            const vector = await embedText(text, settings);
-            if (!indexReady) {
-              await kg.createEmbeddingIndex(vector.length);
-              indexReady = true;
+            const vectors = await embedTexts(items.map((item) => item.text), settings);
+            await kg.createEmbeddingIndex(vectors[0].length);
+            const written = await kg.writeNodeEmbeddings(
+              items.map((item, index) => ({ nodeId: item.node.id, vector: vectors[index], textHash: item.textHash })),
+              { provider: settings.provider, model: settings.model, dimensions: vectors[0].length },
+            );
+            if (written !== items.length) {
+              // Rare: a node vanished between listing and writing. Re-write per node to attribute
+              // the failure precisely instead of guessing which one was lost.
+              for (const [index, item] of items.entries()) {
+                const ok = await kg.writeNodeEmbedding(item.node.id, vectors[index], {
+                  provider: settings.provider,
+                  model: settings.model,
+                  dimensions: vectors[index].length,
+                  textHash: item.textHash,
+                });
+                if (ok) {
+                  embedded++;
+                  results.push({ id: item.node.id, type: item.node.type, label: item.node.label, textHash: item.textHash, status: 'embedded' });
+                } else {
+                  failed++;
+                  results.push({ id: item.node.id, type: item.node.type, label: item.node.label, textHash: item.textHash, status: 'failed', reason: 'node_not_found' });
+                }
+              }
+            } else {
+              embedded += items.length;
+              for (const item of items) {
+                results.push({ id: item.node.id, type: item.node.type, label: item.node.label, textHash: item.textHash, status: 'embedded' });
+              }
             }
-            const written = await kg.writeNodeEmbedding(node.id, vector, {
-              provider: settings.provider,
-              model: settings.model,
-              dimensions: vector.length,
-              textHash,
-            });
-            if (!written) throw new Error('node_not_found');
-            embedded++;
-            results.push({ id: node.id, type: node.type, label: node.label, textHash, status: 'embedded' });
           } catch (err) {
-            failed++;
-            results.push({ id: node.id, type: node.type, label: node.label, textHash, status: 'failed', reason: String(err) });
+            failed += items.length;
+            for (const item of items) {
+              results.push({ id: item.node.id, type: item.node.type, label: item.node.label, textHash: item.textHash, status: 'failed', reason: String(err) });
+            }
           }
         }
         return toolStructured({
@@ -541,8 +563,11 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
         return toolError('KG_EMBEDDINGS_NOT_CONFIGURED', 'Embeddings provider is not configured; semantic search cannot run without real vectors.', { missing: runtime.missing });
       }
       try {
-        const graph = await kg.embeddingStatus();
-        if (!graph.vectorIndexExists || graph.embeddedNodes === 0) {
+        // Memoized after the first success: steady-state searches skip the SHOW INDEXES and
+        // node-count round-trips entirely.
+        const readiness = await kg.semanticSearchReadiness();
+        if (!readiness.ready) {
+          const graph = readiness.status!;
           return toolError('KG_EMBEDDINGS_NOT_READY', 'Semantic search requires a populated Neo4j vector index. Run kg_backfill_embeddings first.', {
             vectorIndexName: graph.vectorIndexName,
             vectorIndexExists: graph.vectorIndexExists,
@@ -550,7 +575,7 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
             pendingNodes: graph.pendingNodes,
           });
         }
-        const vector = await embedText(query, settings);
+        const vector = await embedTextCached(query, settings);
         return toolStructured({ ok: true, runtime, results: await kg.semanticSearch(vector, { type, limit }) });
       } catch (err) {
         return toolError('KG_SEMANTIC_SEARCH_FAILED', `kg_semantic_search failed: ${String(err)}`, { type, limit });

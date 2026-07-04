@@ -110,16 +110,17 @@ Tool generici mantenuti:
 
 Il server MCP supporta embeddings reali OpenAI-compatible per ricerca semantica profonda sul grafo. Non genera vettori fittizi: se il provider non e configurato, `kg_backfill_embeddings` e `kg_semantic_search` restituiscono errore operativo.
 
-**Default: Ollama locale, nessuna chiave a pagamento.** Lo stack include `romanzo_gabriele_ollama` (servizio) e `romanzo_gabriele_ollama_init` (scarica il modello `qwen3-embedding:8b` e lo ricrea con un context window esteso a 8192 token — vedi `ollama/Modelfile.embeddings` — per non troncare in silenzio capitoli lunghi). Il server MCP punta a questo servizio out of the box (`EMBEDDINGS_BASE_URL=http://romanzo_gabriele_ollama:11434/v1`, dimensioni ridotte a 1536 per un indice vettoriale piu leggero). Per usare un provider esterno (OpenAI, Voyage, ecc.) basta sovrascrivere le variabili sotto.
+**Default: Ollama locale, nessuna chiave a pagamento.** Lo stack include `romanzo_gabriele_ollama` (servizio) e `romanzo_gabriele_ollama_init` (scarica il modello `qwen3-embedding:4b` e lo ricrea con un context window esteso a 8192 token — vedi `ollama/Modelfile.embeddings` — per non troncare in silenzio capitoli lunghi). Il 4B e' la scelta di default perche' i vettori vengono comunque troncati a 1536 dimensioni: a parita' di dimensioni finali la perdita di qualita' rispetto all'8B e' minima, mentre la latenza per embedding scende in modo netto. Il server MCP punta a questo servizio out of the box (`EMBEDDINGS_BASE_URL=http://romanzo_gabriele_ollama:11434/v1`, dimensioni ridotte a 1536 per un indice vettoriale piu leggero). Per usare un provider esterno (OpenAI, Voyage, ecc.) basta sovrascrivere le variabili sotto.
 
 Variabili supportate:
 
 - `EMBEDDINGS_PROVIDER=openai-compatible`
 - `EMBEDDINGS_API_KEY`
 - `EMBEDDINGS_BASE_URL`, default locale `http://romanzo_gabriele_ollama:11434/v1`
-- `EMBEDDINGS_MODEL`, default `qwen3-embedding-8b-ctx8k`
+- `EMBEDDINGS_MODEL`, default `qwen3-embedding-4b-ctx8k`
 - `EMBEDDINGS_DIMENSIONS`, default `1536`
 - `EMBEDDINGS_TIMEOUT_MS`, default `30000`
+- `EMBEDDINGS_BATCH_SIZE`, default `32` — testi per singola richiesta al provider nei percorsi batch
 
 Fallback compatibili:
 
@@ -133,6 +134,10 @@ Flusso operativo:
 2. Eseguire `kg_backfill_embeddings` con `dryRun=true` per vedere i nodi selezionati.
 3. Eseguire `kg_backfill_embeddings` con `dryRun=false` per scrivere `Entity.embedding` e creare l'indice Neo4j `entity_embedding`.
 4. Usare `kg_semantic_search` per recupero per affinita semantica profonda.
+
+Prestazioni: gli embed avvengono in batch (una richiesta HTTP per `EMBEDDINGS_BATCH_SIZE` testi, una sola scrittura Neo4j per batch), i nodi con testo invariato vengono saltati tramite `embeddingTextHash`, le query ripetute usano una cache LRU in-process e l'esistenza dell'indice vettoriale e' memoizzata (nessun `SHOW INDEXES` per chiamata a regime).
+
+Cambio modello: i vettori di modelli diversi non sono confrontabili. Dopo aver cambiato `EMBEDDINGS_MODEL`, rilanciare `kg_backfill_embeddings` (anche con `missingOnly=true`) finche' `summary.selected=0`: i nodi con vettori del modello precedente vengono selezionati e rigenerati automaticamente.
 
 Tool narrativi disponibili:
 

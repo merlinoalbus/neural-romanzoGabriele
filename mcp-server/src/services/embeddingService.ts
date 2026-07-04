@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { config } from '../config.js';
 
 export interface EmbeddingSettings {
@@ -7,6 +8,8 @@ export interface EmbeddingSettings {
   model: string;
   dimensions: number;
   timeoutMs: number;
+  /** Max texts per provider request when batching. Optional so existing call sites/tests stay valid. */
+  batchSize?: number;
 }
 
 export interface EmbeddingRuntimeStatus {
@@ -32,6 +35,7 @@ export function getEmbeddingSettings(): EmbeddingSettings {
     model: config.embeddingsModel,
     dimensions: config.embeddingsDimensions,
     timeoutMs: config.embeddingsTimeoutMs,
+    batchSize: config.embeddingsBatchSize,
   };
 }
 
@@ -72,17 +76,34 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function embedTextOnce(
-  text: string,
+function validateVector(vector: unknown, expectedDimensions: number): number[] {
+  if (!Array.isArray(vector) || vector.length === 0 || !vector.every((value) => typeof value === 'number' && Number.isFinite(value))) {
+    throw new Error('embedding_provider_error: response does not contain a valid numeric embedding');
+  }
+  if (expectedDimensions > 0 && vector.length !== expectedDimensions) {
+    throw new Error(`embedding_provider_error: expected ${expectedDimensions} dimensions, received ${vector.length}`);
+  }
+  return vector as number[];
+}
+
+/**
+ * One provider round-trip for one or many texts. The OpenAI-compatible `/embeddings` endpoint
+ * (including Ollama's) accepts an array input, so a whole batch costs a single HTTP request and
+ * lets the provider schedule the texts together on the GPU instead of one prompt at a time.
+ * A single string is still sent as a plain string for exact backward compatibility.
+ */
+async function embedRequestOnce(
+  input: string | string[],
   resolved: EmbeddingSettings,
   fetchImpl: FetchLike,
-): Promise<number[]> {
+): Promise<number[][]> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), resolved.timeoutMs);
+  const expectedCount = Array.isArray(input) ? input.length : 1;
   try {
     const body: Record<string, unknown> = {
       model: resolved.model,
-      input: text,
+      input,
     };
     if (resolved.dimensions > 0) body.dimensions = resolved.dimensions;
     let response: Response;
@@ -107,15 +128,22 @@ async function embedTextOnce(
       if (response.status === 429 || response.status >= 500) throw new RetryableEmbeddingError(detail);
       throw new Error(detail);
     }
-    const payload = (await response.json()) as { data?: Array<{ embedding?: unknown }> };
-    const vector = payload.data?.[0]?.embedding;
-    if (!Array.isArray(vector) || vector.length === 0 || !vector.every((value) => typeof value === 'number' && Number.isFinite(value))) {
-      throw new Error('embedding_provider_error: response does not contain a valid numeric embedding');
+    const payload = (await response.json()) as { data?: Array<{ embedding?: unknown; index?: unknown }> };
+    const data = payload.data;
+    if (!Array.isArray(data) || data.length !== expectedCount) {
+      throw new Error(`embedding_provider_error: expected ${expectedCount} embeddings, received ${Array.isArray(data) ? data.length : 0}`);
     }
-    if (resolved.dimensions > 0 && vector.length !== resolved.dimensions) {
-      throw new Error(`embedding_provider_error: expected ${resolved.dimensions} dimensions, received ${vector.length}`);
+    // The spec does not guarantee response order; `index` maps each vector back to its input.
+    const vectors: number[][] = new Array(expectedCount);
+    for (let position = 0; position < data.length; position++) {
+      const item = data[position];
+      const index = typeof item.index === 'number' && Number.isInteger(item.index) ? item.index : position;
+      if (index < 0 || index >= expectedCount || vectors[index]) {
+        throw new Error('embedding_provider_error: response contains invalid or duplicate embedding indexes');
+      }
+      vectors[index] = validateVector(item.embedding, resolved.dimensions);
     }
-    return vector;
+    return vectors;
   } finally {
     clearTimeout(timer);
   }
@@ -124,6 +152,37 @@ async function embedTextOnce(
 export interface EmbedTextRetryOptions {
   maxRetries?: number;
   baseDelayMs?: number;
+}
+
+function resolveForRequest(settings: EmbeddingSettings, fetchImpl: FetchLike): EmbeddingSettings {
+  const resolved = requireEmbeddingSettings(settings);
+  if (resolved.provider !== 'openai-compatible') {
+    throw new EmbeddingConfigurationError(`Unsupported embeddings provider: ${resolved.provider}`);
+  }
+  if (!fetchImpl) throw new EmbeddingConfigurationError('fetch is not available in this runtime');
+  return resolved;
+}
+
+async function embedWithRetry(
+  input: string | string[],
+  resolved: EmbeddingSettings,
+  fetchImpl: FetchLike,
+  retry: EmbedTextRetryOptions,
+): Promise<number[][]> {
+  const maxRetries = retry.maxRetries ?? 2;
+  const baseDelayMs = retry.baseDelayMs ?? 300;
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await embedRequestOnce(input, resolved, fetchImpl);
+    } catch (err) {
+      lastError = err;
+      const retryable = err instanceof RetryableEmbeddingError;
+      if (!retryable || attempt === maxRetries) throw err;
+      await sleep(baseDelayMs * 2 ** attempt);
+    }
+  }
+  throw lastError;
 }
 
 /**
@@ -137,24 +196,82 @@ export async function embedText(
   fetchImpl: FetchLike = globalThis.fetch,
   retry: EmbedTextRetryOptions = {},
 ): Promise<number[]> {
-  const resolved = requireEmbeddingSettings(settings);
-  if (resolved.provider !== 'openai-compatible') {
-    throw new EmbeddingConfigurationError(`Unsupported embeddings provider: ${resolved.provider}`);
-  }
-  if (!fetchImpl) throw new EmbeddingConfigurationError('fetch is not available in this runtime');
+  const resolved = resolveForRequest(settings, fetchImpl);
+  const vectors = await embedWithRetry(text, resolved, fetchImpl, retry);
+  return vectors[0];
+}
 
-  const maxRetries = retry.maxRetries ?? 2;
-  const baseDelayMs = retry.baseDelayMs ?? 300;
-  let lastError: unknown;
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      return await embedTextOnce(text, resolved, fetchImpl);
-    } catch (err) {
-      lastError = err;
-      const retryable = err instanceof RetryableEmbeddingError;
-      if (!retryable || attempt === maxRetries) throw err;
-      await sleep(baseDelayMs * 2 ** attempt);
-    }
+export const DEFAULT_EMBEDDINGS_BATCH_SIZE = 32;
+
+export function chunkArray<T>(items: T[], size: number): T[][] {
+  const chunkSize = Math.max(1, Math.trunc(size));
+  const chunks: T[][] = [];
+  for (let start = 0; start < items.length; start += chunkSize) {
+    chunks.push(items.slice(start, start + chunkSize));
   }
-  throw lastError;
+  return chunks;
+}
+
+/**
+ * Embeds many texts with as few provider round-trips as possible: texts are grouped into
+ * batches of `settings.batchSize` (default 32) and each batch is one HTTP request. Output
+ * order matches input order. Same retry semantics as `embedText`, applied per batch.
+ */
+export async function embedTexts(
+  texts: string[],
+  settings: EmbeddingSettings = getEmbeddingSettings(),
+  fetchImpl: FetchLike = globalThis.fetch,
+  retry: EmbedTextRetryOptions = {},
+): Promise<number[][]> {
+  if (!texts.length) return [];
+  const resolved = resolveForRequest(settings, fetchImpl);
+  const batchSize = resolved.batchSize && resolved.batchSize > 0 ? resolved.batchSize : DEFAULT_EMBEDDINGS_BATCH_SIZE;
+  const vectors: number[][] = [];
+  for (const batch of chunkArray(texts, batchSize)) {
+    vectors.push(...(await embedWithRetry(batch, resolved, fetchImpl, retry)));
+  }
+  return vectors;
+}
+
+// Small in-process LRU for query-style embeddings (semantic search queries, discrepancy-gate
+// candidate texts re-checked by validators). Embedding a fixed text with a fixed model is
+// deterministic enough for caching, and a hit saves a full GPU round-trip. Keyed by
+// model+dimensions so a model switch can never serve vectors from the old space.
+const EMBED_CACHE_MAX_ENTRIES = 512;
+const embedCache = new Map<string, number[]>();
+
+function embedCacheKey(text: string, settings: EmbeddingSettings): string {
+  return `${settings.model}|${settings.dimensions}|${createHash('sha256').update(text).digest('hex')}`;
+}
+
+export function clearEmbedCache(): void {
+  embedCache.clear();
+}
+
+/**
+ * `embedText` with an LRU cache in front. Use for read-path embeddings (queries, gate checks)
+ * where the same text is often re-embedded within a session; write-path node embeddings go
+ * through the textHash skip logic in embeddingSync instead.
+ */
+export async function embedTextCached(
+  text: string,
+  settings: EmbeddingSettings = getEmbeddingSettings(),
+  fetchImpl: FetchLike = globalThis.fetch,
+  retry: EmbedTextRetryOptions = {},
+): Promise<number[]> {
+  const key = embedCacheKey(text, settings);
+  const hit = embedCache.get(key);
+  if (hit) {
+    // Refresh recency so hot queries stay resident.
+    embedCache.delete(key);
+    embedCache.set(key, hit);
+    return hit;
+  }
+  const vector = await embedText(text, settings, fetchImpl, retry);
+  embedCache.set(key, vector);
+  if (embedCache.size > EMBED_CACHE_MAX_ENTRIES) {
+    const oldest = embedCache.keys().next().value;
+    if (oldest !== undefined) embedCache.delete(oldest);
+  }
+  return vector;
 }

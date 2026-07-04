@@ -131,6 +131,17 @@ export interface EmbeddingCandidate extends GraphNode {
   embeddingDimensions: number | null;
 }
 
+export interface EmbeddingCandidateWithState extends EmbeddingCandidate {
+  hasEmbedding: boolean;
+}
+
+export interface StoredNodeEmbedding {
+  nodeId: string;
+  vector: number[];
+  textHash: string;
+  model: string;
+}
+
 export interface SemanticSearchResult {
   node: GraphNode;
   score: number;
@@ -257,6 +268,8 @@ export async function closeDriver(): Promise<void> {
     await driver.close();
     driver = null;
     ready = null;
+    embeddingIndexKnown = false;
+    semanticSearchKnownReady = false;
   }
 }
 
@@ -919,10 +932,18 @@ export async function recall(query: string, opts: { depth?: number; limit?: numb
   return { matched, nodes: [...nodeMap.values()], edges: [...edgeMap.values()] };
 }
 
+// Once the vector index is known to exist it never disappears on its own, so the positive
+// answer is memoized: every semantic search and every inline embed used to pay a SHOW INDEXES
+// (and a CREATE ... IF NOT EXISTS) round-trip per call for a fact that can only flip once.
+let embeddingIndexKnown = false;
+
 async function embeddingIndexExists(): Promise<boolean> {
+  if (embeddingIndexKnown) return true;
   try {
     const records = await run(`SHOW INDEXES YIELD name WHERE name = '${ENTITY_EMBEDDING_INDEX}' RETURN count(*) AS c`, {});
-    return records.length ? toInt(records[0].get('c')) > 0 : false;
+    const exists = records.length ? toInt(records[0].get('c')) > 0 : false;
+    if (exists) embeddingIndexKnown = true;
+    return exists;
   } catch {
     return false;
   }
@@ -931,11 +952,26 @@ async function embeddingIndexExists(): Promise<boolean> {
 export async function createEmbeddingIndex(dimensions: number): Promise<void> {
   const dim = Math.trunc(dimensions);
   if (!Number.isFinite(dim) || dim <= 0 || dim > 8192) throw new Error('invalid_embedding_dimensions: dimensions must be between 1 and 8192');
+  if (embeddingIndexKnown) return;
   await run(
     `CREATE VECTOR INDEX ${ENTITY_EMBEDDING_INDEX} IF NOT EXISTS FOR (n:Entity) ON (n.embedding)
      OPTIONS { indexConfig: { \`vector.dimensions\`: ${dim}, \`vector.similarity_function\`: 'cosine' } }`,
     {},
   );
+  embeddingIndexKnown = true;
+}
+
+// Same memoization idea for the "can semantic search run at all?" gate: once the index exists
+// and at least one node is embedded, the gate stays open — embeddings are only ever cleared
+// node-by-node on content change, never wholesale.
+let semanticSearchKnownReady = false;
+
+export async function semanticSearchReadiness(): Promise<{ ready: boolean; status: GraphEmbeddingStatus | null }> {
+  if (semanticSearchKnownReady) return { ready: true, status: null };
+  const status = await embeddingStatus();
+  const ready = status.vectorIndexExists && status.embeddedNodes > 0;
+  if (ready) semanticSearchKnownReady = true;
+  return { ready, status };
 }
 
 export async function embeddingStatus(): Promise<GraphEmbeddingStatus> {
@@ -971,20 +1007,108 @@ function embeddingCandidateFrom(node: Node): EmbeddingCandidate {
   };
 }
 
-export async function listEmbeddingCandidates(opts: { type?: string; limit?: number; missingOnly?: boolean } = {}): Promise<EmbeddingCandidate[]> {
+export async function listEmbeddingCandidates(opts: { type?: string; limit?: number; missingOnly?: boolean; model?: string } = {}): Promise<EmbeddingCandidate[]> {
   const limit = clampInt(opts.limit, 100, 1, 1000);
   const type = opts.type?.trim() || null;
   const missingOnly = opts.missingOnly ?? true;
+  // When the current model is provided, vectors produced by a different model count as missing:
+  // after an embedding-model switch, `missingOnly:true` backfills automatically re-embed the
+  // whole graph instead of silently mixing incompatible vector spaces in the same index.
+  const model = opts.model?.trim() || null;
   const records = await run(
     `MATCH (n:Entity {projectId:$pid})
      WHERE ($type IS NULL OR n.type = $type)
-       AND ($missingOnly = false OR n.embedding IS NULL)
+       AND ($missingOnly = false OR n.embedding IS NULL OR ($model IS NOT NULL AND n.embeddingModel <> $model))
      RETURN n
      ORDER BY coalesce(n.updatedAt, n.createdAt, '') DESC, n.label
      LIMIT $limit`,
-    { pid: pid(), type, missingOnly, limit: neo4j.int(limit) },
+    { pid: pid(), type, missingOnly, model, limit: neo4j.int(limit) },
   );
   return records.map((record) => embeddingCandidateFrom(record.get('n')));
+}
+
+/**
+ * Fetches the embedding bookkeeping state for an explicit set of nodes in one round-trip, so the
+ * inline post-commit embedder can decide (hash comparison) which nodes actually need the GPU.
+ */
+export async function getEmbeddingCandidatesByIds(nodeIds: string[]): Promise<EmbeddingCandidateWithState[]> {
+  const uniqueIds = [...new Set(nodeIds.map((id) => id.trim()).filter(Boolean))];
+  if (!uniqueIds.length) return [];
+  const records = await run(
+    `UNWIND $ids AS nodeId
+     MATCH (n:Entity {id: nodeId, projectId: $pid})
+     RETURN n, n.embedding IS NOT NULL AS hasEmbedding`,
+    { ids: uniqueIds, pid: pid() },
+  );
+  return records.map((record) => ({
+    ...embeddingCandidateFrom(record.get('n')),
+    hasEmbedding: Boolean(record.get('hasEmbedding')),
+  }));
+}
+
+/**
+ * Reads already-stored vectors for a set of nodes in one round-trip. Callers that only need to
+ * compare canonical nodes against each other (e.g. revision-impact neighbor checks) can reuse
+ * these instead of re-embedding node content through the provider.
+ */
+export async function getNodeEmbeddings(nodeIds: string[]): Promise<Map<string, StoredNodeEmbedding>> {
+  const uniqueIds = [...new Set(nodeIds.map((id) => id.trim()).filter(Boolean))];
+  const result = new Map<string, StoredNodeEmbedding>();
+  if (!uniqueIds.length) return result;
+  const records = await run(
+    `UNWIND $ids AS nodeId
+     MATCH (n:Entity {id: nodeId, projectId: $pid})
+     WHERE n.embedding IS NOT NULL
+     RETURN n.id AS id, n.embedding AS embedding, coalesce(n.embeddingTextHash, '') AS textHash, coalesce(n.embeddingModel, '') AS model`,
+    { ids: uniqueIds, pid: pid() },
+  );
+  for (const record of records) {
+    const vector = record.get('embedding');
+    if (!Array.isArray(vector) || !vector.length) continue;
+    result.set(String(record.get('id')), {
+      nodeId: String(record.get('id')),
+      vector: vector.map((value) => Number(value)),
+      textHash: String(record.get('textHash')),
+      model: String(record.get('model')),
+    });
+  }
+  return result;
+}
+
+/**
+ * Persists a batch of embeddings in a single UNWIND write instead of one MATCH+SET per node.
+ * Returns the number of nodes actually updated.
+ */
+export async function writeNodeEmbeddings(
+  entries: Array<{ nodeId: string; vector: number[]; textHash: string }>,
+  metadata: { provider: string; model: string; dimensions: number },
+): Promise<number> {
+  if (!entries.length) return 0;
+  for (const entry of entries) {
+    if (!entry.vector.length || entry.vector.some((value) => !Number.isFinite(value))) {
+      throw new Error('invalid_embedding: vector must contain finite numbers');
+    }
+  }
+  const records = await run(
+    `UNWIND $rows AS row
+     MATCH (n:Entity {id: row.nodeId, projectId: $pid})
+     SET n.embedding = row.vector,
+       n.embeddingProvider = $provider,
+       n.embeddingModel = $model,
+       n.embeddingDimensions = $dimensions,
+       n.embeddingTextHash = row.textHash,
+       n.embeddingUpdatedAt = $updatedAt
+     RETURN count(n) AS c`,
+    {
+      rows: entries.map((entry) => ({ nodeId: entry.nodeId, vector: entry.vector, textHash: entry.textHash })),
+      pid: pid(),
+      provider: metadata.provider,
+      model: metadata.model,
+      dimensions: neo4j.int(metadata.dimensions),
+      updatedAt: nowIso(),
+    },
+  );
+  return records.length ? toInt(records[0].get('c')) : 0;
 }
 
 export async function writeNodeEmbedding(

@@ -1,8 +1,9 @@
 /**
  * Minimal OpenAI-compatible embeddings server for the E2E test — no external network or real
- * API key required. Speaks the same contract embedTextOnce() expects (POST {baseUrl}/embeddings,
- * body {model, input, dimensions?}, response {data:[{embedding:number[]}]}), so the real
- * embedText()/retry logic, Neo4j vector index, and semantic discrepancy code all run for real.
+ * API key required. Speaks the same contract embedRequestOnce() expects (POST {baseUrl}/embeddings,
+ * body {model, input: string|string[], dimensions?}, response {data:[{index, embedding:number[]}]}),
+ * so the real embedText()/embedTexts()/retry logic, Neo4j vector index, and semantic discrepancy
+ * code all run for real.
  *
  * The vector for a given text is a deterministic hashed bag-of-words: texts sharing vocabulary
  * land close together in cosine similarity, unrelated texts land far apart. This is not a real
@@ -72,10 +73,13 @@ export async function startFakeEmbeddingsServer(options: FakeEmbeddingsServerOpt
         return;
       }
       try {
-        const parsed = JSON.parse(body) as { input?: string; dimensions?: number };
+        const parsed = JSON.parse(body) as { input?: string | string[]; dimensions?: number };
         const dim = parsed.dimensions && parsed.dimensions > 0 ? parsed.dimensions : FAKE_EMBEDDINGS_DIMENSIONS;
-        const embedding = fakeEmbeddingVector(String(parsed.input ?? ''), dim);
-        res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ data: [{ embedding }] }));
+        // Like the real OpenAI-compatible contract (Ollama included), input may be a single
+        // string or an array of texts — the batch path sends arrays.
+        const inputs = Array.isArray(parsed.input) ? parsed.input : [String(parsed.input ?? '')];
+        const data = inputs.map((text, index) => ({ index, embedding: fakeEmbeddingVector(String(text), dim) }));
+        res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ data }));
       } catch (err) {
         res.writeHead(400, { 'content-type': 'application/json' }).end(JSON.stringify({ error: String(err) }));
       }

@@ -84,9 +84,14 @@ services:
       - EMBEDDINGS_PROVIDER=${EMBEDDINGS_PROVIDER:-openai-compatible}
       - EMBEDDINGS_API_KEY=${EMBEDDINGS_API_KEY:-ollama-local}
       - EMBEDDINGS_BASE_URL=${EMBEDDINGS_BASE_URL:-http://romanzo_gabriele_ollama:11434/v1}
-      - EMBEDDINGS_MODEL=${EMBEDDINGS_MODEL:-qwen3-embedding-8b-ctx8k}
+      # Vettori troncati a 1536d (MRL): il 4B a 1536d perde pochissimo rispetto all'8B troncato
+      # ed e' molto piu veloce. Dopo un cambio modello, kg_backfill_embeddings (missingOnly:true)
+      # re-embedda automaticamente i nodi con vettori del modello precedente.
+      - EMBEDDINGS_MODEL=${EMBEDDINGS_MODEL:-qwen3-embedding-4b-ctx8k}
       - EMBEDDINGS_DIMENSIONS=${EMBEDDINGS_DIMENSIONS:-1536}
       - EMBEDDINGS_TIMEOUT_MS=${EMBEDDINGS_TIMEOUT_MS:-30000}
+      # Testi per singola richiesta al provider negli embed in batch (array input OpenAI-compatible).
+      - EMBEDDINGS_BATCH_SIZE=${EMBEDDINGS_BATCH_SIZE:-32}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
       - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-}
@@ -120,7 +125,8 @@ services:
       - NEO4J_dbms_security_auth__minimum__password__length=16
       - NEO4J_server_memory_heap_initial__size=1G
       - NEO4J_server_memory_heap_max__size=1G
-      - NEO4J_server_memory_pagecache_size=1G
+      # 2G tiene grafo + indice vettoriale interamente in memoria (niente I/O disco a regime).
+      - NEO4J_server_memory_pagecache_size=2G
       - NEO4J_server_jvm_additional=--add-modules=jdk.incubator.vector
     healthcheck:
       test: ["CMD-SHELL", "cypher-shell -a bolt://127.0.0.1:7687 -u neo4j -p \"$${HEALTHCHECK_PASSWORD}\" \"RETURN 1\" >/dev/null 2>&1"]
@@ -143,6 +149,9 @@ services:
       - OLLAMA_KEEP_ALIVE=-1
       - OLLAMA_FLASH_ATTENTION=1
       - OLLAMA_MAX_LOADED_MODELS=1
+      # Fino a 4 richieste in parallelo sullo stesso modello caricato: una query di semantic
+      # search non si mette in coda dietro un backfill in corso.
+      - OLLAMA_NUM_PARALLEL=4
     deploy:
       resources:
         reservations:
@@ -189,10 +198,12 @@ volumes:
 
 # -----------------------------------------------------------------------------
 # NOTA ollama_init (modello embedding):
-# Il modello qwen3-embedding-8b-ctx8k dovrebbe gia' essere nel volume ollama_data.
+# Il modello qwen3-embedding-4b-ctx8k deve essere nel volume ollama_data.
 # Verifica dopo l'avvio con:
 #   docker exec romanzo_gabriele_ollama ollama list
 # Se NON compare, esegui una tantum (senza bisogno del Modelfile locale):
-#   docker exec romanzo_gabriele_ollama ollama pull qwen3-embedding:8b
-#   docker exec romanzo_gabriele_ollama sh -c 'printf "FROM qwen3-embedding:8b\nPARAMETER num_ctx 8192\n" > /tmp/Modelfile && ollama create qwen3-embedding-8b-ctx8k -f /tmp/Modelfile'
+#   docker exec romanzo_gabriele_ollama ollama pull qwen3-embedding:4b
+#   docker exec romanzo_gabriele_ollama sh -c 'printf "FROM qwen3-embedding:4b\nPARAMETER num_ctx 8192\n" > /tmp/Modelfile && ollama create qwen3-embedding-4b-ctx8k -f /tmp/Modelfile'
+# Dopo il primo avvio col nuovo modello, rilanciare kg_backfill_embeddings finche'
+# summary.selected=0: i vettori dell'8B vengono rigenerati nel nuovo spazio vettoriale.
 # -----------------------------------------------------------------------------

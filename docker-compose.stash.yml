@@ -1,14 +1,19 @@
 # =============================================================================
-# Stack stash - volumi NFS verso NAS Synology (Tailscale 100.125.101.31)
+# Stack stash - setup nuovo (NFS + proxy, no ports) con RECUPERO dati vecchi
 # =============================================================================
-# PREREQUISITO sul NAS (DSM -> Shared Folder 'public' -> NFS Permissions):
-#   - regola per l'IP Tailscale di QUESTA macchina Docker (o subnet 100.64.0.0/10)
-#   - Read/Write
-#   - "Allow connections from non-privileged ports"
-#   - "Allow users to access mounted subfolders"  <-- ESSENZIALE per i subpath
+# La libreria vecchia (dal config.yml) e' UNA sola cartella:
+#     /data/nas/Mondo   (solo video, immagini escluse)
+# Nel nuovo setup /data/nas e' montato sulla home, quindi /data/nas/Mondo
+# esiste identico: il DB copiato ritrova i file allo stesso path, SENZA
+# reindicizzare.
 #
-# L'export NFS del NAS e' /Volume1/public. Le sottocartelle (homes_roberto/...)
-# sono raggiungibili come subpath solo con il flag "subfolders" attivo su DSM.
+# RECUPERO DB (da eseguire PRIMA del deploy, con stash fermo):
+#   Copiare stash-go.sqlite + config.yml + plugins + scrapers dal NAS
+#   (/Volume1/public/homes_roberto/App/stash/config) nel volume locale
+#   stash_config -> /root/.stash. Vedi comandi forniti in chat.
+#
+# NOTA: NIENTE STASH_STASH qui. La libreria e' gia' definita nel DB come
+# /data/nas/Mondo. Aggiungere STASH_STASH farebbe scansionare tutta la home.
 # =============================================================================
 
 services:
@@ -22,21 +27,33 @@ services:
       - TZ=Europe/Rome
       - USER=apps
       - STASH_PORT=9999
-      - STASH_STASH=/data/nas/         # libreria multimediale (sola lettura)
+      # percorsi pesanti sul NAS (rw). generated era "" nel config vecchio:
+      # ora lo puntiamo a stash-rw per non appesantire il volume locale.
       - STASH_CACHE=/data/stash-rw/cache/
       - STASH_GENERATED=/data/stash-rw/generated/
       - STASH_METADATA=/data/stash-rw/metadata/
       - NVIDIA_VISIBLE_DEVICES=void
     volumes:
+      # config + DB su disco locale (SQLite NON su NFS: evita "database is locked")
       - stash_config:/root/.stash
+      # home NAS montata su /data/nas -> contiene /data/nas/Mondo (la libreria)
       - nas_media:/data/nas:ro
+      # dati pesanti stash rw
       - nas_stash_rw:/data/stash-rw:rw
+      # blobs su NFS dedicato
       - stash_blobs:/blobs
     user: "0:0"
     networks:
       - proxy
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2048M
+        reservations:
+          memory: 256M
 
 networks:
   proxy:
@@ -46,7 +63,7 @@ volumes:
   stash_config:
     external: true
 
-  # Libreria multimediale (sorgenti) - montata :ro lato container
+  # Home NAS (contiene la cartella libreria Mondo). Montata :ro lato container.
   nas_media:
     driver: local
     driver_opts:
@@ -54,7 +71,7 @@ volumes:
       o: "addr=100.125.101.31,rw,nfsvers=4,hard,timeo=600,retrans=2,noatime,nconnect=4"
       device: ":/Volume1/public/homes_roberto"
 
-  # Dati pesanti stash (cache/generated/metadata) - montato :rw
+  # Dati pesanti stash (cache/generated/metadata)
   nas_stash_rw:
     driver: local
     driver_opts:
@@ -62,7 +79,7 @@ volumes:
       o: "addr=100.125.101.31,rw,nfsvers=4,hard,timeo=600,retrans=2,noatime,nconnect=4"
       device: ":/Volume1/public/homes_roberto/App/stash/stash-rw"
 
-  # Blobs su NFS dedicato (invariato rispetto all'originale)
+  # Blobs su NFS dedicato
   stash_blobs:
     driver: local
     driver_opts:

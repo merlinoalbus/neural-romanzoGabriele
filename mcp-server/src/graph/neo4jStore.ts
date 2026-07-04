@@ -818,7 +818,9 @@ export async function search(query: string, opts: { type?: string; limit?: numbe
 export async function listNodesByType(type: string, opts: { limit?: number } = {}): Promise<GraphNode[]> {
   const normalized = type.trim();
   if (!normalized) return [];
-  const limit = clampInt(opts.limit, 100, 1, 500);
+  // Max 5000 (was 500): coverage/gate tools must see ALL canonical nodes of a type — a silent
+  // 500 cap made bible coverage drift as soon as character_state passed 500 nodes.
+  const limit = clampInt(opts.limit, 100, 1, 5000);
   const records = await run(
     'MATCH (n:Entity {projectId:$pid, type:$type}) RETURN n ORDER BY n.label LIMIT $limit',
     { pid: pid(), type: normalized, limit: neo4j.int(limit) },
@@ -1157,6 +1159,17 @@ export async function writeNodeEmbedding(
     },
   );
   return records.length ? toInt(records[0].get('c')) > 0 : false;
+}
+
+/** All project edges in one round-trip (the graph is small enough to load whole edge sets). */
+export async function listProjectEdges(opts: { limit?: number } = {}): Promise<GraphEdge[]> {
+  const limit = clampInt(opts.limit, 50_000, 1, 200_000);
+  const records = await run(
+    `MATCH (a:Entity {projectId:$pid})-[r:REL]->(b:Entity {projectId:$pid})
+     RETURN r, a.id AS fromId, b.id AS toId LIMIT $limit`,
+    { pid: pid(), limit: neo4j.int(limit) },
+  );
+  return records.map((record) => edgeFrom(record.get('r'), String(record.get('fromId')), String(record.get('toId'))));
 }
 
 export async function semanticSearch(vector: number[], opts: { type?: string; limit?: number } = {}): Promise<SemanticSearchResult[]> {

@@ -920,7 +920,10 @@ async function buildCandidatePacket(sourceId: string, candidateId: string): Prom
 }
 
 export async function listCanonicalNarrativeNodes(limit?: number): Promise<kg.GraphNode[]> {
-  const perTypeLimit = limit ?? 500;
+  // 5000 per type (era 500): la matematica di copertura e dei gate e' corretta solo sull'insieme
+  // canonico COMPLETO — il vecchio cap troncava silenziosamente character_state (742 nodi) e
+  // faceva derivare i conteggi unmapped da un run all'altro.
+  const perTypeLimit = limit ?? 5000;
   const groups = await Promise.all(COMMITTABLE_BIBLE_NODE_TYPES.map((type) => kg.listNodesByType(type, { limit: perTypeLimit })));
   return groups.flat().filter((node) => node.metadata.canonStatus === 'canonical');
 }
@@ -933,12 +936,14 @@ export async function listCoverageFindingsForSource(sourceId?: string, limit?: n
 }
 
 export async function gatherCoverageEdges(nodes: kg.GraphNode[]): Promise<kg.GraphEdge[]> {
-  const edgeById = new Map<string, kg.GraphEdge>();
-  for (const node of nodes) {
-    const graph = await kg.neighbors(node.id, { depth: 1 });
-    for (const edge of graph.edges) edgeById.set(edge.id, edge);
-  }
-  return [...edgeById.values()];
+  // Una sola query per tutti gli archi del progetto, filtrata sugli endpoint richiesti: la
+  // versione precedente faceva una query neighbors PER OGNI nodo canonico (migliaia di
+  // round-trip sequenziali a chiamata) ed era la principale fonte di lentezza di
+  // novel_get_chapter_context_packet e novel_bible_coverage_report.
+  if (!nodes.length) return [];
+  const nodeIds = new Set(nodes.map((node) => node.id));
+  const edges = await kg.listProjectEdges();
+  return edges.filter((edge) => nodeIds.has(edge.fromId) || nodeIds.has(edge.toId));
 }
 
 async function findBibleSection(evidence: BibleCandidate['evidence']): Promise<kg.GraphNode | null> {

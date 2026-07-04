@@ -161,6 +161,10 @@ export function buildBibleCoverageReport(input: {
   const nodesWithoutEvidence = input.canonicalNodes
     .filter((node) => CANONICAL_TYPES_REQUIRING_EVIDENCE.has(node.type))
     .filter((node) => node.metadata.canonStatus === 'canonical')
+    // I fatti canonici estratti da un capitolo finale (pipeline novel_commit_chapter_candidates)
+    // hanno evidence verso il capitolo, non verso la Bibbia: pretenderla qui e' un errore di
+    // categoria che marcava per sempre come "senza evidence" ogni nodo nato dai capitoli.
+    .filter((node) => String(node.provenance.source ?? '') !== 'novel_commit_chapter_candidates' && !node.metadata.extractedFromChapter)
     .filter((node) => {
       const evidence = node.metadata.evidence;
       if (Array.isArray(evidence)) {

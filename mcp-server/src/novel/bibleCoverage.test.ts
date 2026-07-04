@@ -293,3 +293,26 @@ test('buildChapterContextPacket groups context and carries coverage warnings', (
   assert.equal(packet.counts.drafts, 1);
   assert.deepEqual(packet.coverageWarnings.map((finding) => finding.code), ['unmapped_bible_sections']);
 });
+
+test('buildBibleCoverageReport does not require Bible evidence for chapter-derived canonical nodes', () => {
+  const report = buildBibleCoverageReport({
+    sourceId: 'bibbia',
+    sections: [
+      node({ type: 'bible_section', label: 'bibbia::3.1', metadata: { sourceId: 'bibbia', sectionKey: '3.1', heading: 'Gabriele', order: 1 } }),
+    ],
+    candidates: [],
+    canonicalNodes: [
+      node({
+        type: 'knowledge_state',
+        label: 'Nonno - ciondolo nascosto',
+        metadata: { canonStatus: 'canonical', extractedFromChapter: 'Prologo' },
+        provenance: { source: 'novel_commit_chapter_candidates', sourceId: 'prologo-draft' },
+      }),
+      node({ type: 'character', label: 'Lisa senza evidence', metadata: { canonStatus: 'canonical' }, provenance: {} }),
+    ],
+    coverageFindings: [],
+    edges: [],
+  });
+
+  assert.deepEqual(report.nodesWithoutEvidence.map((item) => item.label), ['Lisa senza evidence']);
+});

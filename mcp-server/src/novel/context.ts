@@ -48,9 +48,9 @@ export type ContinuityFinding = {
   evidence?: Record<string, unknown>;
 };
 
-export type AuditCheck = 'structure' | 'characters' | 'style' | 'worldbuilding' | 'themes' | 'timeline';
+export type AuditCheck = 'structure' | 'characters' | 'style' | 'worldbuilding' | 'themes' | 'timeline' | 'composition';
 
-export const DEFAULT_AUDIT_CHECKS: readonly AuditCheck[] = ['structure', 'characters', 'style', 'worldbuilding', 'themes', 'timeline'];
+export const DEFAULT_AUDIT_CHECKS: readonly AuditCheck[] = ['structure', 'characters', 'style', 'worldbuilding', 'themes', 'timeline', 'composition'];
 
 export function composeRecallQuery(input: { task: string; chapterNumber?: number; query?: string; characters?: string[] }): string {
   const parts = [
@@ -417,7 +417,98 @@ export function auditChapterContent(input: {
       }
     }
 
-    // 3. Verifiche di Worldbuilding e Vincoli del Mondo
+    // 3. Controlli di composizione del testo (deterministici, senza giudizio narrativo):
+    // ridondanze interne, paragrafi troncati, punteggiatura sbilanciata, parole doppiate.
+    // Nascono da un caso reale: un testo proposto come "ottimizzato" conteneva frasi quasi
+    // duplicate e concetti troncati che nessun check strutturale intercettava.
+    if (checks.has('composition')) {
+      const MAX_COMPOSITION_FINDINGS = 12;
+      let compositionFindings = 0;
+      const pushComposition = (finding: ContinuityFinding): void => {
+        if (compositionFindings < MAX_COMPOSITION_FINDINGS) {
+          findings.push(finding);
+          compositionFindings++;
+        }
+      };
+
+      // 3a. Frasi quasi duplicate (ridondanza interna): Jaccard sui token significativi.
+      const tokenized = sentences
+        .map((sentence) => ({
+          sentence,
+          tokens: new Set(normalizeText(sentence).split(/\s+/).filter((word) => word.length > 3)),
+        }))
+        .filter((item) => item.tokens.size >= 8);
+      for (let left = 0; left < tokenized.length; left++) {
+        for (let right = left + 1; right < tokenized.length; right++) {
+          const a = tokenized[left];
+          const b = tokenized[right];
+          let overlap = 0;
+          for (const token of a.tokens) if (b.tokens.has(token)) overlap++;
+          const union = a.tokens.size + b.tokens.size - overlap;
+          if (union > 0 && overlap / union >= 0.75) {
+            pushComposition({
+              code: 'internal_redundancy',
+              severity: 'warning',
+              message: `Ridondanza interna: due frasi del capitolo dicono quasi la stessa cosa. Frase 1: "${a.sentence}" - Frase 2: "${b.sentence}"`,
+              evidence: { sentenceA: a.sentence, sentenceB: b.sentence },
+            });
+          }
+        }
+      }
+
+      // 3b. Paragrafi troncati: l'ultimo carattere utile non chiude la frase.
+      const paragraphs = input.content.split(/\n{1,}/).map((paragraph) => paragraph.trim()).filter((paragraph) => paragraph.length > 40);
+      const validEndings = /[.!?…»”"'):;—-]$/;
+      for (const paragraph of paragraphs) {
+        if (!validEndings.test(paragraph)) {
+          pushComposition({
+            code: 'truncated_paragraph',
+            severity: 'warning',
+            message: `Possibile concetto troncato: il paragrafo termina senza chiusura di frase: "...${paragraph.slice(-80)}"`,
+            evidence: { paragraphEnd: paragraph.slice(-120) },
+          });
+        }
+      }
+
+      // 3c. Punteggiatura accoppiata sbilanciata (virgolette caporali e parentesi).
+      const opensGuillemet = (text.match(/«/g) ?? []).length;
+      const closesGuillemet = (text.match(/»/g) ?? []).length;
+      if (opensGuillemet !== closesGuillemet) {
+        pushComposition({
+          code: 'unbalanced_punctuation',
+          severity: 'warning',
+          message: `Virgolette caporali sbilanciate: ${opensGuillemet} aperture « contro ${closesGuillemet} chiusure » - possibile dialogo spezzato o frase sconnessa.`,
+          evidence: { opens: opensGuillemet, closes: closesGuillemet },
+        });
+      }
+      const opensParen = (text.match(/\(/g) ?? []).length;
+      const closesParen = (text.match(/\)/g) ?? []).length;
+      if (opensParen !== closesParen) {
+        pushComposition({
+          code: 'unbalanced_punctuation',
+          severity: 'warning',
+          message: `Parentesi sbilanciate: ${opensParen} aperture contro ${closesParen} chiusure.`,
+          evidence: { opens: opensParen, closes: closesParen },
+        });
+      }
+
+      // 3d. Parola ripetuta consecutiva ("il il", "aveva aveva"): quasi sempre un refuso di
+      // assemblaggio blocchi. Whitelist per le reduplicazioni idiomatiche italiane volute.
+      const idiomaticReduplications = new Set(['via', 'piano', 'man', 'pian', 'poco', 'presto', 'quasi', 'sotto', 'lento', 'lenta', 'zitto', 'zitta']);
+      const doubledWordPattern = /\b([\p{L}]{2,})\s+\1\b/giu;
+      for (const match of text.matchAll(doubledWordPattern)) {
+        const word = match[1].toLowerCase();
+        if (idiomaticReduplications.has(word)) continue;
+        pushComposition({
+          code: 'doubled_word',
+          severity: 'info',
+          message: `Parola ripetuta consecutivamente ('${match[0]}'): possibile refuso di assemblaggio tra blocchi riscritti.`,
+          evidence: { fragment: match[0] },
+        });
+      }
+    }
+
+    // 4. Verifiche di Worldbuilding e Vincoli del Mondo
     if (checks.has('worldbuilding') && input.worldRules.length) {
       for (const rule of input.worldRules) {
         const ruleKeywords = rule.label.split(/\s+/).map((w) => normalizeText(w.replace(/[^\w]/g, ''))).filter((w) => w.length > 4);

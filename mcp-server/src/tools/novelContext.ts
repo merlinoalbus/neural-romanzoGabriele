@@ -53,7 +53,7 @@ const contextGroupsZ = z.object({
   other: z.array(nodeZ),
 });
 
-const auditCheckZ = z.enum(['structure', 'characters', 'style', 'worldbuilding', 'themes', 'timeline']);
+const auditCheckZ = z.enum(['structure', 'characters', 'style', 'worldbuilding', 'themes', 'timeline', 'composition']);
 
 const findingZ = z.object({
   code: z.string(),

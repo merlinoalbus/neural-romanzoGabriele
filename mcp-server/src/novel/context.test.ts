@@ -161,3 +161,57 @@ test('auditChapterContent references world rules in info findings', () => {
   assert.ok(ruleRef.message.includes('piume magiche'));
 });
 
+
+test('auditChapterContent composition check flags near-duplicate sentences and doubled words', () => {
+  const audit = auditChapterContent({
+    chapterNumber: 3,
+    content: [
+      'Gabriele osservava la neve cadere lenta oltre la finestra della cucina mentre la cioccolata fumava sul tavolo di legno.',
+      'La cioccolata fumava sul tavolo di legno mentre Gabriele osservava la neve cadere lenta oltre la finestra della cucina.',
+      'Poi il il silenzio riempi la stanza.',
+    ].join(' '),
+    checks: ['composition'],
+    chapter: node('chapter', 'Capitolo 3'),
+    characters: [],
+    styleRules: [],
+    worldRules: [],
+    themes: [],
+    timelineEvents: [],
+  });
+
+  assert.ok(audit.findings.some((f) => f.code === 'internal_redundancy' && f.severity === 'warning'));
+  assert.ok(audit.findings.some((f) => f.code === 'doubled_word'));
+});
+
+test('auditChapterContent composition check flags truncated paragraphs and unbalanced quotes', () => {
+  const audit = auditChapterContent({
+    chapterNumber: 3,
+    content: 'Il Nonno sorrise e disse: «La promessa della cioccolata calda vale piu di qualsiasi\n\nLisa annui senza capire davvero il senso di quelle parole antiche e misteriose.',
+    checks: ['composition'],
+    chapter: node('chapter', 'Capitolo 3'),
+    characters: [],
+    styleRules: [],
+    worldRules: [],
+    themes: [],
+    timelineEvents: [],
+  });
+
+  assert.ok(audit.findings.some((f) => f.code === 'truncated_paragraph'));
+  assert.ok(audit.findings.some((f) => f.code === 'unbalanced_punctuation'));
+});
+
+test('auditChapterContent composition check stays silent on clean prose', () => {
+  const audit = auditChapterContent({
+    chapterNumber: 3,
+    content: 'Gabriele osservava la neve oltre la finestra. «Domani sara tutto bianco», disse piano piano il Nonno, e la cucina profumava di cioccolata calda.',
+    checks: ['composition'],
+    chapter: node('chapter', 'Capitolo 3'),
+    characters: [],
+    styleRules: [],
+    worldRules: [],
+    themes: [],
+    timelineEvents: [],
+  });
+
+  assert.equal(audit.findings.filter((f) => ['internal_redundancy', 'truncated_paragraph', 'unbalanced_punctuation', 'doubled_word'].includes(f.code)).length, 0);
+});

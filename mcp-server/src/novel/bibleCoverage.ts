@@ -40,7 +40,20 @@ export interface ChapterContextPacket {
   coverageWarnings: BibleCoverageFinding[];
 }
 
-const CANONICAL_TYPES_REQUIRING_EVIDENCE = new Set<string>(COMMITTABLE_BIBLE_NODE_TYPES);
+/**
+ * Narrative container/artifact types. A `chapter` or `scene` node is produced by the editorial
+ * and chapter pipelines (novel_save_final_chapter, novel_commit_chapter_candidates) — it is the
+ * narrative text itself, not a fact extracted from the Bible, so it is never "derived from" a
+ * single Bible section and legitimately carries no Bible sectionKey. Bible extraction
+ * (classifyTarget/sentenceCandidates) never produces these types. They must therefore be exempt
+ * from the Bible-evidence requirement; including them flags every committed chapter as a
+ * false-positive `canonical_nodes_without_evidence` error.
+ */
+const NARRATIVE_ARTIFACT_TYPES = new Set<string>(['chapter', 'scene']);
+
+const CANONICAL_TYPES_REQUIRING_EVIDENCE = new Set<string>(
+  COMMITTABLE_BIBLE_NODE_TYPES.filter((type) => !NARRATIVE_ARTIFACT_TYPES.has(type)),
+);
 
 function sectionKey(section: GraphNode): string {
   return String(section.metadata.sectionKey ?? section.label);

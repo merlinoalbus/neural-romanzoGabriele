@@ -211,6 +211,27 @@ test('buildBibleCoverageReport ignores draft editorial nodes when checking canon
   assert.deepEqual(report.nodesWithoutEvidence.map((item) => item.label), ['Tema canonico senza fonte']);
 });
 
+test('buildBibleCoverageReport exempts canonical narrative-artifact nodes (chapter/scene) from the Bible-evidence requirement', () => {
+  const report = buildBibleCoverageReport({
+    sourceId: 'bibbia',
+    sections: [
+      node({ type: 'bible_section', label: 'bibbia::1', metadata: { sourceId: 'bibbia', sectionKey: '1', heading: 'Tema', order: 1 } }),
+    ],
+    candidates: [],
+    canonicalNodes: [
+      node({ type: 'chapter', label: 'Prologo', metadata: { canonStatus: 'canonical', role: 'prologo' }, provenance: { source: 'novel_save_final_chapter' } }),
+      node({ type: 'scene', label: 'Scena 1', metadata: { canonStatus: 'canonical' }, provenance: {} }),
+      node({ type: 'character', label: 'Gabriele senza fonte', metadata: { canonStatus: 'canonical' }, provenance: {} }),
+    ],
+    edges: [],
+  });
+
+  // The narrative-artifact containers are not narrative facts derived from the Bible, so they are
+  // not flagged even without a sectionKey; the Bible-derived character node still is.
+  assert.deepEqual(report.nodesWithoutEvidence.map((item) => item.label), ['Gabriele senza fonte']);
+  assert.ok(report.findings.some((finding) => finding.code === 'canonical_nodes_without_evidence'));
+});
+
 test('buildBibleCoverageReport maps sections from edge evidence and coverage finding evidence', () => {
   const report = buildBibleCoverageReport({
     sourceId: 'bibbia',

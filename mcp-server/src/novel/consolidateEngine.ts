@@ -142,26 +142,31 @@ function uniqueInferredEdges(edges: Iterable<InferredEdge>): InferredEdge[] {
   return [...unique.values()];
 }
 
-async function writeInferredEdge(runQuery: QueryRunner, projectId: string, edge: InferredEdge): Promise<void> {
+async function writeInferredEdges(runQuery: QueryRunner, projectId: string, edges: InferredEdge[]): Promise<void> {
+  if (!edges.length) return;
+  // One UNWIND round-trip for the whole set instead of one MERGE query per inferred edge.
   await runQuery(
-    `MATCH (from:Entity {id: $fromId, projectId: $projectId}), (to:Entity {id: $toId, projectId: $projectId})
-     MERGE (from)-[r:REL {kind: $kind}]->(to)
-     ON CREATE SET r.id = $id,
-                   r.weight = $weight,
-                   r.metadata = $metadata,
-                   r.provenance = $provenance,
+    `UNWIND $rows AS row
+     MATCH (from:Entity {id: row.fromId, projectId: $projectId}), (to:Entity {id: row.toId, projectId: $projectId})
+     MERGE (from)-[r:REL {kind: row.kind}]->(to)
+     ON CREATE SET r.id = row.id,
+                   r.weight = row.weight,
+                   r.metadata = row.metadata,
+                   r.provenance = row.provenance,
                    r.createdAt = $createdAt
-     ON MATCH SET r.weight = CASE WHEN coalesce(r.weight, 0) < $weight THEN $weight ELSE r.weight END`,
+     ON MATCH SET r.weight = CASE WHEN coalesce(r.weight, 0) < row.weight THEN row.weight ELSE r.weight END`,
     {
       projectId,
-      fromId: edge.from.id,
-      toId: edge.to.id,
-      kind: edge.kind,
-      id: crypto.randomUUID(),
-      weight: edge.weight,
-      metadata: JSON.stringify(edge.metadata),
-      provenance: JSON.stringify(edge.provenance),
       createdAt: new Date().toISOString(),
+      rows: edges.map((edge) => ({
+        fromId: edge.from.id,
+        toId: edge.to.id,
+        kind: edge.kind,
+        id: crypto.randomUUID(),
+        weight: edge.weight,
+        metadata: JSON.stringify(edge.metadata),
+        provenance: JSON.stringify(edge.provenance),
+      })),
     },
   );
 }
@@ -447,13 +452,15 @@ export async function runConsolidation(runQuery = runQueryRaw): Promise<Consolid
 
   const uniqueEdges = uniqueInferredEdges(inferredEdges.values());
 
-  for (const edge of uniqueEdges) await writeInferredEdge(runQuery, projectId, edge);
+  await writeInferredEdges(runQuery, projectId, uniqueEdges);
 
-  const finalNodesRes = await runQuery('MATCH (n:Entity {projectId: $projectId}) RETURN count(n) as count', { projectId });
-  const finalEdgesRes = await runQuery(
-    'MATCH (:Entity {projectId: $projectId})-[r:REL]->(:Entity {projectId: $projectId}) RETURN count(r) as count',
-    { projectId },
-  );
+  const [finalNodesRes, finalEdgesRes] = await Promise.all([
+    runQuery('MATCH (n:Entity {projectId: $projectId}) RETURN count(n) as count', { projectId }),
+    runQuery(
+      'MATCH (:Entity {projectId: $projectId})-[r:REL]->(:Entity {projectId: $projectId}) RETURN count(r) as count',
+      { projectId },
+    ),
+  ]);
 
   return {
     ok: true,

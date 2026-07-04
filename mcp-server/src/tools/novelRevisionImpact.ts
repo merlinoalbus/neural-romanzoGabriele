@@ -3,6 +3,7 @@ import { z } from 'zod';
 import * as kg from '../graph/neo4jStore.js';
 import { hasPolarityConflict } from '../novel/bibleDiscrepancy.js';
 import { CHAPTER_SECTION_ROLES, resolveChapterSectionLabel } from '../novel/domain.js';
+import { chunkArray } from '../services/embeddingService.js';
 import { semanticDiscrepancyOptionsIfConfigured } from '../services/embeddingSync.js';
 import { errorObj, toolError, toolStructured } from './responseHelpers.js';
 
@@ -134,8 +135,9 @@ export function registerNovelRevisionImpactTools(server: McpServer): void {
         if (!chapter) return toolError('NOVEL_SCAN_REVISION_IMPACT_CHAPTER_NOT_FOUND', `Chapter not found: ${chapterLabel}`, { chapterNumber, role });
 
         const semantic = semanticDiscrepancyOptionsIfConfigured();
-        const impacts = [];
-        for (const fact of changedFacts) {
+        // Each changed fact is scanned independently (graph walk + embeds): process them with
+        // bounded concurrency instead of strictly one at a time. Output order matches input.
+        const processFact = async (fact: z.infer<typeof changedFactInputZ>) => {
           const changedNode = await resolveChangedFactNode(fact);
           const oldContent = changedNode.content;
           const directPolarityConflict = hasPolarityConflict(oldContent, fact.newContent);
@@ -225,7 +227,14 @@ export function registerNovelRevisionImpactTools(server: McpServer): void {
             likelyAssumesOldFact: likelyByNodeId.get(neighborNode.id),
           }));
 
-          impacts.push({ changedNode, oldContent, newContent: fact.newContent, directPolarityConflict, semanticMeaningShift, potentiallyImpactedNodes });
+          return { changedNode, oldContent, newContent: fact.newContent, directPolarityConflict, semanticMeaningShift, potentiallyImpactedNodes };
+        };
+
+        // Concurrency 5: enough to overlap graph walks and embeds without flooding the GPU
+        // queue (OLLAMA_NUM_PARALLEL) or the Neo4j connection pool.
+        const impacts: Array<Awaited<ReturnType<typeof processFact>>> = [];
+        for (const factChunk of chunkArray(changedFacts, 5)) {
+          impacts.push(...(await Promise.all(factChunk.map(processFact))));
         }
 
         const requiresConfirmation = impacts.some(

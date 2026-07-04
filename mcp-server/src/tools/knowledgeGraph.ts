@@ -3,6 +3,7 @@ import { z } from 'zod';
 import * as kg from '../graph/neo4jStore.js';
 import { KG_KINDS_LIST } from '../graph/ontology.js';
 import { DEFAULT_EMBEDDINGS_BATCH_SIZE, chunkArray, embedTextCached, embedTexts, embeddingRuntimeStatus, embeddingText, getEmbeddingSettings } from '../services/embeddingService.js';
+import { semanticRecallSeeds } from '../services/embeddingSync.js';
 import { errorObj, toolError, toolStructured } from './responseHelpers.js';
 
 const jsonObj = z.record(z.string(), z.unknown());
@@ -416,12 +417,15 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
     'kg_recall',
     {
       title: 'KG recall',
-      description: 'Searches relevant nodes and expands their neighborhood as ready-to-use context.',
+      description: 'Searches relevant nodes and expands their neighborhood as ready-to-use context. Hybrid: lexical fulltext seeds plus vector-similarity seeds when embeddings are configured, so paraphrased queries still land on the right canon.',
       inputSchema: { query: z.string(), depth: z.number().int().positive().optional(), limit: z.number().int().positive().optional() },
       outputSchema: { ok: z.boolean(), matched: z.array(nodeZ), nodes: z.array(nodeZ), edges: z.array(edgeZ) },
       annotations: { title: 'KG recall', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ query, depth, limit }) => toolStructured({ ok: true, ...(await kg.recall(query, { depth, limit })) }),
+    async ({ query, depth, limit }) => {
+      const semanticSeeds = await semanticRecallSeeds(query);
+      return toolStructured({ ok: true, ...(await kg.recall(query, { depth, limit, semanticSeeds })) });
+    },
   );
 
   server.registerTool(
@@ -446,7 +450,7 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
     'kg_backfill_embeddings',
     {
       title: 'KG backfill embeddings',
-      description: 'Generates real vector embeddings for graph nodes and ensures the Neo4j vector index.',
+      description: 'Generates real vector embeddings for graph nodes and ensures the Neo4j vector index. Successful runs return only the summary plus any failed candidates; dryRun returns the planned candidates (capped at 200) — check summary.selected for the true total.',
       inputSchema: {
         limit: z.number().int().positive().optional(),
         type: z.string().optional(),
@@ -476,7 +480,11 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
       try {
         const candidates = await kg.listEmbeddingCandidates({ limit, type, missingOnly, model: settings.model });
         if (dryRun) {
-          const planned = candidates.map((node) => ({ id: node.id, type: node.type, label: node.label, textHash: node.embeddingTextHash, status: 'planned' as const }));
+          // Capped: the AI client needs a preview and the true count, not thousands of rows —
+          // an uncapped list on a large graph produced 100KB+ tool responses.
+          const planned = candidates
+            .slice(0, 200)
+            .map((node) => ({ id: node.id, type: node.type, label: node.label, textHash: node.embeddingTextHash, status: 'planned' as const }));
           return toolStructured({
             ok: true,
             runtime,
@@ -515,7 +523,6 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
                 });
                 if (ok) {
                   embedded++;
-                  results.push({ id: item.node.id, type: item.node.type, label: item.node.label, textHash: item.textHash, status: 'embedded' });
                 } else {
                   failed++;
                   results.push({ id: item.node.id, type: item.node.type, label: item.node.label, textHash: item.textHash, status: 'failed', reason: 'node_not_found' });
@@ -523,9 +530,6 @@ export function registerKnowledgeGraphTools(server: McpServer): void {
               }
             } else {
               embedded += items.length;
-              for (const item of items) {
-                results.push({ id: item.node.id, type: item.node.type, label: item.node.label, textHash: item.textHash, status: 'embedded' });
-              }
             }
           } catch (err) {
             failed += items.length;

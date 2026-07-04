@@ -155,6 +155,6 @@ test('runConsolidation writes inferred edges as REL relationships only', async (
   const report = await runConsolidation(mockQueryRunner as any);
 
   assert.equal(report.inferredEdges.length, 1);
-  assert.ok(seenCyphers.some((cypher) => cypher.includes('MERGE (from)-[r:REL {kind: $kind}]->(to)')));
+  assert.ok(seenCyphers.some((cypher) => cypher.includes('MERGE (from)-[r:REL {kind: row.kind}]->(to)')));
   assert.ok(seenCyphers.every((cypher) => !cypher.includes(':Relationship')));
 });

@@ -926,8 +926,14 @@ export async function neighbors(nodeId: string, opts: { depth?: number; kinds?: 
   return { nodes: [...nodeMap.values()], edges: [...edgeMap.values()] };
 }
 
-export async function recall(query: string, opts: { depth?: number; limit?: number } = {}): Promise<{ matched: GraphNode[]; nodes: GraphNode[]; edges: GraphEdge[] }> {
-  const matched = await search(query, { limit: opts.limit ?? 8 });
+export async function recall(query: string, opts: { depth?: number; limit?: number; semanticSeeds?: GraphNode[] } = {}): Promise<{ matched: GraphNode[]; nodes: GraphNode[]; edges: GraphEdge[] }> {
+  const lexical = await search(query, { limit: opts.limit ?? 8 });
+  // Hybrid retrieval: callers can pass vector-search seeds so a query phrased differently from
+  // the canon's wording still lands on the right nodes. Lexical matches keep priority in order.
+  const seedMap = new Map<string, GraphNode>();
+  for (const node of lexical) seedMap.set(node.id, node);
+  for (const node of opts.semanticSeeds ?? []) if (!seedMap.has(node.id)) seedMap.set(node.id, node);
+  const matched = [...seedMap.values()];
   const nodeMap = new Map<string, GraphNode>();
   const edgeMap = new Map<string, GraphEdge>();
   // Each match expands independently: run them concurrently on the driver's connection pool

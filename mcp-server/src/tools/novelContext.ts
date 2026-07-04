@@ -9,6 +9,7 @@ import {
   type AuditCheck,
 } from '../novel/context.js';
 import { normalizeChapterLabel } from '../novel/domain.js';
+import { semanticRecallSeeds } from '../services/embeddingSync.js';
 import { errorObj, toolError, toolStructured } from './responseHelpers.js';
 
 const jsonObj = z.record(z.string(), z.unknown());
@@ -72,7 +73,7 @@ export function registerNovelContextTools(server: McpServer): void {
     'novel_recall_context',
     {
       title: 'Novel recall context',
-      description: 'Read-only narrative recall grouped by chapters, characters, themes, world rules, style rules and related context.',
+      description: 'Read-only narrative recall grouped by chapters, characters, themes, world rules, style rules and related context. Hybrid retrieval: lexical fulltext plus vector-similarity seeds when embeddings are configured.',
       inputSchema: {
         task: z.string(),
         chapterNumber: z.number().int().positive().optional(),
@@ -97,9 +98,11 @@ export function registerNovelContextTools(server: McpServer): void {
       try {
         const recallQuery = composeRecallQuery({ task, chapterNumber, query, characters });
         if (!recallQuery) return toolStructured({ ok: true, query: '', matched: [], nodes: [], edges: [], context: groupNarrativeContext([]) });
+        const semanticSeeds = await semanticRecallSeeds(recallQuery);
         const recalled = await kg.recall(recallQuery, {
           depth: clampNumber(depth, 2, 1, 5),
           limit: clampNumber(limit, 12, 1, 100),
+          semanticSeeds,
         });
         const context = groupNarrativeContext(recalled.nodes, { includeDrafts });
         return toolStructured({ ok: true, query: recallQuery, ...recalled, context });

@@ -106,6 +106,26 @@ export async function embedNodesInline(nodeIds: string[]): Promise<EmbedNodeResu
 }
 
 /**
+ * Vector-search seeds for hybrid recall: embeds the query (LRU-cached) and returns the closest
+ * canonical nodes, so kg_recall / novel_recall_context find meaning matches even when the
+ * wording differs from the canon. Returns [] whenever embeddings are not configured, the index
+ * is not ready, or anything fails — recall then behaves exactly as the lexical-only version.
+ */
+export async function semanticRecallSeeds(query: string, opts: { limit?: number } = {}): Promise<kg.GraphNode[]> {
+  const settings = getEmbeddingSettings();
+  if (!query.trim() || !embeddingRuntimeStatus(settings).configured) return [];
+  try {
+    const readiness = await kg.semanticSearchReadiness();
+    if (!readiness.ready) return [];
+    const vector = await embedTextCached(query, settings);
+    const results = await kg.semanticSearch(vector, { limit: opts.limit ?? 5 });
+    return results.map((result) => result.node);
+  } catch {
+    return [];
+  }
+}
+
+/**
  * The semantic half of the hybrid gate (bibleDiscrepancy.ts's buildCanonDiscrepancyReport):
  * returns wired-up embed/search functions when embeddings are configured, or `undefined` when
  * they are not — callers pass this straight through and the discrepancy engine falls back to

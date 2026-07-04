@@ -73,9 +73,15 @@ services:
       - EMBEDDINGS_PROVIDER=${EMBEDDINGS_PROVIDER:-openai-compatible}
       - EMBEDDINGS_API_KEY=${EMBEDDINGS_API_KEY:-ollama-local}
       - EMBEDDINGS_BASE_URL=${EMBEDDINGS_BASE_URL:-http://romanzo_gabriele_ollama:11434/v1}
-      - EMBEDDINGS_MODEL=${EMBEDDINGS_MODEL:-qwen3-embedding-8b-ctx8k}
+      # I vettori vengono comunque troncati a 1536 dimensioni (MRL): il 4B a 1536d perde pochissimo
+      # rispetto all'8B troncato ed e' molto piu veloce per embedding. Dopo un cambio di modello il
+      # backfill (kg_backfill_embeddings, missingOnly:true) re-embedda automaticamente i nodi che
+      # hanno ancora vettori del modello precedente.
+      - EMBEDDINGS_MODEL=${EMBEDDINGS_MODEL:-qwen3-embedding-4b-ctx8k}
       - EMBEDDINGS_DIMENSIONS=${EMBEDDINGS_DIMENSIONS:-1536}
       - EMBEDDINGS_TIMEOUT_MS=${EMBEDDINGS_TIMEOUT_MS:-30000}
+      # Testi per singola richiesta al provider negli embed in batch (array input OpenAI-compatible).
+      - EMBEDDINGS_BATCH_SIZE=${EMBEDDINGS_BATCH_SIZE:-32}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
       - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-}
@@ -109,7 +115,9 @@ services:
       - NEO4J_dbms_security_auth__minimum__password__length=16
       - NEO4J_server_memory_heap_initial__size=1G
       - NEO4J_server_memory_heap_max__size=1G
-      - NEO4J_server_memory_pagecache_size=1G
+      # 2G tiene grafo + indice vettoriale interamente in memoria: le traversate neighbors a
+      # profondita' 2 e le query vettoriali non toccano il disco a regime.
+      - NEO4J_server_memory_pagecache_size=2G
       - NEO4J_server_jvm_additional=--add-modules=jdk.incubator.vector
     healthcheck:
       test: ["CMD-SHELL", "cypher-shell -a bolt://127.0.0.1:7687 -u neo4j -p \"$${HEALTHCHECK_PASSWORD}\" \"RETURN 1\" >/dev/null 2>&1"]
@@ -138,6 +146,9 @@ services:
       - OLLAMA_FLASH_ATTENTION=1
       # Un solo modello di embedding in uso: nessun altro da tenere caricato in memoria.
       - OLLAMA_MAX_LOADED_MODELS=1
+      # Fino a 4 richieste servite in parallelo dallo stesso modello caricato: una query di
+      # semantic search non deve mettersi in coda dietro un backfill in corso.
+      - OLLAMA_NUM_PARALLEL=4
     deploy:
       resources:
         reservations:
@@ -164,8 +175,8 @@ services:
       - OLLAMA_HOST=http://romanzo_gabriele_ollama:11434
     entrypoint: ["/bin/sh", "-c"]
     command: >
-      "ollama pull qwen3-embedding:8b &&
-      ollama create qwen3-embedding-8b-ctx8k -f /Modelfile.embeddings"
+      "ollama pull qwen3-embedding:4b &&
+      ollama create qwen3-embedding-4b-ctx8k -f /Modelfile.embeddings"
     volumes:
       - "./ollama/Modelfile.embeddings:/Modelfile.embeddings:ro"
     depends_on:

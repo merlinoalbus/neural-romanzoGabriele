@@ -131,6 +131,17 @@ export interface EmbeddingCandidate extends GraphNode {
   embeddingDimensions: number | null;
 }
 
+export interface EmbeddingCandidateWithState extends EmbeddingCandidate {
+  hasEmbedding: boolean;
+}
+
+export interface StoredNodeEmbedding {
+  nodeId: string;
+  vector: number[];
+  textHash: string;
+  model: string;
+}
+
 export interface SemanticSearchResult {
   node: GraphNode;
   score: number;
@@ -257,6 +268,8 @@ export async function closeDriver(): Promise<void> {
     await driver.close();
     driver = null;
     ready = null;
+    embeddingIndexKnown = false;
+    semanticSearchKnownReady = false;
   }
 }
 
@@ -505,13 +518,19 @@ export async function addNode(input: NodeInput): Promise<GraphNode> {
 export async function upsertNode(input: NodeInput): Promise<{ node: GraphNode; created: boolean }> {
   const existing = await getNodeByTypeLabel(input.type.trim(), input.label.trim());
   if (!existing) return { node: await addNode(input), created: true };
-  const node = await updateNode(existing.id, { content: input.content, metadata: input.metadata, provenance: input.provenance });
+  // The node was just fetched by key: apply the patch directly instead of re-reading it by id.
+  const node = await applyNodePatch(existing, { content: input.content, metadata: input.metadata, provenance: input.provenance });
   return { node: node!, created: false };
 }
 
 export async function updateNode(id: string, patch: NodePatch): Promise<GraphNode | null> {
   const existing = await getNodeById(id);
   if (!existing) return null;
+  return applyNodePatch(existing, patch);
+}
+
+async function applyNodePatch(existing: GraphNode, patch: NodePatch): Promise<GraphNode | null> {
+  const id = existing.id;
   const nextType = patch.type?.trim() || existing.type;
   const nextLabel = patch.label?.trim() || existing.label;
   if (nextType !== existing.type || nextLabel !== existing.label) {
@@ -611,15 +630,6 @@ export async function deleteNodes(
   };
 }
 
-async function getEdgeByKey(fromId: string, toId: string, kind: string): Promise<GraphEdge | null> {
-  const records = await run(
-    `MATCH (a:Entity {id:$fromId, projectId:$pid})-[r:REL {kind:$kind}]->(b:Entity {id:$toId, projectId:$pid})
-     RETURN r, a.id AS fromId, b.id AS toId LIMIT 1`,
-    { fromId, toId, kind, pid: pid() },
-  );
-  return records.length ? edgeFrom(records[0].get('r'), String(records[0].get('fromId')), String(records[0].get('toId'))) : null;
-}
-
 export async function getEdgeById(edgeId: string): Promise<GraphEdge | null> {
   const records = await run(
     `MATCH (a:Entity {projectId:$pid})-[r:REL {id:$edgeId}]->(b:Entity {projectId:$pid})
@@ -630,11 +640,24 @@ export async function getEdgeById(edgeId: string): Promise<GraphEdge | null> {
 }
 
 export async function link(input: EdgeInput): Promise<GraphEdge> {
+  return (await linkWithStatus(input)).edge;
+}
+
+/**
+ * Same as `link` but also reports whether the edge already existed. Endpoint existence and the
+ * current edge are resolved in ONE round-trip (they used to be three separate lookups, and
+ * `linkBulk` used to repeat all of them a second time before delegating here).
+ */
+export async function linkWithStatus(input: EdgeInput): Promise<{ edge: GraphEdge; merged: boolean }> {
   assertCanonicalKind(input.kind);
-  const from = await getNodeById(input.fromId);
-  const to = await getNodeById(input.toId);
-  if (!from || !to) throw new Error('node_not_found: fromId and toId must reference existing nodes');
-  const existing = await getEdgeByKey(input.fromId, input.toId, input.kind);
+  const lookup = await run(
+    `MATCH (a:Entity {id:$fromId, projectId:$pid}), (b:Entity {id:$toId, projectId:$pid})
+     OPTIONAL MATCH (a)-[r:REL {kind:$kind}]->(b)
+     RETURN r, a.id AS fromId, b.id AS toId`,
+    { fromId: input.fromId, toId: input.toId, kind: input.kind, pid: pid() },
+  );
+  if (!lookup.length) throw new Error('node_not_found: fromId and toId must reference existing nodes');
+  const existing = lookup[0].get('r') ? edgeFrom(lookup[0].get('r'), String(lookup[0].get('fromId')), String(lookup[0].get('toId'))) : null;
   const ts = nowIso();
   if (existing) {
     const metadata = input.metadata ? mergeObj(existing.metadata, input.metadata) : existing.metadata;
@@ -653,7 +676,7 @@ export async function link(input: EdgeInput): Promise<GraphEdge> {
         provenance: JSON.stringify(provenance),
       },
     );
-    return edgeFrom(records[0].get('r'), String(records[0].get('fromId')), String(records[0].get('toId')));
+    return { edge: edgeFrom(records[0].get('r'), String(records[0].get('fromId')), String(records[0].get('toId'))), merged: true };
   }
   const records = await run(
     `MATCH (a:Entity {id:$fromId, projectId:$pid}), (b:Entity {id:$toId, projectId:$pid})
@@ -672,7 +695,7 @@ export async function link(input: EdgeInput): Promise<GraphEdge> {
     },
   );
   if (!records.length) throw new Error('node_not_found: fromId and toId must reference existing nodes');
-  return edgeFrom(records[0].get('r'), String(records[0].get('fromId')), String(records[0].get('toId')));
+  return { edge: edgeFrom(records[0].get('r'), String(records[0].get('fromId')), String(records[0].get('toId'))), merged: false };
 }
 
 export async function unlinkById(edgeId: string): Promise<boolean> {
@@ -710,10 +733,10 @@ export async function upsertNodes(
       continue;
     }
     try {
-      const existing = await getNodeByTypeLabel(input.type.trim(), input.label.trim());
+      // upsertNode already reports created-vs-merged: no need for a duplicate lookup by key.
       const written = await upsertNode(input);
       if (written.created) created++; else merged++;
-      results.push({ type: input.type, label: input.label, status: existing ? 'merged' : 'created', nodeId: written.node.id });
+      results.push({ type: input.type, label: input.label, status: written.created ? 'created' : 'merged', nodeId: written.node.id });
     } catch (err) {
       failed++;
       results.push({ type: input.type, label: input.label, status: 'failed', reason: String(err) });
@@ -734,14 +757,11 @@ export async function linkBulk(
   let failed = 0;
   for (const input of edges) {
     try {
-      assertCanonicalKind(input.kind);
-      const from = await getNodeById(input.fromId);
-      const to = await getNodeById(input.toId);
-      if (!from || !to) throw new Error('node_not_found');
-      const existing = await getEdgeByKey(input.fromId, input.toId, input.kind);
-      const written = await link(input);
-      if (existing) merged++; else created++;
-      results.push({ fromId: input.fromId, toId: input.toId, kind: input.kind, status: existing ? 'merged' : 'created', edgeId: written.id });
+      // linkWithStatus resolves endpoints, existing edge, and the write itself in two
+      // round-trips total (the old path repeated three lookups here and three more in link()).
+      const written = await linkWithStatus(input);
+      if (written.merged) merged++; else created++;
+      results.push({ fromId: input.fromId, toId: input.toId, kind: input.kind, status: written.merged ? 'merged' : 'created', edgeId: written.edge.id });
     } catch (err) {
       failed++;
       results.push({ fromId: input.fromId, toId: input.toId, kind: input.kind, status: 'failed', reason: String(err) });
@@ -910,19 +930,30 @@ export async function recall(query: string, opts: { depth?: number; limit?: numb
   const matched = await search(query, { limit: opts.limit ?? 8 });
   const nodeMap = new Map<string, GraphNode>();
   const edgeMap = new Map<string, GraphEdge>();
-  for (const node of matched) {
+  // Each match expands independently: run them concurrently on the driver's connection pool
+  // instead of one at a time (merge order stays deterministic — results are merged in match order).
+  const expansions = await Promise.all(matched.map((node) => neighbors(node.id, { depth: opts.depth ?? 1 })));
+  for (const [index, node] of matched.entries()) {
     nodeMap.set(node.id, node);
-    const expanded = await neighbors(node.id, { depth: opts.depth ?? 1 });
+    const expanded = expansions[index];
     for (const expandedNode of expanded.nodes) nodeMap.set(expandedNode.id, expandedNode);
     for (const edge of expanded.edges) edgeMap.set(edge.id, edge);
   }
   return { matched, nodes: [...nodeMap.values()], edges: [...edgeMap.values()] };
 }
 
+// Once the vector index is known to exist it never disappears on its own, so the positive
+// answer is memoized: every semantic search and every inline embed used to pay a SHOW INDEXES
+// (and a CREATE ... IF NOT EXISTS) round-trip per call for a fact that can only flip once.
+let embeddingIndexKnown = false;
+
 async function embeddingIndexExists(): Promise<boolean> {
+  if (embeddingIndexKnown) return true;
   try {
     const records = await run(`SHOW INDEXES YIELD name WHERE name = '${ENTITY_EMBEDDING_INDEX}' RETURN count(*) AS c`, {});
-    return records.length ? toInt(records[0].get('c')) > 0 : false;
+    const exists = records.length ? toInt(records[0].get('c')) > 0 : false;
+    if (exists) embeddingIndexKnown = true;
+    return exists;
   } catch {
     return false;
   }
@@ -931,26 +962,44 @@ async function embeddingIndexExists(): Promise<boolean> {
 export async function createEmbeddingIndex(dimensions: number): Promise<void> {
   const dim = Math.trunc(dimensions);
   if (!Number.isFinite(dim) || dim <= 0 || dim > 8192) throw new Error('invalid_embedding_dimensions: dimensions must be between 1 and 8192');
+  if (embeddingIndexKnown) return;
   await run(
     `CREATE VECTOR INDEX ${ENTITY_EMBEDDING_INDEX} IF NOT EXISTS FOR (n:Entity) ON (n.embedding)
      OPTIONS { indexConfig: { \`vector.dimensions\`: ${dim}, \`vector.similarity_function\`: 'cosine' } }`,
     {},
   );
+  embeddingIndexKnown = true;
+}
+
+// Same memoization idea for the "can semantic search run at all?" gate: once the index exists
+// and at least one node is embedded, the gate stays open — embeddings are only ever cleared
+// node-by-node on content change, never wholesale.
+let semanticSearchKnownReady = false;
+
+export async function semanticSearchReadiness(): Promise<{ ready: boolean; status: GraphEmbeddingStatus | null }> {
+  if (semanticSearchKnownReady) return { ready: true, status: null };
+  const status = await embeddingStatus();
+  const ready = status.vectorIndexExists && status.embeddedNodes > 0;
+  if (ready) semanticSearchKnownReady = true;
+  return { ready, status };
 }
 
 export async function embeddingStatus(): Promise<GraphEmbeddingStatus> {
-  const records = await run(
-    `MATCH (n:Entity {projectId:$pid})
-     RETURN count(n) AS nodes,
-       count(n.embedding) AS embeddedNodes,
-       sum(CASE WHEN n.embedding IS NULL THEN 1 ELSE 0 END) AS pendingNodes,
-       max(n.embeddingUpdatedAt) AS lastEmbeddedAt`,
-    { pid: pid() },
-  );
+  const [records, vectorIndexExists] = await Promise.all([
+    run(
+      `MATCH (n:Entity {projectId:$pid})
+       RETURN count(n) AS nodes,
+         count(n.embedding) AS embeddedNodes,
+         sum(CASE WHEN n.embedding IS NULL THEN 1 ELSE 0 END) AS pendingNodes,
+         max(n.embeddingUpdatedAt) AS lastEmbeddedAt`,
+      { pid: pid() },
+    ),
+    embeddingIndexExists(),
+  ]);
   const record = records[0];
   return {
     vectorIndexName: ENTITY_EMBEDDING_INDEX,
-    vectorIndexExists: await embeddingIndexExists(),
+    vectorIndexExists,
     nodes: record ? toInt(record.get('nodes')) : 0,
     embeddedNodes: record ? toInt(record.get('embeddedNodes')) : 0,
     pendingNodes: record ? toInt(record.get('pendingNodes')) : 0,
@@ -971,20 +1020,108 @@ function embeddingCandidateFrom(node: Node): EmbeddingCandidate {
   };
 }
 
-export async function listEmbeddingCandidates(opts: { type?: string; limit?: number; missingOnly?: boolean } = {}): Promise<EmbeddingCandidate[]> {
+export async function listEmbeddingCandidates(opts: { type?: string; limit?: number; missingOnly?: boolean; model?: string } = {}): Promise<EmbeddingCandidate[]> {
   const limit = clampInt(opts.limit, 100, 1, 1000);
   const type = opts.type?.trim() || null;
   const missingOnly = opts.missingOnly ?? true;
+  // When the current model is provided, vectors produced by a different model count as missing:
+  // after an embedding-model switch, `missingOnly:true` backfills automatically re-embed the
+  // whole graph instead of silently mixing incompatible vector spaces in the same index.
+  const model = opts.model?.trim() || null;
   const records = await run(
     `MATCH (n:Entity {projectId:$pid})
      WHERE ($type IS NULL OR n.type = $type)
-       AND ($missingOnly = false OR n.embedding IS NULL)
+       AND ($missingOnly = false OR n.embedding IS NULL OR ($model IS NOT NULL AND n.embeddingModel <> $model))
      RETURN n
      ORDER BY coalesce(n.updatedAt, n.createdAt, '') DESC, n.label
      LIMIT $limit`,
-    { pid: pid(), type, missingOnly, limit: neo4j.int(limit) },
+    { pid: pid(), type, missingOnly, model, limit: neo4j.int(limit) },
   );
   return records.map((record) => embeddingCandidateFrom(record.get('n')));
+}
+
+/**
+ * Fetches the embedding bookkeeping state for an explicit set of nodes in one round-trip, so the
+ * inline post-commit embedder can decide (hash comparison) which nodes actually need the GPU.
+ */
+export async function getEmbeddingCandidatesByIds(nodeIds: string[]): Promise<EmbeddingCandidateWithState[]> {
+  const uniqueIds = [...new Set(nodeIds.map((id) => id.trim()).filter(Boolean))];
+  if (!uniqueIds.length) return [];
+  const records = await run(
+    `UNWIND $ids AS nodeId
+     MATCH (n:Entity {id: nodeId, projectId: $pid})
+     RETURN n, n.embedding IS NOT NULL AS hasEmbedding`,
+    { ids: uniqueIds, pid: pid() },
+  );
+  return records.map((record) => ({
+    ...embeddingCandidateFrom(record.get('n')),
+    hasEmbedding: Boolean(record.get('hasEmbedding')),
+  }));
+}
+
+/**
+ * Reads already-stored vectors for a set of nodes in one round-trip. Callers that only need to
+ * compare canonical nodes against each other (e.g. revision-impact neighbor checks) can reuse
+ * these instead of re-embedding node content through the provider.
+ */
+export async function getNodeEmbeddings(nodeIds: string[]): Promise<Map<string, StoredNodeEmbedding>> {
+  const uniqueIds = [...new Set(nodeIds.map((id) => id.trim()).filter(Boolean))];
+  const result = new Map<string, StoredNodeEmbedding>();
+  if (!uniqueIds.length) return result;
+  const records = await run(
+    `UNWIND $ids AS nodeId
+     MATCH (n:Entity {id: nodeId, projectId: $pid})
+     WHERE n.embedding IS NOT NULL
+     RETURN n.id AS id, n.embedding AS embedding, coalesce(n.embeddingTextHash, '') AS textHash, coalesce(n.embeddingModel, '') AS model`,
+    { ids: uniqueIds, pid: pid() },
+  );
+  for (const record of records) {
+    const vector = record.get('embedding');
+    if (!Array.isArray(vector) || !vector.length) continue;
+    result.set(String(record.get('id')), {
+      nodeId: String(record.get('id')),
+      vector: vector.map((value) => Number(value)),
+      textHash: String(record.get('textHash')),
+      model: String(record.get('model')),
+    });
+  }
+  return result;
+}
+
+/**
+ * Persists a batch of embeddings in a single UNWIND write instead of one MATCH+SET per node.
+ * Returns the number of nodes actually updated.
+ */
+export async function writeNodeEmbeddings(
+  entries: Array<{ nodeId: string; vector: number[]; textHash: string }>,
+  metadata: { provider: string; model: string; dimensions: number },
+): Promise<number> {
+  if (!entries.length) return 0;
+  for (const entry of entries) {
+    if (!entry.vector.length || entry.vector.some((value) => !Number.isFinite(value))) {
+      throw new Error('invalid_embedding: vector must contain finite numbers');
+    }
+  }
+  const records = await run(
+    `UNWIND $rows AS row
+     MATCH (n:Entity {id: row.nodeId, projectId: $pid})
+     SET n.embedding = row.vector,
+       n.embeddingProvider = $provider,
+       n.embeddingModel = $model,
+       n.embeddingDimensions = $dimensions,
+       n.embeddingTextHash = row.textHash,
+       n.embeddingUpdatedAt = $updatedAt
+     RETURN count(n) AS c`,
+    {
+      rows: entries.map((entry) => ({ nodeId: entry.nodeId, vector: entry.vector, textHash: entry.textHash })),
+      pid: pid(),
+      provider: metadata.provider,
+      model: metadata.model,
+      dimensions: neo4j.int(metadata.dimensions),
+      updatedAt: nowIso(),
+    },
+  );
+  return records.length ? toInt(records[0].get('c')) : 0;
 }
 
 export async function writeNodeEmbedding(
@@ -1036,14 +1173,21 @@ export async function semanticSearch(vector: number[], opts: { type?: string; li
 }
 
 export async function stats(): Promise<{ nodes: number; edges: number; nodeTypes: Record<string, number>; edgeKinds: Record<string, number> }> {
-  const nodeCount = toInt((await run('MATCH (n:Entity {projectId:$pid}) RETURN count(n) AS c', { pid: pid() }))[0]?.get('c') ?? 0);
-  const edgeCount = toInt((await run('MATCH (:Entity {projectId:$pid})-[r:REL]->(:Entity {projectId:$pid}) RETURN count(r) AS c', { pid: pid() }))[0]?.get('c') ?? 0);
+  // Four independent aggregations: run them concurrently on the connection pool.
+  const [nodeCountRecords, edgeCountRecords, nodeTypeRecords, edgeKindRecords] = await Promise.all([
+    run('MATCH (n:Entity {projectId:$pid}) RETURN count(n) AS c', { pid: pid() }),
+    run('MATCH (:Entity {projectId:$pid})-[r:REL]->(:Entity {projectId:$pid}) RETURN count(r) AS c', { pid: pid() }),
+    run('MATCH (n:Entity {projectId:$pid}) RETURN n.type AS k, count(*) AS c ORDER BY c DESC', { pid: pid() }),
+    run('MATCH (:Entity {projectId:$pid})-[r:REL]->(:Entity {projectId:$pid}) RETURN r.kind AS k, count(*) AS c ORDER BY c DESC', { pid: pid() }),
+  ]);
+  const nodeCount = toInt(nodeCountRecords[0]?.get('c') ?? 0);
+  const edgeCount = toInt(edgeCountRecords[0]?.get('c') ?? 0);
   const nodeTypes: Record<string, number> = {};
-  for (const record of await run('MATCH (n:Entity {projectId:$pid}) RETURN n.type AS k, count(*) AS c ORDER BY c DESC', { pid: pid() })) {
+  for (const record of nodeTypeRecords) {
     nodeTypes[String(record.get('k'))] = toInt(record.get('c'));
   }
   const edgeKinds: Record<string, number> = {};
-  for (const record of await run('MATCH (:Entity {projectId:$pid})-[r:REL]->(:Entity {projectId:$pid}) RETURN r.kind AS k, count(*) AS c ORDER BY c DESC', { pid: pid() })) {
+  for (const record of edgeKindRecords) {
     edgeKinds[String(record.get('k'))] = toInt(record.get('c'));
   }
   return { nodes: nodeCount, edges: edgeCount, nodeTypes, edgeKinds };
@@ -1365,11 +1509,23 @@ export async function ingestDocument(input: IngestDocumentInput): Promise<Ingest
       },
       provenance: input.provenance ?? {},
     });
-    await link({ fromId: written.node.id, toId: documentWrite.node.id, kind: 'part_of', provenance: { source: 'kg_ingest_document', sourceId } });
     chunkNodes.push(written.node);
   }
-  for (let index = 0; index < chunkNodes.length - 1; index++) {
-    await link({ fromId: chunkNodes[index].id, toId: chunkNodes[index + 1].id, kind: 'precedes', provenance: { source: 'kg_ingest_document', sourceId } });
+  // Structural edges (part_of + precedes) carry constant metadata/provenance, so the whole set
+  // is written with a single UNWIND+MERGE round-trip instead of ~2 lookups + 1 write per edge.
+  const provenanceJson = JSON.stringify({ source: 'kg_ingest_document', sourceId });
+  const edgeRows = [
+    ...chunkNodes.map((node) => ({ id: uuid(), fromId: node.id, toId: documentWrite.node.id, kind: 'part_of' })),
+    ...chunkNodes.slice(0, -1).map((node, index) => ({ id: uuid(), fromId: node.id, toId: chunkNodes[index + 1].id, kind: 'precedes' })),
+  ];
+  if (edgeRows.length) {
+    await run(
+      `UNWIND $rows AS row
+       MATCH (a:Entity {id: row.fromId, projectId: $pid}), (b:Entity {id: row.toId, projectId: $pid})
+       MERGE (a)-[r:REL {kind: row.kind}]->(b)
+       ON CREATE SET r.id = row.id, r.weight = 1, r.metadata = '{}', r.provenance = $provenance, r.createdAt = $ts`,
+      { rows: edgeRows, pid: pid(), provenance: provenanceJson, ts: nowIso() },
+    );
   }
   if (nas.saved && nas.path) {
     await attachAsset(documentWrite.node.id, { path: nas.path, mime: 'text/plain', label: 'source' });

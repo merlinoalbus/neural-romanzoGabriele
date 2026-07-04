@@ -1,8 +1,15 @@
 import * as kg from '../graph/neo4jStore.js';
 import type { SemanticDiscrepancyOptions } from '../novel/bibleDiscrepancy.js';
-import { embedText, embeddingRuntimeStatus, embeddingText, getEmbeddingSettings, type EmbeddingSettings } from './embeddingService.js';
+import {
+  embedTextCached,
+  embedTexts,
+  embeddingRuntimeStatus,
+  embeddingText,
+  getEmbeddingSettings,
+  type EmbeddingSettings,
+} from './embeddingService.js';
 
-export type EmbedNodeStatus = 'embedded' | 'skipped_not_configured' | 'skipped_not_found' | 'skipped_error';
+export type EmbedNodeStatus = 'embedded' | 'skipped_up_to_date' | 'skipped_not_configured' | 'skipped_not_found' | 'skipped_error';
 
 export interface EmbedNodeResult {
   nodeId: string;
@@ -11,59 +18,91 @@ export interface EmbedNodeResult {
 }
 
 /**
- * Embeds and stores the vector for a single node, never throwing: any failure (network,
- * provider, configuration) degrades to a `skipped_*` result instead of aborting the caller.
- * A node that stays without an embedding is naturally picked up by the next
- * `kg_backfill_embeddings({missingOnly:true})` pass — no separate "pending" bookkeeping needed.
+ * Core batch embedder. Never throws: any failure (network, provider, configuration, Neo4j)
+ * degrades to `skipped_*` results instead of aborting the caller — a broken provider must never
+ * block the canonical write that already happened. Nodes left without an embedding are naturally
+ * picked up by the next `kg_backfill_embeddings({missingOnly:true})` pass.
+ *
+ * Performance shape:
+ * - one Neo4j round-trip to load the nodes' embedding state;
+ * - nodes whose stored `embeddingTextHash` (and model) already match are skipped without
+ *   touching the provider at all;
+ * - the remaining texts go to the provider in array batches (one HTTP request per
+ *   `settings.batchSize` texts, GPU-batched by Ollama);
+ * - one UNWIND write per batch persists all vectors together.
  */
-export async function embedNode(nodeId: string, settings: EmbeddingSettings = getEmbeddingSettings()): Promise<EmbedNodeResult> {
-  const status = embeddingRuntimeStatus(settings);
-  if (!status.configured) return { nodeId, status: 'skipped_not_configured' };
-
-  const node = await kg.getNodeById(nodeId);
-  if (!node) return { nodeId, status: 'skipped_not_found' };
-
-  try {
-    const text = embeddingText(node);
-    const vector = await embedText(text, settings);
-    try {
-      // Idempotent (IF NOT EXISTS): makes the semantic gate self-sufficient from the very first
-      // commit after activation, instead of silently depending on someone remembering to run
-      // kg_backfill_embeddings once. A transient failure here must not block the embedding write.
-      await kg.createEmbeddingIndex(vector.length);
-    } catch {
-      // best-effort
-    }
-    await kg.writeNodeEmbedding(nodeId, vector, {
-      provider: settings.provider,
-      model: settings.model,
-      dimensions: vector.length,
-      textHash: kg.embeddingTextHash(text),
-    });
-    return { nodeId, status: 'embedded' };
-  } catch (err) {
-    return { nodeId, status: 'skipped_error', error: String(err) };
-  }
-}
-
-/**
- * Embeds a batch of nodes sequentially (the embeddings provider has no batch endpoint here),
- * called inline right after a canonical commit so the vector index never drifts out of sync
- * with the graph between manual backfills. Never throws — a broken provider must never block
- * the canonical write that already happened.
- */
-export async function embedNodesInline(nodeIds: string[]): Promise<EmbedNodeResult[]> {
+async function embedNodesBatch(nodeIds: string[], settings: EmbeddingSettings): Promise<EmbedNodeResult[]> {
   const uniqueIds = [...new Set(nodeIds.filter(Boolean))];
   if (!uniqueIds.length) return [];
-  const settings = getEmbeddingSettings();
+
   const status = embeddingRuntimeStatus(settings);
   if (!status.configured) return uniqueIds.map((nodeId) => ({ nodeId, status: 'skipped_not_configured' as const }));
 
-  const results: EmbedNodeResult[] = [];
-  for (const nodeId of uniqueIds) {
-    results.push(await embedNode(nodeId, settings));
+  let candidates: kg.EmbeddingCandidateWithState[];
+  try {
+    candidates = await kg.getEmbeddingCandidatesByIds(uniqueIds);
+  } catch (err) {
+    return uniqueIds.map((nodeId) => ({ nodeId, status: 'skipped_error' as const, error: String(err) }));
   }
-  return results;
+
+  const byId = new Map(candidates.map((candidate) => [candidate.id, candidate]));
+  const resultById = new Map<string, EmbedNodeResult>();
+  const pending: Array<{ nodeId: string; text: string; textHash: string }> = [];
+
+  for (const nodeId of uniqueIds) {
+    const candidate = byId.get(nodeId);
+    if (!candidate) {
+      resultById.set(nodeId, { nodeId, status: 'skipped_not_found' });
+      continue;
+    }
+    const text = embeddingText(candidate);
+    const textHash = kg.embeddingTextHash(text);
+    if (candidate.hasEmbedding && candidate.embeddingTextHash === textHash && candidate.embeddingModel === settings.model) {
+      resultById.set(nodeId, { nodeId, status: 'skipped_up_to_date' });
+      continue;
+    }
+    pending.push({ nodeId, text, textHash });
+  }
+
+  if (pending.length) {
+    try {
+      const vectors = await embedTexts(pending.map((item) => item.text), settings);
+      // Idempotent and memoized: makes the semantic gate self-sufficient from the very first
+      // commit after activation, without paying an index check per node.
+      try {
+        await kg.createEmbeddingIndex(vectors[0].length);
+      } catch {
+        // best-effort
+      }
+      await kg.writeNodeEmbeddings(
+        pending.map((item, index) => ({ nodeId: item.nodeId, vector: vectors[index], textHash: item.textHash })),
+        { provider: settings.provider, model: settings.model, dimensions: vectors[0].length },
+      );
+      for (const item of pending) resultById.set(item.nodeId, { nodeId: item.nodeId, status: 'embedded' });
+    } catch (err) {
+      for (const item of pending) {
+        if (!resultById.has(item.nodeId)) {
+          resultById.set(item.nodeId, { nodeId: item.nodeId, status: 'skipped_error', error: String(err) });
+        }
+      }
+    }
+  }
+
+  return uniqueIds.map((nodeId) => resultById.get(nodeId) ?? { nodeId, status: 'skipped_error', error: 'unknown' });
+}
+
+/** Embeds and stores the vector for a single node; see `embedNodesBatch` for semantics. */
+export async function embedNode(nodeId: string, settings: EmbeddingSettings = getEmbeddingSettings()): Promise<EmbedNodeResult> {
+  const results = await embedNodesBatch([nodeId], settings);
+  return results[0] ?? { nodeId, status: 'skipped_error', error: 'unknown' };
+}
+
+/**
+ * Embeds a batch of nodes right after a canonical commit so the vector index never drifts out
+ * of sync with the graph between manual backfills. Never throws.
+ */
+export async function embedNodesInline(nodeIds: string[]): Promise<EmbedNodeResult[]> {
+  return embedNodesBatch(nodeIds, getEmbeddingSettings());
 }
 
 /**
@@ -71,12 +110,16 @@ export async function embedNodesInline(nodeIds: string[]): Promise<EmbedNodeResu
  * returns wired-up embed/search functions when embeddings are configured, or `undefined` when
  * they are not — callers pass this straight through and the discrepancy engine falls back to
  * lexical-only checking, exactly as it did before embeddings existed.
+ *
+ * `embedText` is LRU-cached (repeated gate checks on the same candidate text skip the GPU) and
+ * `embedTexts` batches many texts into single provider requests.
  */
 export function semanticDiscrepancyOptionsIfConfigured(settings: EmbeddingSettings = getEmbeddingSettings()): SemanticDiscrepancyOptions | undefined {
   const status = embeddingRuntimeStatus(settings);
   if (!status.configured) return undefined;
   return {
-    embedText: (text: string) => embedText(text, settings),
+    embedText: (text: string) => embedTextCached(text, settings),
+    embedTexts: (texts: string[]) => embedTexts(texts, settings),
     semanticSearch: (vector: number[], opts: { type?: string; limit?: number }) => kg.semanticSearch(vector, opts),
   };
 }

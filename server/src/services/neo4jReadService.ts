@@ -154,52 +154,51 @@ export async function pingNeo4j(): Promise<boolean> {
 export async function stats(opts: NarrativeViewOpts = {}): Promise<{ nodes: number; edges: number; nodeTypes: Record<string, number>; edgeKinds: Record<string, number> }> {
   const pid = config.projectId;
   const params = { pid, ...viewParams(opts) };
-  const nodes = toInt(
-    (
-      await run(
-        `MATCH (n:Entity {projectId:$pid})
-         WHERE $includeInternal OR (NOT (n.type IN $hiddenTypes) AND NOT (n.type = 'continuity_finding' AND n.label STARTS WITH $openPointLabelPrefix))
-         RETURN count(n) AS c`,
-        params,
-      )
-    )[0]?.get('c') ?? 0,
-  );
-  const edges = toInt(
-    (
-      await run(
-        `MATCH (a:Entity {projectId:$pid})-[r:REL]->(b:Entity {projectId:$pid})
-         WHERE $includeInternal OR (
-           NOT (a.type IN $hiddenTypes)
-           AND NOT (b.type IN $hiddenTypes)
-           AND NOT (a.type = 'continuity_finding' AND a.label STARTS WITH $openPointLabelPrefix)
-           AND NOT (b.type = 'continuity_finding' AND b.label STARTS WITH $openPointLabelPrefix)
-         )
-         RETURN count(r) AS c`,
-        params,
-      )
-    )[0]?.get('c') ?? 0,
-  );
+  // Four independent aggregations: run them concurrently on the driver's connection pool.
+  const [nodeCountRecs, edgeCountRecs, nodeTypeRecs, edgeKindRecs] = await Promise.all([
+    run(
+      `MATCH (n:Entity {projectId:$pid})
+       WHERE $includeInternal OR (NOT (n.type IN $hiddenTypes) AND NOT (n.type = 'continuity_finding' AND n.label STARTS WITH $openPointLabelPrefix))
+       RETURN count(n) AS c`,
+      params,
+    ),
+    run(
+      `MATCH (a:Entity {projectId:$pid})-[r:REL]->(b:Entity {projectId:$pid})
+       WHERE $includeInternal OR (
+         NOT (a.type IN $hiddenTypes)
+         AND NOT (b.type IN $hiddenTypes)
+         AND NOT (a.type = 'continuity_finding' AND a.label STARTS WITH $openPointLabelPrefix)
+         AND NOT (b.type = 'continuity_finding' AND b.label STARTS WITH $openPointLabelPrefix)
+       )
+       RETURN count(r) AS c`,
+      params,
+    ),
+    run(
+      `MATCH (n:Entity {projectId:$pid})
+       WHERE $includeInternal OR (NOT (n.type IN $hiddenTypes) AND NOT (n.type = 'continuity_finding' AND n.label STARTS WITH $openPointLabelPrefix))
+       RETURN n.type AS k, count(*) AS c ORDER BY c DESC`,
+      params,
+    ),
+    run(
+      `MATCH (a:Entity {projectId:$pid})-[r:REL]->(b:Entity {projectId:$pid})
+       WHERE $includeInternal OR (
+         NOT (a.type IN $hiddenTypes)
+         AND NOT (b.type IN $hiddenTypes)
+         AND NOT (a.type = 'continuity_finding' AND a.label STARTS WITH $openPointLabelPrefix)
+         AND NOT (b.type = 'continuity_finding' AND b.label STARTS WITH $openPointLabelPrefix)
+       )
+       RETURN r.kind AS k, count(*) AS c ORDER BY c DESC`,
+      params,
+    ),
+  ]);
+  const nodes = toInt(nodeCountRecs[0]?.get('c') ?? 0);
+  const edges = toInt(edgeCountRecs[0]?.get('c') ?? 0);
   const nodeTypes: Record<string, number> = {};
-  for (const rec of await run(
-    `MATCH (n:Entity {projectId:$pid})
-     WHERE $includeInternal OR (NOT (n.type IN $hiddenTypes) AND NOT (n.type = 'continuity_finding' AND n.label STARTS WITH $openPointLabelPrefix))
-     RETURN n.type AS k, count(*) AS c ORDER BY c DESC`,
-    params,
-  )) {
+  for (const rec of nodeTypeRecs) {
     nodeTypes[String(rec.get('k'))] = toInt(rec.get('c'));
   }
   const edgeKinds: Record<string, number> = {};
-  for (const rec of await run(
-    `MATCH (a:Entity {projectId:$pid})-[r:REL]->(b:Entity {projectId:$pid})
-     WHERE $includeInternal OR (
-       NOT (a.type IN $hiddenTypes)
-       AND NOT (b.type IN $hiddenTypes)
-       AND NOT (a.type = 'continuity_finding' AND a.label STARTS WITH $openPointLabelPrefix)
-       AND NOT (b.type = 'continuity_finding' AND b.label STARTS WITH $openPointLabelPrefix)
-     )
-     RETURN r.kind AS k, count(*) AS c ORDER BY c DESC`,
-    params,
-  )) {
+  for (const rec of edgeKindRecs) {
     edgeKinds[String(rec.get('k'))] = toInt(rec.get('c'));
   }
   return { nodes, edges, nodeTypes, edgeKinds };
@@ -360,21 +359,23 @@ function bookendFrom(node: GraphNode, role: 'prologo' | 'epilogo'): ChapterSumma
 // non-chapter bookends of the `precedes` chain and placed before/after the chapters.
 export async function listChapters(): Promise<ChapterSummary[]> {
   const pid = config.projectId;
-  const records = await run("MATCH (n:Entity {projectId:$pid, type:'chapter'}) RETURN n", { pid });
+  const [records, prologoRecs, epilogoRecs] = await Promise.all([
+    run("MATCH (n:Entity {projectId:$pid, type:'chapter'}) RETURN n", { pid }),
+    run(
+      `MATCH (p:Entity {projectId:$pid})-[:REL {kind:'precedes'}]->(c:Entity {projectId:$pid, type:'chapter'})
+       WHERE p.type <> 'chapter' AND toLower(p.label) STARTS WITH 'prologo'
+       RETURN p LIMIT 1`,
+      { pid },
+    ),
+    run(
+      `MATCH (c:Entity {projectId:$pid, type:'chapter'})-[:REL {kind:'precedes'}]->(e:Entity {projectId:$pid})
+       WHERE e.type <> 'chapter' AND toLower(e.label) STARTS WITH 'epilogo'
+       RETURN e LIMIT 1`,
+      { pid },
+    ),
+  ]);
   const chapters = records.map((rec) => chapterSummaryFrom(nodeFrom(rec.get('n'))));
   chapters.sort((a, b) => (a.number ?? Number.MAX_SAFE_INTEGER) - (b.number ?? Number.MAX_SAFE_INTEGER));
-  const prologoRecs = await run(
-    `MATCH (p:Entity {projectId:$pid})-[:REL {kind:'precedes'}]->(c:Entity {projectId:$pid, type:'chapter'})
-     WHERE p.type <> 'chapter' AND toLower(p.label) STARTS WITH 'prologo'
-     RETURN p LIMIT 1`,
-    { pid },
-  );
-  const epilogoRecs = await run(
-    `MATCH (c:Entity {projectId:$pid, type:'chapter'})-[:REL {kind:'precedes'}]->(e:Entity {projectId:$pid})
-     WHERE e.type <> 'chapter' AND toLower(e.label) STARTS WITH 'epilogo'
-     RETURN e LIMIT 1`,
-    { pid },
-  );
   const result: ChapterSummary[] = [];
   if (prologoRecs.length) result.push(bookendFrom(nodeFrom(prologoRecs[0].get('p')), 'prologo'));
   result.push(...chapters);
@@ -414,26 +415,28 @@ export async function chapterPacket(id: string): Promise<ChapterPacket> {
   if (!chapter || (chapter.type !== 'chapter' && !isBookend)) {
     return { chapter: null, prev: [], next: [], touches: [], incomingMentions: [] };
   }
-  const prevRecs = await run(
-    "MATCH (p:Entity {projectId:$pid, type:'chapter'})-[:REL {kind:'precedes'}]->(c:Entity {id:$id, projectId:$pid}) RETURN p",
-    { pid, id },
-  );
-  const nextRecs = await run(
-    "MATCH (c:Entity {id:$id, projectId:$pid})-[:REL {kind:'precedes'}]->(n:Entity {projectId:$pid, type:'chapter'}) RETURN n",
-    { pid, id },
-  );
-  const touchRecs = await run(
-    `MATCH (c:Entity {id:$id, projectId:$pid})-[r:REL]-(m:Entity {projectId:$pid})
-     WHERE r.kind <> 'precedes' AND r.kind <> 'mentions'
-       AND NOT (m.type IN $hiddenTypes)
-       AND NOT (m.type = 'continuity_finding' AND m.label STARTS WITH $openPointLabelPrefix)
-     RETURN DISTINCT m, r.kind AS kind, (startNode(r).id = $id) AS outgoing`,
-    { pid, id, hiddenTypes: NARRATIVE_HIDDEN_NODE_TYPES, openPointLabelPrefix: OPEN_POINT_LABEL_PREFIX },
-  );
-  const mentionRecs = await run(
-    `MATCH (s:Entity {projectId:$pid})-[r:REL {kind:'mentions'}]->(c:Entity {id:$id, projectId:$pid}) RETURN s, r`,
-    { pid, id },
-  );
+  const [prevRecs, nextRecs, touchRecs, mentionRecs] = await Promise.all([
+    run(
+      "MATCH (p:Entity {projectId:$pid, type:'chapter'})-[:REL {kind:'precedes'}]->(c:Entity {id:$id, projectId:$pid}) RETURN p",
+      { pid, id },
+    ),
+    run(
+      "MATCH (c:Entity {id:$id, projectId:$pid})-[:REL {kind:'precedes'}]->(n:Entity {projectId:$pid, type:'chapter'}) RETURN n",
+      { pid, id },
+    ),
+    run(
+      `MATCH (c:Entity {id:$id, projectId:$pid})-[r:REL]-(m:Entity {projectId:$pid})
+       WHERE r.kind <> 'precedes' AND r.kind <> 'mentions'
+         AND NOT (m.type IN $hiddenTypes)
+         AND NOT (m.type = 'continuity_finding' AND m.label STARTS WITH $openPointLabelPrefix)
+       RETURN DISTINCT m, r.kind AS kind, (startNode(r).id = $id) AS outgoing`,
+      { pid, id, hiddenTypes: NARRATIVE_HIDDEN_NODE_TYPES, openPointLabelPrefix: OPEN_POINT_LABEL_PREFIX },
+    ),
+    run(
+      `MATCH (s:Entity {projectId:$pid})-[r:REL {kind:'mentions'}]->(c:Entity {id:$id, projectId:$pid}) RETURN s, r`,
+      { pid, id },
+    ),
+  ]);
   const prev = prevRecs.map((rec) => chapterSummaryFrom(nodeFrom(rec.get('p')))).sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
   const next = nextRecs.map((rec) => chapterSummaryFrom(nodeFrom(rec.get('n')))).sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
   const touches: ChapterRelation[] = touchRecs.map((rec) => ({
@@ -470,18 +473,20 @@ export async function entityPacket(id: string): Promise<EntityPacket> {
   const pid = config.projectId;
   const node = await getNodeById(id, { includeInternal: true });
   if (!node) return { node: null, touches: [], incomingMentions: [] };
-  const touchRecs = await run(
-    `MATCH (c:Entity {id:$id, projectId:$pid})-[r:REL]-(m:Entity {projectId:$pid})
-     WHERE r.kind <> 'mentions'
-       AND NOT (m.type IN $hiddenTypes)
-       AND NOT (m.type = 'continuity_finding' AND m.label STARTS WITH $openPointLabelPrefix)
-     RETURN DISTINCT m, r.kind AS kind, (startNode(r).id = $id) AS outgoing`,
-    { pid, id, hiddenTypes: NARRATIVE_HIDDEN_NODE_TYPES, openPointLabelPrefix: OPEN_POINT_LABEL_PREFIX },
-  );
-  const mentionRecs = await run(
-    `MATCH (s:Entity {projectId:$pid})-[r:REL {kind:'mentions'}]->(c:Entity {id:$id, projectId:$pid}) RETURN s, r`,
-    { pid, id },
-  );
+  const [touchRecs, mentionRecs] = await Promise.all([
+    run(
+      `MATCH (c:Entity {id:$id, projectId:$pid})-[r:REL]-(m:Entity {projectId:$pid})
+       WHERE r.kind <> 'mentions'
+         AND NOT (m.type IN $hiddenTypes)
+         AND NOT (m.type = 'continuity_finding' AND m.label STARTS WITH $openPointLabelPrefix)
+       RETURN DISTINCT m, r.kind AS kind, (startNode(r).id = $id) AS outgoing`,
+      { pid, id, hiddenTypes: NARRATIVE_HIDDEN_NODE_TYPES, openPointLabelPrefix: OPEN_POINT_LABEL_PREFIX },
+    ),
+    run(
+      `MATCH (s:Entity {projectId:$pid})-[r:REL {kind:'mentions'}]->(c:Entity {id:$id, projectId:$pid}) RETURN s, r`,
+      { pid, id },
+    ),
+  ]);
   const touches: ChapterRelation[] = touchRecs.map((rec) => ({
     node: nodeFrom(rec.get('m')),
     kind: String(rec.get('kind')),
@@ -571,20 +576,24 @@ export interface HealthReport {
 // unanchored timeline events, and open plot-thread points.
 export async function health(): Promise<HealthReport> {
   const pid = config.projectId;
-  const base = await stats();
-  const relatedRows = await run(
-    "MATCH (:Entity {projectId:$pid})-[r:REL {kind:'related_to'}]->(:Entity {projectId:$pid}) RETURN count(r) AS c",
-    { pid },
-  );
-  const orphanRows = await run(
-    `MATCH (n:Entity {projectId:$pid})
-     WHERE NOT (n.type IN $hiddenTypes)
-       AND NOT (n.type = 'continuity_finding' AND n.label STARTS WITH $openPointLabelPrefix)
-       AND NOT (n)-[:REL]-(:Entity {projectId:$pid})
-     RETURN count(n) AS c`,
-    { pid, hiddenTypes: NARRATIVE_HIDDEN_NODE_TYPES, openPointLabelPrefix: OPEN_POINT_LABEL_PREFIX },
-  );
-  const [chapters, tl, openPoints] = await Promise.all([listChapters(), timeline(), listOpenPoints({ limit: 500 })]);
+  const [base, relatedRows, orphanRows, chapters, tl, openPoints] = await Promise.all([
+    stats(),
+    run(
+      "MATCH (:Entity {projectId:$pid})-[r:REL {kind:'related_to'}]->(:Entity {projectId:$pid}) RETURN count(r) AS c",
+      { pid },
+    ),
+    run(
+      `MATCH (n:Entity {projectId:$pid})
+       WHERE NOT (n.type IN $hiddenTypes)
+         AND NOT (n.type = 'continuity_finding' AND n.label STARTS WITH $openPointLabelPrefix)
+         AND NOT (n)-[:REL]-(:Entity {projectId:$pid})
+       RETURN count(n) AS c`,
+      { pid, hiddenTypes: NARRATIVE_HIDDEN_NODE_TYPES, openPointLabelPrefix: OPEN_POINT_LABEL_PREFIX },
+    ),
+    listChapters(),
+    timeline(),
+    listOpenPoints({ limit: 500 }),
+  ]);
   return {
     totals: { nodes: base.nodes, edges: base.edges },
     nodeTypes: base.nodeTypes,

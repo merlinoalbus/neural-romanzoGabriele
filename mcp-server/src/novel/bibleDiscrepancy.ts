@@ -486,6 +486,8 @@ export interface SemanticMatch {
 
 export interface SemanticDiscrepancyOptions {
   embedText: (text: string) => Promise<number[]>;
+  /** Optional batch variant: when provided, all candidate texts are embedded in one provider call. */
+  embedTexts?: (texts: string[]) => Promise<number[][]>;
   semanticSearch: (vector: number[], opts: { type?: string; limit?: number }) => Promise<SemanticMatch[]>;
   /** Cosine similarity at or above this value blocks the commit as a likely duplicate/alias. Default 0.92. */
   highSimilarityThreshold?: number;
@@ -520,15 +522,34 @@ export async function buildSemanticDiscrepancies(
     (candidate) => candidate.candidateKind === 'node' && candidate.targetType && (candidate.label?.trim() || candidate.content?.trim()),
   );
 
-  for (const candidate of nodeCandidates) {
-    const text = candidateEmbeddingText(candidate);
-    if (!text) continue;
+  const embeddable = nodeCandidates
+    .map((candidate) => ({ candidate, text: candidateEmbeddingText(candidate) }))
+    .filter((item) => item.text);
 
-    let vector: number[];
+  // One provider request for the whole batch when the batch API is available; per-candidate
+  // fallback keeps the old degrade-gracefully behavior (a failed batch falls back to singles,
+  // a failed single skips only that candidate).
+  let batchVectors: Array<number[] | null> | null = null;
+  if (options.embedTexts && embeddable.length > 1) {
     try {
-      vector = await options.embedText(text);
+      batchVectors = await options.embedTexts(embeddable.map((item) => item.text));
+      if (batchVectors.length !== embeddable.length) batchVectors = null;
     } catch {
-      continue;
+      batchVectors = null;
+    }
+  }
+
+  for (const [candidateIndex, { candidate, text }] of embeddable.entries()) {
+    let vector: number[];
+    const preEmbedded = batchVectors?.[candidateIndex];
+    if (preEmbedded) {
+      vector = preEmbedded;
+    } else {
+      try {
+        vector = await options.embedText(text);
+      } catch {
+        continue;
+      }
     }
 
     let matches: SemanticMatch[];

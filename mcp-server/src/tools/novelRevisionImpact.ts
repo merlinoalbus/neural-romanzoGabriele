@@ -152,43 +152,78 @@ export function registerNovelRevisionImpactTools(server: McpServer): void {
           }
           const neighborNodes = expanded.nodes.filter((node) => node.id !== changedNode.id).slice(0, MAX_NEIGHBORS_PER_FACT);
 
+          // OLD vs NEW meaning shift: both raw contents in ONE batched provider call (two texts,
+          // one HTTP request) instead of two sequential calls.
           let oldContentVector: number[] | null = null;
+          let semanticMeaningShift: { similarity: number; reviewRecommended: boolean } | undefined;
           if (semantic && oldContent.trim()) {
             try {
-              oldContentVector = await semantic.embedText(oldContent);
+              if (fact.newContent.trim() && semantic.embedTexts) {
+                const [oldVector, newVector] = await semantic.embedTexts([oldContent, fact.newContent]);
+                oldContentVector = oldVector;
+                const similarity = cosineSimilarity(oldVector, newVector);
+                semanticMeaningShift = { similarity, reviewRecommended: similarity < SEMANTIC_MEANING_SHIFT_THRESHOLD };
+              } else {
+                oldContentVector = await semantic.embedText(oldContent);
+                if (fact.newContent.trim()) {
+                  const newContentVector = await semantic.embedText(fact.newContent);
+                  const similarity = cosineSimilarity(oldContentVector, newContentVector);
+                  semanticMeaningShift = { similarity, reviewRecommended: similarity < SEMANTIC_MEANING_SHIFT_THRESHOLD };
+                }
+              }
             } catch {
               oldContentVector = null;
-            }
-          }
-
-          let semanticMeaningShift: { similarity: number; reviewRecommended: boolean } | undefined;
-          if (semantic && oldContentVector && fact.newContent.trim()) {
-            try {
-              const newContentVector = await semantic.embedText(fact.newContent);
-              const similarity = cosineSimilarity(oldContentVector, newContentVector);
-              semanticMeaningShift = { similarity, reviewRecommended: similarity < SEMANTIC_MEANING_SHIFT_THRESHOLD };
-            } catch {
               semanticMeaningShift = undefined;
             }
           }
 
-          const potentiallyImpactedNodes = [];
-          for (const [index, neighborNode] of neighborNodes.entries()) {
-            let likelyAssumesOldFact: boolean | undefined;
-            if (oldContentVector && index < MAX_SEMANTIC_CHECKS_PER_FACT && neighborNode.content.trim()) {
-              try {
-                const neighborVector = await semantic!.embedText(neighborNode.content);
-                likelyAssumesOldFact = cosineSimilarity(oldContentVector, neighborVector) >= SEMANTIC_LIKELY_AFFECTED_THRESHOLD;
-              } catch {
-                likelyAssumesOldFact = undefined;
-              }
+          // Neighbor affinity: canonical nodes are already embedded in Neo4j (composite
+          // type+label+content text), so compare stored vector against stored vector and skip
+          // the provider entirely. The changed node still holds its OLD content here (the scan
+          // runs before the in-place update), so its stored vector represents the old fact.
+          // Only neighbors without a stored vector fall back to fresh embeds, batched in one
+          // provider call against the raw old content.
+          const semanticCheckNodes = neighborNodes.slice(0, MAX_SEMANTIC_CHECKS_PER_FACT);
+          const storedVectors = semantic
+            ? await kg.getNodeEmbeddings([changedNode.id, ...semanticCheckNodes.map((node) => node.id)]).catch(() => new Map<string, kg.StoredNodeEmbedding>())
+            : new Map<string, kg.StoredNodeEmbedding>();
+          const changedStored = storedVectors.get(changedNode.id);
+
+          const likelyByNodeId = new Map<string, boolean>();
+          const fallbackNodes: kg.GraphNode[] = [];
+          for (const neighborNode of semanticCheckNodes) {
+            if (!semantic || !neighborNode.content.trim()) continue;
+            const neighborStored = storedVectors.get(neighborNode.id);
+            // Same-model guard: mid-backfill after a model switch, stored vectors from different
+            // models live in incompatible spaces — comparing them would produce garbage scores.
+            if (changedStored && neighborStored && changedStored.model === neighborStored.model) {
+              likelyByNodeId.set(neighborNode.id, cosineSimilarity(changedStored.vector, neighborStored.vector) >= SEMANTIC_LIKELY_AFFECTED_THRESHOLD);
+            } else if (oldContentVector) {
+              fallbackNodes.push(neighborNode);
             }
-            potentiallyImpactedNodes.push({
-              node: neighborNode,
-              relationKinds: [...(relationKindsByNodeId.get(neighborNode.id) ?? [])],
-              likelyAssumesOldFact,
-            });
           }
+          if (semantic && oldContentVector && fallbackNodes.length) {
+            try {
+              const fallbackVectors = semantic.embedTexts
+                ? await semantic.embedTexts(fallbackNodes.map((node) => node.content))
+                : await (async () => {
+                    const vectors: number[][] = [];
+                    for (const node of fallbackNodes) vectors.push(await semantic.embedText(node.content));
+                    return vectors;
+                  })();
+              for (const [index, node] of fallbackNodes.entries()) {
+                likelyByNodeId.set(node.id, cosineSimilarity(oldContentVector, fallbackVectors[index]) >= SEMANTIC_LIKELY_AFFECTED_THRESHOLD);
+              }
+            } catch {
+              // leave likelyAssumesOldFact undefined for these neighbors
+            }
+          }
+
+          const potentiallyImpactedNodes = neighborNodes.map((neighborNode) => ({
+            node: neighborNode,
+            relationKinds: [...(relationKindsByNodeId.get(neighborNode.id) ?? [])],
+            likelyAssumesOldFact: likelyByNodeId.get(neighborNode.id),
+          }));
 
           impacts.push({ changedNode, oldContent, newContent: fact.newContent, directPolarityConflict, semanticMeaningShift, potentiallyImpactedNodes });
         }

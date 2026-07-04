@@ -32,6 +32,9 @@ export const config = {
   embeddingsModel: process.env.EMBEDDINGS_MODEL || process.env.OPENAI_EMBEDDING_MODEL || '',
   embeddingsDimensions: intFromEnv('EMBEDDINGS_DIMENSIONS', 0),
   embeddingsTimeoutMs: intFromEnv('EMBEDDINGS_TIMEOUT_MS', 30_000),
+  // Texts per provider request when batch-embedding (Ollama's OpenAI-compatible endpoint accepts
+  // array inputs). Bigger batches amortize HTTP overhead but raise per-request latency/VRAM.
+  embeddingsBatchSize: intFromEnv('EMBEDDINGS_BATCH_SIZE', 32),
   // Editorial working state (session, blocks, findings, decisions, rewrites, seam review, visual
   // briefs) is filesystem-only, never a graph node — see editingSessionStore.ts. Needs a mounted
   // volume in production or it is lost on container recreation.

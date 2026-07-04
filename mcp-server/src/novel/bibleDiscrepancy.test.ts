@@ -319,6 +319,54 @@ test('buildSemanticDiscrepancies never throws when the embeddings provider fails
   assert.deepEqual(discrepancies, []);
 });
 
+test('buildSemanticDiscrepancies embeds all candidates in one batch call when embedTexts is provided', async () => {
+  const existing = node({ id: 'n-batch', type: 'secret', label: 'Segreto batch', content: 'Contenuto.' });
+  const candidates = [
+    nodeCandidate({ candidateId: 'cand-a', targetType: 'secret', label: 'Segreto A', content: 'Testo A.' }),
+    nodeCandidate({ candidateId: 'cand-b', targetType: 'secret', label: 'Segreto B', content: 'Testo B.' }),
+    nodeCandidate({ candidateId: 'cand-c', targetType: 'secret', label: 'Segreto C', content: 'Testo C.' }),
+  ];
+  let batchCalls = 0;
+  let singleCalls = 0;
+  const discrepancies = await buildSemanticDiscrepancies(candidates, {
+    embedText: async () => {
+      singleCalls++;
+      return [0.1, 0.2, 0.3];
+    },
+    embedTexts: async (texts) => {
+      batchCalls++;
+      return texts.map(() => [0.1, 0.2, 0.3]);
+    },
+    semanticSearch: async () => [{ node: existing, score: 0.95 }],
+  });
+
+  assert.equal(batchCalls, 1);
+  assert.equal(singleCalls, 0);
+  assert.equal(discrepancies.length, 3);
+});
+
+test('buildSemanticDiscrepancies falls back to per-candidate embeds when the batch call fails', async () => {
+  const existing = node({ id: 'n-batch-fail', type: 'secret', label: 'Segreto fallback', content: 'Contenuto.' });
+  const candidates = [
+    nodeCandidate({ candidateId: 'cand-f1', targetType: 'secret', label: 'Segreto F1', content: 'Testo F1.' }),
+    nodeCandidate({ candidateId: 'cand-f2', targetType: 'secret', label: 'Segreto F2', content: 'Testo F2.' }),
+  ];
+  let singleCalls = 0;
+  const discrepancies = await buildSemanticDiscrepancies(candidates, {
+    embedText: async () => {
+      singleCalls++;
+      return [0.1, 0.2, 0.3];
+    },
+    embedTexts: async () => {
+      throw new Error('batch endpoint down');
+    },
+    semanticSearch: async () => [{ node: existing, score: 0.95 }],
+  });
+
+  assert.equal(singleCalls, 2);
+  assert.equal(discrepancies.length, 2);
+});
+
 test('buildCanonDiscrepancyReport without semantic options behaves exactly like the lexical-only report', async () => {
   const candidate = nodeCandidate({ candidateId: 'cand-plain', targetType: 'secret', label: 'Segreto qualsiasi', content: 'Testo qualsiasi.' });
   const lexical = buildBibleDiscrepancyReport([candidate], [], []);

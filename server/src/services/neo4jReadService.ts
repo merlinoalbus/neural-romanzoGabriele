@@ -336,7 +336,14 @@ export interface DuplicateChapterIdentity {
   nodeIds: string[];
 }
 
-export class ChapterListIntegrityError extends Error {
+export class ChapterNarrativeIntegrityError extends Error {
+  constructor(readonly code: string, message: string) {
+    super(message);
+    this.name = 'ChapterNarrativeIntegrityError';
+  }
+}
+
+export class ChapterListIntegrityError extends ChapterNarrativeIntegrityError {
   readonly code = 'CHAPTER_IDENTITY_AMBIGUOUS';
   readonly duplicates: DuplicateChapterIdentity[];
 
@@ -344,9 +351,38 @@ export class ChapterListIntegrityError extends Error {
     const ordered = duplicates
       .map((duplicate) => ({ ...duplicate, nodeIds: [...duplicate.nodeIds].sort() }))
       .sort((a, b) => a.chapterNumber - b.chapterNumber);
-    super(`chapter_identity_ambiguous: ${ordered.map((item) => `chapterNumber=${item.chapterNumber}, nodeIds=${item.nodeIds.join(',')}`).join('; ')}`);
+    super('CHAPTER_IDENTITY_AMBIGUOUS', `chapter_identity_ambiguous: ${ordered.map((item) => `chapterNumber=${item.chapterNumber}, nodeIds=${item.nodeIds.join(',')}`).join('; ')}`);
     this.name = 'ChapterListIntegrityError';
     this.duplicates = ordered;
+  }
+}
+
+export class BookendIdentityAmbiguousError extends ChapterNarrativeIntegrityError {
+  readonly role: 'prologo' | 'epilogo';
+  readonly candidateKind: 'chapter' | 'fallback';
+  readonly nodeIds: string[];
+
+  constructor(role: 'prologo' | 'epilogo', candidateKind: 'chapter' | 'fallback', nodeIds: string[]) {
+    const orderedIds = [...nodeIds].sort();
+    super(
+      'CHAPTER_BOOKEND_IDENTITY_AMBIGUOUS',
+      `chapter_bookend_identity_ambiguous: role=${role}, candidateKind=${candidateKind}, nodeIds=${orderedIds.join(',')}`,
+    );
+    this.name = 'BookendIdentityAmbiguousError';
+    this.role = role;
+    this.candidateKind = candidateKind;
+    this.nodeIds = orderedIds;
+  }
+}
+
+export class UnclassifiedChapterIdentityError extends ChapterNarrativeIntegrityError {
+  readonly nodeIds: string[];
+
+  constructor(nodeIds: string[]) {
+    const orderedIds = [...nodeIds].sort();
+    super('CHAPTER_IDENTITY_UNCLASSIFIED', `chapter_identity_unclassified: nodeIds=${orderedIds.join(',')}`);
+    this.name = 'UnclassifiedChapterIdentityError';
+    this.nodeIds = orderedIds;
   }
 }
 
@@ -368,17 +404,20 @@ function chapterSummaryFrom(node: GraphNode): ChapterSummary {
   const m = node.metadata;
   const rawNumber = m.chapterNumber;
   const number = typeof rawNumber === 'number' ? rawNumber : rawNumber != null && Number.isFinite(Number(rawNumber)) ? Number(rawNumber) : null;
+  const rawRole = typeof m.role === 'string' ? m.role.toLowerCase() : '';
+  const role = rawRole === 'prologo' || rawRole === 'epilogo' ? rawRole : undefined;
   return {
     id: node.id,
     label: node.label,
     number,
-    title: String(m.chapterTitle ?? node.label),
+    title: String(m.chapterTitle ?? m.title ?? node.label),
     date: m.date ? String(m.date) : null,
     timePlane: m.timePlane ? String(m.timePlane) : null,
     chapterKind: m.chapterKind ? String(m.chapterKind) : null,
     documentChapterLabel: m.documentChapterLabel ? String(m.documentChapterLabel) : null,
     primarySectionKey: m.primarySectionKey ? String(m.primarySectionKey) : null,
     frameOrder: typeof m.frameOrder === 'number' ? m.frameOrder : m.frameOrder != null && Number.isFinite(Number(m.frameOrder)) ? Number(m.frameOrder) : null,
+    role,
   };
 }
 
@@ -387,9 +426,61 @@ function bookendFrom(node: GraphNode, role: 'prologo' | 'epilogo'): ChapterSumma
   return { ...summary, number: null, timePlane: summary.timePlane ?? 'frame', chapterKind: summary.chapterKind ?? 'interlude', role };
 }
 
-// The narrative runs Prologo → Cap 1 … Cap 40 → Epilogo. Prologo/Epilogo are frame
-// timeline_events (2080 cornice), not `chapter` nodes, so they are recovered as the
-// non-chapter bookends of the `precedes` chain and placed before/after the chapters.
+function uniqueNodesById(nodes: GraphNode[]): GraphNode[] {
+  return [...new Map(nodes.map((node) => [node.id, node])).values()];
+}
+
+function selectBookend(
+  role: 'prologo' | 'epilogo',
+  chapterCandidates: GraphNode[],
+  fallbackCandidates: GraphNode[],
+): ChapterSummary | null {
+  const uniqueChapters = uniqueNodesById(chapterCandidates);
+  if (uniqueChapters.length > 1) {
+    throw new BookendIdentityAmbiguousError(role, 'chapter', uniqueChapters.map((node) => node.id));
+  }
+  if (uniqueChapters.length === 1) return bookendFrom(uniqueChapters[0], role);
+
+  const uniqueFallbacks = uniqueNodesById(fallbackCandidates);
+  if (uniqueFallbacks.length > 1) {
+    throw new BookendIdentityAmbiguousError(role, 'fallback', uniqueFallbacks.map((node) => node.id));
+  }
+  return uniqueFallbacks.length === 1 ? bookendFrom(uniqueFallbacks[0], role) : null;
+}
+
+export function composeNarrativeChapterList(
+  chapterNodes: GraphNode[],
+  prologoFallbacks: GraphNode[],
+  epilogoFallbacks: GraphNode[],
+): ChapterSummary[] {
+  const uniqueChapters = uniqueNodesById(chapterNodes);
+  const summaries = uniqueChapters.map((node) => ({ node, summary: chapterSummaryFrom(node) }));
+  const unclassified = summaries.filter(({ summary }) => (
+    (summary.number === null && summary.role === undefined)
+    || (summary.number !== null && summary.role !== undefined)
+  ));
+  if (unclassified.length) throw new UnclassifiedChapterIdentityError(unclassified.map(({ node }) => node.id));
+
+  const numbered = summaries.filter(({ summary }) => summary.number !== null).map(({ summary }) => summary);
+  assertUniqueNumberedChapters(numbered);
+  numbered.sort((a, b) => Number(a.number) - Number(b.number));
+
+  const prologo = selectBookend(
+    'prologo',
+    summaries.filter(({ summary }) => summary.role === 'prologo').map(({ node }) => node),
+    prologoFallbacks,
+  );
+  const epilogo = selectBookend(
+    'epilogo',
+    summaries.filter(({ summary }) => summary.role === 'epilogo').map(({ node }) => node),
+    epilogoFallbacks,
+  );
+  return [prologo, ...numbered, epilogo].filter((chapter): chapter is ChapterSummary => chapter !== null);
+}
+
+// The narrative runs Prologo → Cap 1 … Cap 40 → Epilogo. Finalized role-bearing `chapter`
+// nodes are the authoritative bookends; frame timeline events remain a legacy fallback for
+// books that have not canonized their Prologo/Epilogo through the editorial workflow yet.
 export async function listChapters(): Promise<ChapterSummary[]> {
   const pid = config.projectId;
   const [records, prologoRecs, epilogoRecs] = await Promise.all([
@@ -397,24 +488,21 @@ export async function listChapters(): Promise<ChapterSummary[]> {
     run(
       `MATCH (p:Entity {projectId:$pid})-[:REL {kind:'precedes'}]->(c:Entity {projectId:$pid, type:'chapter'})
        WHERE p.type <> 'chapter' AND toLower(p.label) STARTS WITH 'prologo'
-       RETURN p LIMIT 1`,
+       RETURN DISTINCT p`,
       { pid },
     ),
     run(
       `MATCH (c:Entity {projectId:$pid, type:'chapter'})-[:REL {kind:'precedes'}]->(e:Entity {projectId:$pid})
        WHERE e.type <> 'chapter' AND toLower(e.label) STARTS WITH 'epilogo'
-       RETURN e LIMIT 1`,
+       RETURN DISTINCT e`,
       { pid },
     ),
   ]);
-  const chapters = records.map((rec) => chapterSummaryFrom(nodeFrom(rec.get('n'))));
-  assertUniqueNumberedChapters(chapters);
-  chapters.sort((a, b) => (a.number ?? Number.MAX_SAFE_INTEGER) - (b.number ?? Number.MAX_SAFE_INTEGER));
-  const result: ChapterSummary[] = [];
-  if (prologoRecs.length) result.push(bookendFrom(nodeFrom(prologoRecs[0].get('p')), 'prologo'));
-  result.push(...chapters);
-  if (epilogoRecs.length) result.push(bookendFrom(nodeFrom(epilogoRecs[0].get('e')), 'epilogo'));
-  return result;
+  return composeNarrativeChapterList(
+    records.map((rec) => nodeFrom(rec.get('n'))),
+    prologoRecs.map((rec) => nodeFrom(rec.get('p'))),
+    epilogoRecs.map((rec) => nodeFrom(rec.get('e'))),
+  );
 }
 
 export interface ChapterRelation {

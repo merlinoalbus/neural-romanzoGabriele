@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import {
   chunkText,
@@ -8,8 +10,68 @@ import {
   mergeObj,
   stableKey,
   summarizeNonRelPhysicalEdgeRepair,
+  uniqueChapterByNumber,
+  ChapterIdentityAmbiguousError,
+  type GraphNode,
   type NonRelPhysicalEdgeCandidate,
 } from './neo4jStore.js';
+
+function chapterNode(id: string, label: string, chapterNumber: number): GraphNode {
+  return {
+    id,
+    type: 'chapter',
+    label,
+    content: label,
+    metadata: { chapterNumber },
+    provenance: {},
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  };
+}
+
+test('uniqueChapterByNumber resolves canonical chapters independently from their label', () => {
+  const canonical = chapterNode('canonical-1', 'Vigilia di Scuola', 1);
+  assert.equal(uniqueChapterByNumber(1, [canonical])?.id, canonical.id);
+  assert.equal(uniqueChapterByNumber(2, [canonical]), null);
+});
+
+test('uniqueChapterByNumber rejects duplicate chapter identities without choosing the first', () => {
+  assert.throws(
+    () => uniqueChapterByNumber(1, [
+      chapterNode('placeholder-1', 'Capitolo 1', 1),
+      chapterNode('canonical-1', 'Vigilia di Scuola', 1),
+    ]),
+    (error: unknown) => error instanceof ChapterIdentityAmbiguousError
+      && error.chapterNumber === 1
+      && error.nodeIds.join(',') === 'canonical-1,placeholder-1',
+  );
+});
+
+test('all numbered-chapter consumers use the ambiguity-safe structural resolver', () => {
+  const consumers = new Map([
+    ['../novel/workingDraftService.ts', 1],
+    ['../tools/novelChapterCandidates.ts', 1],
+    ['../tools/novelContext.ts', 1],
+    ['../tools/novelCoordinator.ts', 1],
+    ['../tools/novelEditing.ts', 3],
+    ['../tools/novelIngestion.ts', 1],
+    ['../tools/novelRevisionImpact.ts', 1],
+  ]);
+
+  for (const [relativePath, minimumOccurrences] of consumers) {
+    const source = readFileSync(fileURLToPath(new URL(relativePath, import.meta.url)), 'utf8');
+    const occurrences = source.match(/getChapterByNumber\(/g)?.length ?? 0;
+    assert.ok(
+      occurrences >= minimumOccurrences,
+      `${relativePath} must resolve every numbered chapter through getChapterByNumber`,
+    );
+  }
+
+  const coordinator = readFileSync(fileURLToPath(new URL('../tools/novelCoordinator.ts', import.meta.url)), 'utf8');
+  assert.doesNotMatch(coordinator, /chapterNodesInDb|for \(const row of chapterNodesInDb\)/);
+  assert.doesNotMatch(coordinator, /type:\s*['"]chapter['"][^}\n]*label:/);
+  assert.doesNotMatch(coordinator, /label:\s*\$chapterLabel/);
+});
 
 test('stableKey canonicalizes object keys', () => {
   assert.equal(stableKey({ b: 2, a: 1 }), stableKey({ a: 1, b: 2 }));

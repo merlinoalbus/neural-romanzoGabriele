@@ -504,6 +504,33 @@ export async function getNodeByTypeLabel(type: string, label: string): Promise<G
   return records.length ? nodeFrom(records[0].get('n')) : null;
 }
 
+export class ChapterIdentityAmbiguousError extends Error {
+  readonly chapterNumber: number;
+  readonly nodeIds: string[];
+
+  constructor(chapterNumber: number, nodes: GraphNode[]) {
+    const nodeIds = nodes.map((node) => node.id).sort();
+    super(`chapter_identity_ambiguous: chapterNumber=${chapterNumber}, nodeIds=${nodeIds.join(',')}`);
+    this.name = 'ChapterIdentityAmbiguousError';
+    this.chapterNumber = chapterNumber;
+    this.nodeIds = nodeIds;
+  }
+}
+
+export function uniqueChapterByNumber(chapterNumber: number, nodes: GraphNode[]): GraphNode | null {
+  const matches = nodes.filter((node) => node.type === 'chapter' && Number(node.metadata.chapterNumber) === chapterNumber);
+  if (matches.length > 1) throw new ChapterIdentityAmbiguousError(chapterNumber, matches);
+  return matches[0] ?? null;
+}
+
+export async function getChapterByNumber(chapterNumber: number): Promise<GraphNode | null> {
+  if (!Number.isInteger(chapterNumber) || chapterNumber < 1) {
+    throw new Error(`invalid_chapter_number: ${chapterNumber}`);
+  }
+  const records = await run("MATCH (n:Entity {projectId:$pid, type:'chapter'}) RETURN n", { pid: pid() });
+  return uniqueChapterByNumber(chapterNumber, records.map((record) => nodeFrom(record.get('n'))));
+}
+
 export async function addNode(input: NodeInput): Promise<GraphNode> {
   if (!input.type.trim() || !input.label.trim()) throw new Error('invalid_node: type and label are required');
   if (await getNodeByTypeLabel(input.type, input.label)) throw new Error(`node_exists: ${input.type}/${input.label}`);

@@ -291,9 +291,15 @@ function isMatchingFinalizationInProgress(input: {
   );
 }
 
+export function rethrowChapterIdentityAmbiguity(error: unknown): void {
+  if (error instanceof kg.ChapterIdentityAmbiguousError) throw error;
+}
+
 async function ensureChapter(identifier: { chapterNumber?: number; role?: ChapterSectionRole }, title?: string): Promise<kg.GraphNode> {
   const chapterLabel = resolveChapterSectionLabel(identifier);
-  const existing = await kg.getNodeByTypeLabel('chapter', chapterLabel);
+  const existing = identifier.chapterNumber === undefined
+    ? await kg.getNodeByTypeLabel('chapter', chapterLabel)
+    : await kg.getChapterByNumber(identifier.chapterNumber);
   // Opening an editorial session must never demote or overwrite an already canonical chapter.
   // The chapter node is an immutable anchor until novel_save_final_chapter performs the explicit
   // canonization update at the end of the workflow.
@@ -759,7 +765,9 @@ export function registerNovelEditingTools(server: McpServer): void {
           }
           const finalHash = workingDraftContentHash(normalizedContent);
           const chapterLabel = resolveChapterSectionLabel({ chapterNumber, role });
-          const existingChapter = await kg.getNodeByTypeLabel('chapter', chapterLabel);
+          const existingChapter = chapterNumber === undefined
+            ? await kg.getNodeByTypeLabel('chapter', chapterLabel)
+            : await kg.getChapterByNumber(chapterNumber);
           if (
             existingChapter?.metadata.canonStatus === 'finalizing'
             && existingChapter.metadata.lastFinalizedSessionId !== sessionId
@@ -885,33 +893,36 @@ export function registerNovelEditingTools(server: McpServer): void {
             lastFinalizedSessionId: sessionId,
             revisionHistory: [{ sessionId, finalHash, editedAt: finalizedAt }],
           };
-          await kg.upsertNode({
-            type: 'chapter',
-            label: chapterLabel,
-            content: normalizedContent,
-            metadata: {
-              ...finalizationMetadata,
-              canonStatus: 'finalizing',
-              editorialFinalizationStatus: 'cleanup_pending',
-            },
-            provenance: { source: 'novel_save_final_chapter', sessionId, chapterNumber, role },
+          const writeChapter = async (metadata: Record<string, unknown>): Promise<kg.GraphNode> => {
+            const provenance = { source: 'novel_save_final_chapter', sessionId, chapterNumber, role };
+            if (existingChapter) {
+              const updated = await kg.updateNode(existingChapter.id, { content: normalizedContent, metadata, provenance });
+              if (!updated) throw new Error(`chapter_not_found_after_resolution: ${existingChapter.id}`);
+              return updated;
+            }
+            return (await kg.upsertNode({
+              type: 'chapter',
+              label: chapterLabel,
+              content: normalizedContent,
+              metadata,
+              provenance,
+            })).node;
+          };
+          await writeChapter({
+            ...finalizationMetadata,
+            canonStatus: 'finalizing',
+            editorialFinalizationStatus: 'cleanup_pending',
           });
           const cleanup = chapterNumber === undefined
             ? { draftNodes: 0, documents: 0, chunks: 0, findings: 0, assets: 0 }
             : await kg.cleanupWorkingDraftArtifacts(chapterNumber);
-          const written = await kg.upsertNode({
-            type: 'chapter',
-            label: chapterLabel,
-            content: normalizedContent,
-            metadata: {
-              ...finalizationMetadata,
-              canonStatus: 'canonical',
-              editorialFinalizationStatus: 'completed',
-            },
-            provenance: { source: 'novel_save_final_chapter', sessionId, chapterNumber, role },
+          const written = await writeChapter({
+            ...finalizationMetadata,
+            canonStatus: 'canonical',
+            editorialFinalizationStatus: 'completed',
           });
-          await embedNodesInline([written.node.id]);
-          return { finalized: true, value: toolStructured({ ok: true, chapter: written.node, cleanup }) };
+          await embedNodesInline([written.id]);
+          return { finalized: true, value: toolStructured({ ok: true, chapter: written, cleanup }) };
         });
         return chapterNumber === undefined ? await finalize() : await withWorkingDraftChapterLock(chapterNumber, finalize);
       } catch (err) {
@@ -923,7 +934,9 @@ export function registerNovelEditingTools(server: McpServer): void {
             const normalizedContent = normalizeWorkingDraftContent(content);
             const finalHash = workingDraftContentHash(normalizedContent);
             const chapterLabel = resolveChapterSectionLabel({ chapterNumber, role });
-            const existingChapter = await kg.getNodeByTypeLabel('chapter', chapterLabel);
+            const existingChapter = chapterNumber === undefined
+              ? await kg.getNodeByTypeLabel('chapter', chapterLabel)
+              : await kg.getChapterByNumber(chapterNumber);
             if (isMatchingFinalizationRetry({ existingChapter, sessionId, finalHash, normalizedContent })) {
               return toolStructured({
                 ok: true,
@@ -931,7 +944,8 @@ export function registerNovelEditingTools(server: McpServer): void {
                 cleanup: { draftNodes: 0, documents: 0, chunks: 0, findings: 0, assets: 0 },
               });
             }
-          } catch {
+          } catch (retryError) {
+            rethrowChapterIdentityAmbiguity(retryError);
             // Preserve the original session-not-found failure below if retry verification fails.
           }
         }

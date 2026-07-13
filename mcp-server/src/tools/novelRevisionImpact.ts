@@ -131,7 +131,9 @@ export function registerNovelRevisionImpactTools(server: McpServer): void {
           return toolError('NOVEL_SCAN_REVISION_IMPACT_BAD_INPUT', 'Provide chapterNumber (numbered chapter) or role (prologo/epilogo).');
         }
         const chapterLabel = resolveChapterSectionLabel({ chapterNumber, role });
-        const chapter = await kg.getNodeByTypeLabel('chapter', chapterLabel);
+        const chapter = chapterNumber === undefined
+          ? await kg.getNodeByTypeLabel('chapter', chapterLabel)
+          : await kg.getChapterByNumber(chapterNumber);
         if (!chapter) return toolError('NOVEL_SCAN_REVISION_IMPACT_CHAPTER_NOT_FOUND', `Chapter not found: ${chapterLabel}`, { chapterNumber, role });
 
         const semantic = semanticDiscrepancyOptionsIfConfigured();

@@ -96,7 +96,9 @@ const chapterIdentifierShape = {
 
 async function resolveChapterNode(identifier: { chapterNumber?: number; role?: 'prologo' | 'epilogo' }): Promise<kg.GraphNode> {
   const label = resolveChapterSectionLabel(identifier);
-  const node = await kg.getNodeByTypeLabel('chapter', label);
+  const node = identifier.chapterNumber === undefined
+    ? await kg.getNodeByTypeLabel('chapter', label)
+    : await kg.getChapterByNumber(identifier.chapterNumber);
   if (!node) throw new Error(`chapter_not_found: ${label}. Start an editing session or ingest a draft first so a chapter node exists.`);
   return node;
 }

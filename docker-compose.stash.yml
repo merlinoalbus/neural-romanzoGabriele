@@ -1,59 +1,56 @@
 # =============================================================================
-# Stack stash - setup nuovo (NFS + proxy, no ports) con RECUPERO dati vecchi
+# Stack stash - GPU NVENC (RTX 5080) + NFS + proxy, con libreria recuperata
 # =============================================================================
-# La libreria vecchia (dal config.yml) e' UNA sola cartella:
-#     /data/nas/Mondo   (solo video, immagini escluse)
-# Nel nuovo setup /data/nas e' montato sulla home, quindi /data/nas/Mondo
-# esiste identico: il DB copiato ritrova i file allo stesso path, SENZA
-# reindicizzare.
-#
-# RECUPERO DB (da eseguire PRIMA del deploy, con stash fermo):
-#   Copiare stash-go.sqlite + config.yml + plugins + scrapers dal NAS
-#   (/Volume1/public/homes_roberto/App/stash/config) nel volume locale
-#   stash_config -> /root/.stash. Vedi comandi forniti in chat.
-#
-# NOTA: NIENTE STASH_STASH qui. La libreria e' gia' definita nel DB come
-# /data/nas/Mondo. Aggiungere STASH_STASH farebbe scansionare tutta la home.
+# Immagine stash-nvenc-patches: build con patch NVENC per hw acceleration.
+# FIX GPU: rimossa la riga duplicata NVIDIA_VISIBLE_DEVICES=void che
+# sovrascriveva =all e disabilitava la GPU (residuo del setup NAS senza GPU).
+# Dopo il deploy: Settings > System > FFmpeg -> abilita Hardware acceleration.
 # =============================================================================
 
 services:
   stash:
-    image: stashapp/stash:latest
+    image: ghcr.io/rufftruffles/stash-nvenc-patches:latest
     container_name: stash
+    runtime: nvidia
     hostname: stash
     platform: linux/amd64
     restart: unless-stopped
     environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+      # WSL2: le librerie NVENC/NVDEC stanno in /usr/lib/wsl/lib ma Docker
+      # Desktop non le monta di default nei container. Le rendiamo visibili
+      # a ffmpeg montandole (vedi volumes) e aggiungendole a LD_LIBRARY_PATH.
+      - LD_LIBRARY_PATH=/usr/lib/wsl/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
       - TZ=Europe/Rome
       - USER=apps
       - STASH_PORT=9999
-      # percorsi pesanti sul NAS (rw). generated era "" nel config vecchio:
-      # ora lo puntiamo a stash-rw per non appesantire il volume locale.
-      - STASH_CACHE=/data/stash-rw/cache/
-      - STASH_GENERATED=/data/stash-rw/generated/
+      # cache e generated su volume LOCALE (NFS scrive a 14 MB/s -> collo di
+      # bottiglia). metadata resta su NFS (piccolo, si scrive di rado).
+      - STASH_CACHE=/local/cache/
+      - STASH_GENERATED=/local/generated/
       - STASH_METADATA=/data/stash-rw/metadata/
-      - NVIDIA_VISIBLE_DEVICES=void
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     volumes:
-      # config + DB su disco locale (SQLite NON su NFS: evita "database is locked")
       - stash_config:/root/.stash
-      # home NAS montata su /data/nas -> contiene /data/nas/Mondo (la libreria)
       - nas_media:/data/nas:ro
-      # dati pesanti stash rw
       - nas_stash_rw:/data/stash-rw:rw
-      # blobs su NFS dedicato
       - stash_blobs:/blobs
+      # cache + generated su volume LOCALE veloce (non NFS)
+      - stash_local:/local
+      # Librerie NVENC/NVDEC dal driver WSL, in sola lettura
+      - /usr/lib/wsl/lib:/usr/lib/wsl/lib:ro
     user: "0:0"
     networks:
       - proxy
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
-    deploy:
-      resources:
-        limits:
-          cpus: '1.5'
-          memory: 2048M
-        reservations:
-          memory: 256M
 
 networks:
   proxy:
@@ -63,7 +60,9 @@ volumes:
   stash_config:
     external: true
 
-  # Home NAS (contiene la cartella libreria Mondo). Montata :ro lato container.
+  # Volume locale veloce per cache/generated (evita scrittura NFS a 14 MB/s)
+  stash_local:
+
   nas_media:
     driver: local
     driver_opts:
@@ -71,7 +70,6 @@ volumes:
       o: "addr=100.125.101.31,rw,nfsvers=4,hard,timeo=600,retrans=2,noatime,nconnect=4"
       device: ":/Volume1/public/homes_roberto"
 
-  # Dati pesanti stash (cache/generated/metadata)
   nas_stash_rw:
     driver: local
     driver_opts:
@@ -79,7 +77,6 @@ volumes:
       o: "addr=100.125.101.31,rw,nfsvers=4,hard,timeo=600,retrans=2,noatime,nconnect=4"
       device: ":/Volume1/public/homes_roberto/App/stash/stash-rw"
 
-  # Blobs su NFS dedicato
   stash_blobs:
     driver: local
     driver_opts:

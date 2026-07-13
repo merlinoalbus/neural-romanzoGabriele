@@ -11,6 +11,10 @@ router.get('/chapters', async (_req, res) => {
   try {
     res.json({ chapters: await kg.listChapters() });
   } catch (err) {
+    if (err instanceof kg.ChapterListIntegrityError) {
+      res.status(409).json({ error: { code: err.code, message: err.message, duplicates: err.duplicates } });
+      return;
+    }
     res.status(500).json({ error: String(err) });
   }
 });

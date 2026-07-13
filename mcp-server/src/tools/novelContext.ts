@@ -8,7 +8,6 @@ import {
   groupNarrativeContext,
   type AuditCheck,
 } from '../novel/context.js';
-import { normalizeChapterLabel } from '../novel/domain.js';
 import { semanticRecallSeeds } from '../services/embeddingSync.js';
 import { errorObj, toolError, toolStructured } from './responseHelpers.js';
 
@@ -143,7 +142,7 @@ export function registerNovelContextTools(server: McpServer): void {
       try {
         const normalizedChecks = (checks?.length ? checks : DEFAULT_AUDIT_CHECKS) as AuditCheck[];
         const [chapter, characters, styleRules, worldRules, themes, timelineEvents, traitsRes, secretsRes] = await Promise.all([
-          kg.getNodeByTypeLabel('chapter', normalizeChapterLabel(chapterNumber)),
+          kg.getChapterByNumber(chapterNumber),
           kg.listNodesByType('character', { limit: 500 }),
           kg.listNodesByType('style_rule', { limit: 500 }),
           kg.listNodesByType('world_rule', { limit: 500 }),

@@ -7,7 +7,8 @@ import {
   readEditingSession,
   updateEditingSession,
 } from '../novel/editingSessionStore.js';
-import { registerNovelEditingTools } from './novelEditing.js';
+import { ChapterIdentityAmbiguousError, type GraphNode } from '../graph/neo4jStore.js';
+import { registerNovelEditingTools, rethrowChapterIdentityAmbiguity } from './novelEditing.js';
 
 type RegisteredTool = {
   annotations?: Record<string, unknown>;
@@ -23,6 +24,27 @@ function registeredEditingTools(): Record<string, RegisteredTool> {
 function errorCode(response: unknown): string | undefined {
   return (response as { structuredContent?: { error?: { code?: string } } }).structuredContent?.error?.code;
 }
+
+test('finalization retry preserves chapter number and duplicate IDs from an ambiguous identity', () => {
+  const duplicate = (id: string): GraphNode => ({
+    id,
+    type: 'chapter',
+    label: id,
+    content: '',
+    metadata: { chapterNumber: 1 },
+    provenance: {},
+    createdAt: '',
+    updatedAt: '',
+  });
+  const ambiguity = new ChapterIdentityAmbiguousError(1, [duplicate('placeholder'), duplicate('canonical')]);
+  assert.throws(
+    () => rethrowChapterIdentityAmbiguity(ambiguity),
+    (error: unknown) => error === ambiguity
+      && ambiguity.chapterNumber === 1
+      && ambiguity.nodeIds.join(',') === 'canonical,placeholder',
+  );
+  assert.doesNotThrow(() => rethrowChapterIdentityAmbiguity(new Error('transient lookup failure')));
+});
 
 test('novel editing workflow tools are registered as write-capable operational tools', () => {
   const tools = registeredEditingTools();

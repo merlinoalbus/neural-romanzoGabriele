@@ -1,5 +1,4 @@
 import * as kg from '../graph/neo4jStore.js';
-import { normalizeChapterLabel } from './domain.js';
 import {
   readEditingSession,
   updateEditingSession,
@@ -175,7 +174,7 @@ export async function updateSessionWorkingDraft(input: {
 }): Promise<WorkingDraftServiceResult> {
   return withWorkingDraftChapterLock(input.chapterNumber, async () => {
     const expectedContentHash = input.expectedContentHash.toLowerCase();
-    const chapter = await kg.getNodeByTypeLabel('chapter', normalizeChapterLabel(input.chapterNumber));
+    const chapter = await kg.getChapterByNumber(input.chapterNumber);
     if (chapter?.metadata.canonStatus === 'finalizing') {
       throw new ChapterFinalizationInProgressError(
         input.chapterNumber,

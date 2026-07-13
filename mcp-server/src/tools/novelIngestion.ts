@@ -276,7 +276,7 @@ export function registerNovelIngestionTools(server: McpServer): void {
         // `draftId`, when given, is kept only as informational metadata (e.g. "which round"), not
         // as part of the node's identity.
         const sourceId = `chapter-${String(chapterNumber).padStart(3, '0')}-draft`;
-        const existingChapter = await kg.getNodeByTypeLabel('chapter', chapterLabel);
+        const existingChapter = await kg.getChapterByNumber(chapterNumber);
         if (existingChapter?.metadata.canonStatus === 'finalizing') {
           return toolError('CHAPTER_FINALIZATION_IN_PROGRESS', 'Complete or retry the existing chapter finalization before ingesting another draft generation.', {
             chapterNumber,

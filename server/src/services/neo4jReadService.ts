@@ -331,6 +331,39 @@ export interface ChapterSummary {
   role?: 'prologo' | 'epilogo';
 }
 
+export interface DuplicateChapterIdentity {
+  chapterNumber: number;
+  nodeIds: string[];
+}
+
+export class ChapterListIntegrityError extends Error {
+  readonly code = 'CHAPTER_IDENTITY_AMBIGUOUS';
+  readonly duplicates: DuplicateChapterIdentity[];
+
+  constructor(duplicates: DuplicateChapterIdentity[]) {
+    const ordered = duplicates
+      .map((duplicate) => ({ ...duplicate, nodeIds: [...duplicate.nodeIds].sort() }))
+      .sort((a, b) => a.chapterNumber - b.chapterNumber);
+    super(`chapter_identity_ambiguous: ${ordered.map((item) => `chapterNumber=${item.chapterNumber}, nodeIds=${item.nodeIds.join(',')}`).join('; ')}`);
+    this.name = 'ChapterListIntegrityError';
+    this.duplicates = ordered;
+  }
+}
+
+export function assertUniqueNumberedChapters(chapters: ChapterSummary[]): void {
+  const byNumber = new Map<number, string[]>();
+  for (const chapter of chapters) {
+    if (chapter.number === null) continue;
+    const ids = byNumber.get(chapter.number) ?? [];
+    ids.push(chapter.id);
+    byNumber.set(chapter.number, ids);
+  }
+  const duplicates = [...byNumber.entries()]
+    .filter(([, ids]) => ids.length > 1)
+    .map(([chapterNumber, nodeIds]) => ({ chapterNumber, nodeIds }));
+  if (duplicates.length) throw new ChapterListIntegrityError(duplicates);
+}
+
 function chapterSummaryFrom(node: GraphNode): ChapterSummary {
   const m = node.metadata;
   const rawNumber = m.chapterNumber;
@@ -375,6 +408,7 @@ export async function listChapters(): Promise<ChapterSummary[]> {
     ),
   ]);
   const chapters = records.map((rec) => chapterSummaryFrom(nodeFrom(rec.get('n'))));
+  assertUniqueNumberedChapters(chapters);
   chapters.sort((a, b) => (a.number ?? Number.MAX_SAFE_INTEGER) - (b.number ?? Number.MAX_SAFE_INTEGER));
   const result: ChapterSummary[] = [];
   if (prologoRecs.length) result.push(bookendFrom(nodeFrom(prologoRecs[0].get('p')), 'prologo'));

@@ -3,7 +3,6 @@ import { z } from 'zod';
 import * as kg from '../graph/neo4jStore.js';
 import { config } from '../config.js';
 import { errorObj, toolError, toolStructured } from './responseHelpers.js';
-import { normalizeChapterLabel } from '../novel/domain.js';
 import { auditChapterContent } from '../novel/context.js';
 import { buildBibleCoverageReport } from '../novel/bibleCoverage.js';
 import {
@@ -154,33 +153,12 @@ export function registerNovelCoordinatorTools(server: McpServer): void {
             return toolError('INVALID_INPUT', 'chapterNumber is required for chapter_draft type');
           }
 
-          // 1. Find correct chapter node in database by parsing metadata in memory
-          const chapterNodesInDb = await kg.runQuery(`
-            MATCH (c:Entity {projectId: $projectId, type: 'chapter'})
-            RETURN c.id AS id, c.label AS label, c.metadata AS metadata, c.content AS content, c.provenance AS provenance, c.createdAt AS createdAt, c.updatedAt AS updatedAt
-          `, { projectId });
-
-          let chapterNode: kg.GraphNode | null = null;
-          let chapterLabel = normalizeChapterLabel(chapterNumber); // fallback
+          // 1. Resolve the unique structural chapter identity. Ambiguity is a hard integrity
+          // failure: never select whichever duplicate Neo4j happens to return first.
+          const chapterNode = await kg.getChapterByNumber(chapterNumber);
           let chapterId = '';
-
-          for (const row of chapterNodesInDb) {
-            const meta = JSON.parse(String(row.get('metadata') || '{}'));
-            if (Number(meta.chapterNumber) === chapterNumber) {
-              chapterId = String(row.get('id'));
-              chapterLabel = String(row.get('label'));
-              chapterNode = {
-                id: chapterId,
-                type: 'chapter',
-                label: chapterLabel,
-                content: String(row.get('content') || ''),
-                metadata: meta,
-                provenance: JSON.parse(String(row.get('provenance') || '{}')),
-                createdAt: String(row.get('createdAt') || ''),
-                updatedAt: String(row.get('updatedAt') || ''),
-              };
-              break;
-            }
+          if (chapterNode) {
+            chapterId = chapterNode.id;
           }
 
           // Retrieve draft content if not provided
@@ -244,18 +222,18 @@ export function registerNovelCoordinatorTools(server: McpServer): void {
               RETURN s.id as id, s.label as label, s.content as content, c.id as charId, c.label as charLabel, type(r) as relKind
             `, {}),
             chapterId ? kg.runQuery(`
-              MATCH (c:Entity {projectId: $projectId, type: 'chapter', label: $chapterLabel})-[r:REL]-()
+              MATCH (c:Entity {projectId: $projectId, type: 'chapter', id: $chapterId})-[r:REL]-()
               RETURN count(r) AS degree
-            `, { projectId, chapterLabel }) : Promise.resolve([]),
+            `, { projectId, chapterId }) : Promise.resolve([]),
             nodeIdsArray.length > 0 ? kg.runQuery(`
               MATCH (n:Entity {projectId: $projectId})-[r:REL]-(m:Entity {projectId: $projectId})
               WHERE n.id IN $nodeIds AND NOT r.kind IN ['derived_from', 'applies_to', 'part_of']
               RETURN count(DISTINCT r) AS semanticEdges
             `, { projectId, nodeIds: nodeIdsArray }) : Promise.resolve([]),
             chapterId ? kg.runQuery(`
-              MATCH (cf:Entity {type: 'continuity_finding'})-[:applies_to]->(c:Entity {type: 'chapter', label: $chapterLabel})
+              MATCH (cf:Entity {projectId: $projectId, type: 'continuity_finding'})-[:applies_to]->(c:Entity {projectId: $projectId, type: 'chapter', id: $chapterId})
               RETURN cf.metadata AS metadata, cf.content AS message
-            `, { chapterLabel }) : Promise.resolve([]),
+            `, { projectId, chapterId }) : Promise.resolve([]),
             nodeIdsArray.length > 0 ? kg.runQuery(`
               MATCH (n:Entity {projectId: $projectId})-[r:REL]-(t:Entity {type: 'theme'})
               WHERE n.id IN $nodeIds AND r.kind IN ['has_theme', 'about']

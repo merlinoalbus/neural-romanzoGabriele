@@ -4,6 +4,7 @@ import { checkDataPath, config, validateConfig } from './config.js';
 import { logger } from './logger.js';
 import adminRouter from './routes/admin.js';
 import documentsRouter from './routes/documents.js';
+import editorRouter from './routes/editor.js';
 import kgRouter from './routes/kg.js';
 import novelRouter from './routes/novel.js';
 import * as kg from './services/neo4jReadService.js';
@@ -16,6 +17,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use('/api/v2/kg', kgRouter);
 app.use('/api/v2/novel', novelRouter);
 app.use('/api/v2/documents', documentsRouter);
+app.use('/api/v2/editor', editorRouter);
 app.use('/api/v2/admin', adminRouter);
 
 app.get('/api/config', (_req, res) => {

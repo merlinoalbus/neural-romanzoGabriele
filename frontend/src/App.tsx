@@ -31,6 +31,7 @@ import {
   type SnapshotImportResult,
   type TimelineEntry,
 } from './api';
+import { ChapterDraftEditor } from './ChapterDraftEditor';
 
 const TYPE_COLORS: Record<string, string> = {
   bible_outline: '#6d28d9',
@@ -1069,15 +1070,15 @@ function buildWorkflowPrompts(path: EditorialPath, chapter: ChapterSummary | nul
   add(path === 'stesura' ? 'B7' : 'A6', 'Riscrittura blocco per blocco', 'gate 85%–140% enforced dal tool',
     `Riscrivi il blocco <numeroBlocco> di ${phrase} applicando SOLO i finding approvati che lo riguardano. Vincoli: lunghezza tra 85% e 140% dell'originale (enforced dal tool), nessun fatto nuovo fuori canone, voce e tono invariati. Salva con novel_save_rewrite_block (sessionId <sessionId>, blockNumber <numeroBlocco>, originalText, revisedText, appliedFindingIds, approved: false) e mostrami il diff sintetico originale→revisione con la percentuale di lunghezza. Attendi la mia approvazione prima di passare al blocco successivo. (Ripetere per ogni blocco; dopo il mio ok, risalva con approved: true.)`);
   add(path === 'stesura' ? 'B8' : 'A7', 'Assemblaggio + seam review', 'testo unificato e saldature invisibili',
-    `Assembla la revisione completa con novel_assemble_chapter_revision (sessionId <sessionId>, expectedBlocks <numero blocchi>). Se mancano blocchi, fermati ed elencameli. Poi rileggi il testo unificato e fai la seam review: transizioni tra blocchi, ripetizioni introdotte dalle riscritture, coerenza interna di tono e ritmo. Poi ANALISI DIFFERENZIALE sull'intero romanzo: con kg_semantic_search confronta descrizioni, immagini ricorrenti e tic linguistici del testo unificato contro i capitoli già canonizzati (sono embeddati nel grafo) e segnala ridondanze o incoerenze immediate col finale del capitolo precedente. Salva l'esito con novel_save_seam_review (summary, findings, approved solo dopo il mio ok) e presentami il testo finale completo per lettura.`);
+    `Assembla la revisione completa con novel_assemble_chapter_revision (sessionId <sessionId>, expectedBlocks <numero blocchi>). Se mancano blocchi, fermati ed elencameli. Poi rileggi il testo unificato e fai la seam review: transizioni tra blocchi, ripetizioni introdotte dalle riscritture, coerenza interna di tono e ritmo. Poi ANALISI DIFFERENZIALE sull'intero romanzo: con kg_semantic_search confronta descrizioni, immagini ricorrenti e tic linguistici del testo unificato contro i capitoli già canonizzati (sono embeddati nel grafo) e segnala ridondanze o incoerenze immediate col finale del capitolo precedente. Salva l'esito con novel_save_seam_review (summary, findings, approved solo dopo il mio ok).${numbered ? ` Quando approvo il testo: rileggi SEMPRE la bozza corrente con novel_get_working_draft (sessionId <sessionId>, chapterNumber: ${chapter!.number}); se nel frattempo l'hash o la revisione sono cambiati, recepisci quella versione e riapplica soltanto le modifiche approvate. Aggiorna quindi il nodo corrente con novel_update_working_draft usando expectedContentHash ed expectedRevision appena letti. Se ricevi DRAFT_VERSION_CONFLICT, fermati e riportamelo: non forzare e non fare merge automatici.` : ''} Presentami il testo finale completo per lettura.`);
   if (path === 'revisione') {
     add('A8', 'Scan impatto (se cambi fatti canonici)', 'solo se la revisione modifica canone già registrato',
       `La revisione modifica questi fatti già canonici: <elenco: nodo/etichetta → vecchio contenuto → nuovo contenuto>. Esegui novel_scan_revision_impact (${ident}, changedFacts) e riportami i nodi impattati, i conflitti di polarità e gli shift semantici. NON propagare nessuna modifica a cascata: presentami solo il report e le azioni proposte, decido io quali applicare. (Salta questo prompt se la revisione non tocca fatti canonici.)`);
   }
   add(path === 'stesura' ? 'B9' : 'A9*', 'Visual brief (opzionale)', 'PRIMA della canonizzazione: chiude la sessione',
     `Prepara il visual brief della scena chiave di ${phrase} con novel_create_visual_brief sulla sessione ancora aperta (da eseguire PRIMA della canonizzazione, che elimina il file di sessione): sceneSummary, characters, promptIt e promptEn coerenti con l'aspetto canonico dei personaggi al momento della scena (character_state datati). Nota: l'attach dell'immagine da filesystem è disabilitato in questo progetto; il brief resta nel file di sessione.`);
-  add(path === 'stesura' ? 'B10' : 'A10', 'Canonizzazione', 'unico passaggio che scrive il testo nel grafo',
-    `Canonizza ${phrase}: chiama novel_save_final_chapter con sessionId <sessionId>, ${ident}${titleArg}, status "approved" e il testo finale assemblato e approvato. Confermami che il nodo chapter è stato aggiornato in place (canonStatus canonical, finalHash valorizzato) e che il file di sessione è stato eliminato.`);
+  add(path === 'stesura' ? 'B10' : 'A10', 'Canonizzazione', 'unico passaggio che trasforma la bozza in canone',
+    `Canonizza ${phrase}: ${numbered ? `verifica prima con novel_get_working_draft che il nodo di bozza contenga esattamente il testo finale approvato; se non coincide, aggiornalo con novel_update_working_draft mediante CAS e non procedere in caso di conflitto. Poi ` : ''}chiama novel_save_final_chapter con sessionId <sessionId>, ${ident}${titleArg}, status "approved" e il testo finale assemblato e approvato. Confermami che il nodo chapter è stato aggiornato in place (canonStatus canonical, finalHash valorizzato), che il file di sessione e tutte le revisioni sono stati eliminati e che non restano chapter_draft/document/chunk temporanei della sezione.`);
   add(path === 'stesura' ? 'B11' : 'A11', 'Estrazione e commit dei fatti', 'la prosa finale diventa nodi/archi canonici',
     `Estrai i fatti narrativi dal testo finale di ${phrase} con novel_extract_chapter_candidates (${ident}, content: <testo finale>). Poi valida i candidati con novel_chapter_validation_packet e mostrami: candidati estratti, errori di validazione, discrepanze verso il canone esistente (lessicali e semantiche) con la loro severità. Proponimi la lista finale da committare distinguendo nuovi nodi, nuovi archi e candidati da scartare perché duplicati di canone esistente. Attendi il mio ok, poi esegui novel_commit_chapter_candidates solo sui candidati approvati.`);
   add(path === 'stesura' ? 'B12' : 'A12', 'Post-write e chiusura', 'verifica integrità e aggiorna la memoria della mente',
@@ -1085,7 +1086,23 @@ function buildWorkflowPrompts(path: EditorialPath, chapter: ChapterSummary | nul
   return steps;
 }
 
-function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgNode[]; characters: KgNode[]; chapters: ChapterSummary[]; onOpen: (id: string, type: string) => void }) {
+function EditorialePanel({
+  drafts,
+  characters,
+  chapters,
+  onOpen,
+  onRefreshDrafts,
+  draftEditorDirty,
+  onDraftEditorDirtyChange,
+}: {
+  drafts: KgNode[];
+  characters: KgNode[];
+  chapters: ChapterSummary[];
+  onOpen: (id: string, type: string) => void;
+  onRefreshDrafts: () => void;
+  draftEditorDirty: boolean;
+  onDraftEditorDirtyChange: (dirty: boolean) => void;
+}) {
   const [persona, setPersona] = useState('');
   const [persona2, setPersona2] = useState('');
   const [promptChapter, setPromptChapter] = useState('');
@@ -1174,12 +1191,19 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
     void navigator.clipboard?.writeText(wfSubstitute(body));
     setCopied(id);
   };
+  const changeSection = (nextSection: string): void => {
+    if (draftEditorDirty && nextSection !== section) {
+      const discard = window.confirm('La bozza contiene modifiche non salvate. Cambiare capitolo e perderle?');
+      if (!discard) return;
+    }
+    setSection(nextSection);
+  };
   return (
     <div className="novel-panel">
       <div className="novel-head">
         <h2>Cockpit Editoriale</h2>
         <p className="novel-sub">
-          Prompt pronti da incollare in chat con il modello collegato al grafo via <span className="edge-kind">MCP</span>: sfruttano il modello neurale in stesura e revisione. La valutazione qualitativa della prosa avviene in chat sul canone (ground truth); la pipeline <span className="edge-kind">novel_*</span> persiste bozze e decisioni. Il FE resta di sola lettura.
+          Prompt pronti da incollare in chat con il modello collegato al grafo via <span className="edge-kind">MCP</span>: sfruttano il modello neurale in stesura e revisione. La valutazione qualitativa della prosa avviene in chat sul canone (ground truth); la pipeline <span className="edge-kind">novel_*</span> persiste bozze e decisioni. L’editor sottostante modifica soltanto la bozza della sessione, mai il canone.
         </p>
       </div>
 
@@ -1200,7 +1224,7 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
         </div>
         <div className="persona-pick">
           <label>Sezione da lavorare (pre-ottimizza i prompt)</label>
-          <select value={section} onChange={(event) => setSection(event.target.value)}>
+          <select value={section} onChange={(event) => changeSection(event.target.value)}>
             <option value="">— generico (nessuna sezione) —</option>
             {chapters.map((chapter) => (
               <option key={chapter.id} value={chapter.id}>{chapter.role === 'prologo' ? 'Prologo' : chapter.role === 'epilogo' ? 'Epilogo' : `Cap ${chapter.number} — ${chapter.title}`}</option>
@@ -1235,7 +1259,13 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
           <div className="prompt-fields">
             <div className="pf">
               <label>Session ID <code>{'<sessionId>'}</code></label>
-              <input value={wfSessionId} onChange={(event) => setWfSessionId(event.target.value)} placeholder="es. editing-prologo-a1b2c3d4e5f6" />
+              <input
+                value={wfSessionId}
+                disabled={draftEditorDirty}
+                onChange={(event) => setWfSessionId(event.target.value)}
+                placeholder="es. editing-002-a1b2c3d4e5f6"
+                title={draftEditorDirty ? 'Salva o ricarica la bozza prima di cambiare sessione.' : undefined}
+              />
             </div>
             <div className="pf">
               <label>Blocco corrente <code>{'<numeroBlocco>'}</code></label>
@@ -1268,6 +1298,20 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="novel-block draft-workspace">
+        <h3>Editor della bozza <small>salvataggio concorrente protetto</small></h3>
+        <p className="novel-note">
+          Disponibile per i capitoli numerati e per una sessione editoriale identificata. Il salvataggio usa hash e revisione: se il server contiene una versione più recente, il testo locale viene conservato finché non scegli esplicitamente come procedere.
+        </p>
+        <ChapterDraftEditor
+          key={`${selSection?.id ?? 'nessuna-sezione'}:${wfSessionId.trim()}`}
+          chapter={selSection}
+          sessionId={wfSessionId}
+          onDirtyChange={onDraftEditorDirtyChange}
+          onSaved={onRefreshDrafts}
+        />
       </section>
 
       <section className="novel-block">
@@ -1334,9 +1378,10 @@ function EditorialePanel({ drafts, characters, chapters, onOpen }: { drafts: KgN
       </section>
 
       <section className="novel-block">
-        <h3>Bozze &amp; sessioni <small>{drafts.length}</small></h3>
+        <h3>Bozze di capitolo nel grafo <small>{drafts.length}</small></h3>
+        <p className="novel-note">Le sessioni editoriali sono conservate nel volume filesystem e si riaprono tramite il loro <code>sessionId</code>; non sono nodi del grafo e quindi non vengono elencate qui.</p>
         {drafts.length === 0 ? (
-          <p className="muted">Nessuna bozza ancora nel grafo. Incolla in chat una proposta di capitolo: la valuto sui 5 assi qui sotto e consolido i dettagli emersi nel modello.</p>
+          <p className="muted">Nessuna bozza di capitolo presente nel grafo.</p>
         ) : (
           <div className="result-list">
             {drafts.map((draft) => (
@@ -1603,6 +1648,7 @@ export function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<KgNode | null>(null);
   const [tab, setTab] = useState<Tab>('romanzo');
+  const [editorDraftDirty, setEditorDraftDirty] = useState(false);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ Panoramica: true, 'Entità': false, Lavoro: false });
   const toggleGroup = useCallback((group: string) => setOpenGroups((state) => ({ ...state, [group]: !state[group] })), []);
   const [loading, setLoading] = useState(false);
@@ -1633,6 +1679,17 @@ export function App() {
     () => openPoints.find((point) => point.finding.id === selectedOpenPointId) ?? null,
     [openPoints, selectedOpenPointId],
   );
+
+  const changeTab = useCallback((nextTab: Tab): boolean => {
+    if (nextTab === tab) return true;
+    if (tab === 'editoriale' && editorDraftDirty) {
+      const discard = window.confirm('La bozza contiene modifiche non salvate. Uscire dall’area editoriale e perderle?');
+      if (!discard) return false;
+      setEditorDraftDirty(false);
+    }
+    setTab(nextTab);
+    return true;
+  }, [editorDraftDirty, tab]);
 
   const refreshStats = useCallback(async () => {
     setStats(await getKgStats());
@@ -1665,7 +1722,7 @@ export function App() {
   }, [chapters.length]);
 
   const openChapter = useCallback(async (id: string) => {
-    setTab('capitolo');
+    if (!changeTab('capitolo')) return;
     setSelectedId(id);
     setLoading(true);
     setError(null);
@@ -1676,7 +1733,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [changeTab]);
 
   const loadCharacters = useCallback(async () => {
     if (characters.length) return;
@@ -1772,18 +1829,16 @@ export function App() {
   }, []);
 
   const loadDrafts = useCallback(async () => {
-    if (drafts.length) return;
     setLoading(true);
     setError(null);
     try {
-      const [chapterDrafts, sessions] = await Promise.all([listKgNodes(100, 'chapter_draft'), listKgNodes(100, 'editing_session')]);
-      setDrafts([...chapterDrafts.nodes, ...sessions.nodes]);
+      setDrafts((await listKgNodes(100, 'chapter_draft')).nodes);
     } catch (err) {
       setError(String(err));
     } finally {
       setLoading(false);
     }
-  }, [drafts.length]);
+  }, []);
 
   const openEntity = useCallback(async (id: string, type: string) => {
     // Chapters keep their dedicated packet view; everything else uses the entity packet.
@@ -1791,8 +1846,9 @@ export function App() {
       void openChapter(id);
       return;
     }
+    const targetTab = ENTITY_TAB[type] ?? (KEEP_TAB.has(tab) ? tab : 'personaggio');
+    if (!changeTab(targetTab)) return;
     setSelectedId(id);
-    setTab((current) => ENTITY_TAB[type] ?? (KEEP_TAB.has(current) ? current : 'personaggio'));
     setLoading(true);
     setError(null);
     try {
@@ -1802,7 +1858,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [openChapter]);
+  }, [changeTab, openChapter, tab]);
 
   useEffect(() => {
     void refreshStats().catch((err) => setError(String(err)));
@@ -1978,7 +2034,7 @@ export function App() {
       setImportResult(result);
       setAdminMessage(result.ok ? `Import completato: ${result.written?.nodes ?? 0} nodi, ${result.written?.edges ?? 0} archi` : 'Import respinto');
       if (result.ok) {
-        setTab('search');
+        changeTab('search');
         void refreshStats();
         void loadNodes();
       }
@@ -1987,7 +2043,7 @@ export function App() {
     } finally {
       setAdminBusy(false);
     }
-  }, [importMode, importResult, loadNodes, refreshStats, snapshot, serverProjectId]);
+  }, [changeTab, importMode, importResult, loadNodes, refreshStats, snapshot, serverProjectId]);
 
   const activeList = tab === 'documents' ? documents : results;
 
@@ -2011,30 +2067,30 @@ export function App() {
           <NavGroup label="Panoramica" open={openGroups['Panoramica']} onToggle={() => toggleGroup('Panoramica')} />
           {openGroups['Panoramica'] && (
           <div className="tabs" role="tablist">
-            <button className={tab === 'romanzo' ? 'active' : ''} onClick={() => { setTab('romanzo'); void loadChapters(); }}><BookOpen size={15} />Romanzo</button>
-            <button className={tab === 'timeline' ? 'active' : ''} onClick={() => { setTab('timeline'); void loadTimeline(); }}><Clock size={15} />Timeline</button>
-            <button className={tab === 'coerenza' ? 'active' : ''} onClick={() => { setTab('coerenza'); void loadHealth(); }}><Activity size={15} />Coerenza</button>
+            <button className={tab === 'romanzo' ? 'active' : ''} onClick={() => { if (changeTab('romanzo')) void loadChapters(); }}><BookOpen size={15} />Romanzo</button>
+            <button className={tab === 'timeline' ? 'active' : ''} onClick={() => { if (changeTab('timeline')) void loadTimeline(); }}><Clock size={15} />Timeline</button>
+            <button className={tab === 'coerenza' ? 'active' : ''} onClick={() => { if (changeTab('coerenza')) void loadHealth(); }}><Activity size={15} />Coerenza</button>
           </div>
           )}
           <NavGroup label="Entità" open={openGroups['Entità']} onToggle={() => toggleGroup('Entità')} />
           {openGroups['Entità'] && (
           <div className="tabs" role="tablist">
-            <button className={tab === 'capitolo' ? 'active' : ''} onClick={() => { setTab('capitolo'); void loadChapters(); }}><ScrollText size={15} />Capitolo</button>
-            <button className={tab === 'personaggio' ? 'active' : ''} onClick={() => { setTab('personaggio'); void loadCharacters(); }}><Users size={15} />Personaggi</button>
-            <button className={tab === 'arco' ? 'active' : ''} onClick={() => { setTab('arco'); void loadArcs(); }}><GitBranch size={15} />Archi</button>
-            <button className={tab === 'mondo' ? 'active' : ''} onClick={() => { setTab('mondo'); void loadWorld(); }}><Globe2 size={15} />Mondo</button>
-            <button className={tab === 'temi' ? 'active' : ''} onClick={() => { setTab('temi'); void loadThemes(); }}><Sparkles size={15} />Temi</button>
-            <button className={tab === 'stile' ? 'active' : ''} onClick={() => { setTab('stile'); void loadStyle(); }}><Feather size={15} />Stile &amp; Regole</button>
+            <button className={tab === 'capitolo' ? 'active' : ''} onClick={() => { if (changeTab('capitolo')) void loadChapters(); }}><ScrollText size={15} />Capitolo</button>
+            <button className={tab === 'personaggio' ? 'active' : ''} onClick={() => { if (changeTab('personaggio')) void loadCharacters(); }}><Users size={15} />Personaggi</button>
+            <button className={tab === 'arco' ? 'active' : ''} onClick={() => { if (changeTab('arco')) void loadArcs(); }}><GitBranch size={15} />Archi</button>
+            <button className={tab === 'mondo' ? 'active' : ''} onClick={() => { if (changeTab('mondo')) void loadWorld(); }}><Globe2 size={15} />Mondo</button>
+            <button className={tab === 'temi' ? 'active' : ''} onClick={() => { if (changeTab('temi')) void loadThemes(); }}><Sparkles size={15} />Temi</button>
+            <button className={tab === 'stile' ? 'active' : ''} onClick={() => { if (changeTab('stile')) void loadStyle(); }}><Feather size={15} />Stile &amp; Regole</button>
           </div>
           )}
           <NavGroup label="Lavoro" open={openGroups['Lavoro']} onToggle={() => toggleGroup('Lavoro')} />
           {openGroups['Lavoro'] && (
           <div className="tabs" role="tablist">
-            <button className={tab === 'editoriale' ? 'active' : ''} onClick={() => { setTab('editoriale'); void loadDrafts(); void loadCharacters(); void loadChapters(); }}><PenLine size={15} />Editoriale</button>
-            <button className={tab === 'search' ? 'active' : ''} onClick={() => setTab('search')}><Search size={15} />Grafo</button>
-            <button className={tab === 'openPoints' ? 'active' : ''} onClick={() => { setTab('openPoints'); void loadOpenPoints(); }}><ListChecks size={15} />Punti aperti</button>
-            <button className={tab === 'documents' ? 'active' : ''} onClick={() => { setTab('documents'); void loadDocuments(); }}><FileText size={15} />Documenti</button>
-            <button className={tab === 'admin' ? 'active' : ''} onClick={() => setTab('admin')}><ShieldCheck size={15} />Admin</button>
+            <button className={tab === 'editoriale' ? 'active' : ''} onClick={() => { if (changeTab('editoriale')) { void loadDrafts(); void loadCharacters(); void loadChapters(); } }}><PenLine size={15} />Editoriale</button>
+            <button className={tab === 'search' ? 'active' : ''} onClick={() => changeTab('search')}><Search size={15} />Grafo</button>
+            <button className={tab === 'openPoints' ? 'active' : ''} onClick={() => { if (changeTab('openPoints')) void loadOpenPoints(); }}><ListChecks size={15} />Punti aperti</button>
+            <button className={tab === 'documents' ? 'active' : ''} onClick={() => { if (changeTab('documents')) void loadDocuments(); }}><FileText size={15} />Documenti</button>
+            <button className={tab === 'admin' ? 'active' : ''} onClick={() => changeTab('admin')}><ShieldCheck size={15} />Admin</button>
           </div>
           )}
 
@@ -2185,9 +2241,17 @@ export function App() {
           ) : tab === 'timeline' ? (
             <TimelinePanel entries={timeline} onOpenChapter={(id) => void openChapter(id)} onOpenEntity={(id) => void openEntity(id, 'timeline_event')} />
           ) : tab === 'coerenza' ? (
-            <CoerenzaPanel health={health} onOpenPoints={() => { setTab('openPoints'); void loadOpenPoints(); }} />
+            <CoerenzaPanel health={health} onOpenPoints={() => { if (changeTab('openPoints')) void loadOpenPoints(); }} />
           ) : tab === 'editoriale' ? (
-            <EditorialePanel drafts={drafts} characters={characters} chapters={chapters} onOpen={(id, type) => void openEntity(id, type)} />
+            <EditorialePanel
+              drafts={drafts}
+              characters={characters}
+              chapters={chapters}
+              onOpen={(id, type) => void openEntity(id, type)}
+              onRefreshDrafts={() => { void loadDrafts(); void refreshStats(); }}
+              draftEditorDirty={editorDraftDirty}
+              onDraftEditorDirtyChange={setEditorDraftDirty}
+            />
           ) : graph.nodes.length > 0 ? (
             <ForceGraph2D<GNode, GLink>
               ref={fgRef}

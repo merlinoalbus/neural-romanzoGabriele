@@ -3,8 +3,9 @@ import * as kg from '../services/neo4jReadService.js';
 
 const router = Router();
 
-// Read-only aggregation endpoints tailored to the narrative "cockpit" views.
-// The frontend never writes to the graph; writes go only through the MCP server.
+// Read-only aggregation endpoints tailored to the narrative "cockpit" views. The sole frontend
+// mutation surface is isolated in routes/editor.ts and proxied to the MCP working-draft service;
+// canonical graph writes remain unavailable here.
 
 router.get('/chapters', async (_req, res) => {
   try {

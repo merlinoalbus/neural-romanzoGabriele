@@ -18,6 +18,7 @@ import { registerNovelCoordinatorTools } from './tools/novelCoordinator.js';
 import { registerNovelChapterCandidateTools } from './tools/novelChapterCandidates.js';
 import { registerNovelRevisionImpactTools } from './tools/novelRevisionImpact.js';
 import { registerCognitionTools } from './tools/cognition.js';
+import editorRouter from './routes/editor.js';
 
 const EMBEDDED_FALLBACK_INSTRUCTIONS = `# Rete Neurale Romanzo Gabriele MCP
 
@@ -104,6 +105,7 @@ function isInitializeRequest(body: unknown): boolean {
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
+app.use('/internal/editor', editorRouter);
 
 const sessionCleanupTimer = setInterval(cleanupExpiredSessions, config.sessionCleanupIntervalMs);
 sessionCleanupTimer.unref();

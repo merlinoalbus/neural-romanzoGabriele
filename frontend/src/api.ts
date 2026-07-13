@@ -140,23 +140,154 @@ export interface HealthReport {
   openPoints: number;
 }
 
+export interface EditorChapterDraft {
+  chapterNumber: number;
+  sessionId: string;
+  content: string;
+  contentHash: string;
+  revision: number;
+  updatedAt: string;
+  title?: string;
+  status?: string;
+  wordCount?: number;
+  charCount?: number;
+  auditStatus?: 'pending' | 'passed' | 'failed';
+  auditContentHash?: string;
+  auditRevision?: number;
+  auditAt?: string;
+  auditError?: string;
+}
+
+export interface DraftLengthGate {
+  baselineWords?: number;
+  currentWords?: number;
+  ok?: boolean;
+  valid?: boolean;
+  passed?: boolean;
+  withinRange?: boolean;
+  ratio?: number;
+  minWords?: number;
+  maxWords?: number;
+  message?: string;
+  [key: string]: unknown;
+}
+
+export interface EditorDraftResponse {
+  draft: EditorChapterDraft;
+  changed?: boolean;
+  historyCount?: number;
+  lengthGate?: DraftLengthGate | null;
+}
+
+export interface SaveEditorDraftInput {
+  chapterNumber: number;
+  sessionId: string;
+  content: string;
+  expectedContentHash: string;
+  expectedRevision: number;
+  clientMutationId?: string;
+  changeSummary?: string;
+}
+
+interface ApiErrorPayload {
+  error?: {
+    code?: string;
+    message?: string;
+    details?: unknown;
+  };
+}
+
+export class ApiError extends Error {
+  readonly status: number;
+  readonly code: string | undefined;
+  readonly details: unknown;
+
+  constructor(status: number, statusText: string, payload: ApiErrorPayload | null, fallbackBody: string) {
+    const message = payload?.error?.message?.trim() || `${status} ${statusText}${fallbackBody ? `: ${fallbackBody}` : ''}`;
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = payload?.error?.code;
+    this.details = payload?.error?.details;
+  }
+}
+
+export interface DraftVersionConflictDetails {
+  current: EditorChapterDraft;
+  expectedContentHash: string;
+  expectedRevision: number;
+}
+
+export class DraftVersionConflictError extends ApiError {
+  readonly conflict: DraftVersionConflictDetails;
+
+  constructor(status: number, statusText: string, payload: ApiErrorPayload, fallbackBody: string, details: DraftVersionConflictDetails) {
+    super(status, statusText, payload, fallbackBody);
+    this.name = 'DraftVersionConflictError';
+    this.conflict = details;
+  }
+}
+
+function isEditorChapterDraft(value: unknown): value is EditorChapterDraft {
+  if (!value || typeof value !== 'object') return false;
+  const draft = value as Partial<EditorChapterDraft>;
+  return typeof draft.chapterNumber === 'number'
+    && typeof draft.sessionId === 'string'
+    && typeof draft.content === 'string'
+    && typeof draft.contentHash === 'string'
+    && typeof draft.revision === 'number'
+    && typeof draft.updatedAt === 'string';
+}
+
+function conflictDetails(value: unknown): DraftVersionConflictDetails | null {
+  if (!value || typeof value !== 'object') return null;
+  const details = value as Partial<DraftVersionConflictDetails>;
+  if (!isEditorChapterDraft(details.current)) return null;
+  if (typeof details.expectedContentHash !== 'string' || typeof details.expectedRevision !== 'number') return null;
+  return {
+    current: details.current,
+    expectedContentHash: details.expectedContentHash,
+    expectedRevision: details.expectedRevision,
+  };
+}
+
+async function requestJson<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const response = await fetch(path, {
+    ...init,
+    headers: {
+      Accept: 'application/json',
+      ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      ...(init.headers ?? {}),
+    },
+  });
+  const bodyText = await response.text();
+  let payload: unknown = null;
+  if (bodyText) {
+    try {
+      payload = JSON.parse(bodyText) as unknown;
+    } catch {
+      payload = null;
+    }
+  }
+  if (!response.ok) {
+    const errorPayload = payload && typeof payload === 'object' ? payload as ApiErrorPayload : null;
+    const details = response.status === 409 && errorPayload?.error?.code === 'DRAFT_VERSION_CONFLICT'
+      ? conflictDetails(errorPayload.error.details)
+      : null;
+    if (details && errorPayload) {
+      throw new DraftVersionConflictError(response.status, response.statusText, errorPayload, bodyText, details);
+    }
+    throw new ApiError(response.status, response.statusText, errorPayload, bodyText);
+  }
+  return payload as T;
+}
+
 async function getJson<T>(path: string): Promise<T> {
-  const response = await fetch(path, { headers: { Accept: 'application/json' } });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${await response.text()}`);
-  return response.json() as Promise<T>;
+  return requestJson<T>(path);
 }
 
 async function postJson<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(path, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${await response.text()}`);
-  return response.json() as Promise<T>;
+  return requestJson<T>(path, { method: 'POST', body: JSON.stringify(body) });
 }
 
 function filenameFromContentDisposition(value: string | null): string {
@@ -226,6 +357,26 @@ export function getTimeline(): Promise<{ entries: TimelineEntry[] }> {
 
 export function getHealth(): Promise<HealthReport> {
   return getJson<HealthReport>('/api/v2/novel/health');
+}
+
+function editorDraftPath(chapterNumber: number, sessionId: string): string {
+  return `/api/v2/editor/drafts/${encodeURIComponent(String(chapterNumber))}?sessionId=${encodeURIComponent(sessionId)}`;
+}
+
+export function getEditorDraft(chapterNumber: number, sessionId: string): Promise<EditorDraftResponse> {
+  return getJson<EditorDraftResponse>(editorDraftPath(chapterNumber, sessionId));
+}
+
+export function saveEditorDraft(input: SaveEditorDraftInput): Promise<EditorDraftResponse> {
+  const { chapterNumber, ...body } = input;
+  return requestJson<EditorDraftResponse>(editorDraftPath(chapterNumber, input.sessionId), {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  });
+}
+
+export function isDraftVersionConflict(error: unknown): error is DraftVersionConflictError {
+  return error instanceof DraftVersionConflictError;
 }
 
 export async function exportGraphSnapshot(): Promise<{ blob: Blob; filename: string }> {

@@ -35,9 +35,9 @@ export const config = {
   // Texts per provider request when batch-embedding (Ollama's OpenAI-compatible endpoint accepts
   // array inputs). Bigger batches amortize HTTP overhead but raise per-request latency/VRAM.
   embeddingsBatchSize: intFromEnv('EMBEDDINGS_BATCH_SIZE', 32),
-  // Editorial working state (session, blocks, findings, decisions, rewrites, seam review, visual
-  // briefs) is filesystem-only, never a graph node — see editingSessionStore.ts. Needs a mounted
-  // volume in production or it is lost on container recreation.
+  // Editorial bookkeeping (session, blocks, findings, decisions, rewrites, seam review and visual
+  // briefs) is filesystem-only. Full-text draft history is atomic and bounded inside the single
+  // current chapter_draft node. The session store needs a mounted volume in production.
   editingStateDir: process.env.EDITING_STATE_DIR || './.state/chapter-editing',
 } as const;
 
@@ -50,6 +50,9 @@ export function validateConfig(): string[] {
   if (!config.neo4jUser.trim()) errors.push('NEO4J_USER must not be empty');
   if (config.appEnv === 'production' && !config.neo4jPassword.trim()) {
     errors.push('NEO4J_PASSWORD is required in production');
+  }
+  if (config.appEnv === 'production' && !config.mcpSharedSecret.trim()) {
+    errors.push('MCP_SHARED_SECRET is required in production for the internal draft editor API');
   }
   if (config.embeddingsProvider && config.embeddingsProvider !== 'openai-compatible') {
     errors.push("EMBEDDINGS_PROVIDER must be 'openai-compatible' when set");

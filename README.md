@@ -9,7 +9,7 @@ La piattaforma non inventa canone: conserva fonti, indice, Bibbia del Romanzo qu
 Lo stack resta diviso per responsabilita:
 
 - `frontend/`: dashboard React per esplorare il grafo narrativo.
-- `server/`: backend interno per persistenza NAS e API read-only usate dal frontend.
+- `server/`: backend interno per le API del frontend; le letture interrogano Neo4j e l'editor inoltra al MCP soltanto le mutazioni non canoniche della bozza.
 - `mcp-server/`: server MCP HTTP/SSE usato dall'IA. Espone i tool generici `kg_*` e i tool narrativi gia registrati.
 - `neo4j`: database a grafo, accessibile solo dentro la rete Docker.
 
@@ -42,9 +42,9 @@ Con l'overlay `docker-compose.cloudflare.yml` (`romanzo_gabriele_cloudflared`), 
 7. Leggere `sectionMappedOnly` e `claimMappedOnly` come segnali di mapping incompleto, non come piena copertura semantica.
 8. Importare bozze reali dei capitoli come materiale di lavoro.
 9. Prima di scrivere o revisionare, richiamare il context packet del capitolo.
-10. Il lavoro editoriale in corso (sessione, blocchi, finding, decisioni, riscritture, seam review, visual brief) non è mai un nodo del grafo: vive in un file di sessione, mai in Neo4j. Il grafo riceve solo il capitolo finale approvato.
-11. Una revisione aggiorna il nodo `chapter` esistente in place (stessa chiave `type`+`label`): non crea mai un nodo di bozza separato. Nessuna stratificazione di nodi vecchi accanto a nuovi.
-12. Un capitolo entra nel grafo una sola volta, già nella sua versione definitiva: i fatti estratti dal testo finale si validano SOLO contro il resto del canone già consolidato, mai contro bozze proprie di sessioni precedenti.
+10. Il bookkeeping editoriale (sessione, blocchi, finding, decisioni, riscritture, seam review, visual brief) vive nel file di sessione. Neo4j contiene un solo nodo non canonico `chapter_draft` per capitolo: testo corrente e storico FIFO atomico, mai una costellazione di nodi-versione.
+11. Alla finalizzazione il nodo `chapter` canonico viene aggiornato in place (stessa chiave `type`+`label`); il `chapter_draft`, il suo storico e le proiezioni documento/chunk vengono eliminati.
+12. Un capitolo entra nel canone una sola volta, nella versione approvata: i fatti estratti dal testo finale si validano SOLO contro il resto del canone già consolidato, mai contro bozze proprie di sessioni precedenti.
 
 I dati canonici devono sempre mantenere provenienza chiara. Le proposte creative o di revisione devono rimanere distinguibili dal canone approvato.
 
@@ -69,7 +69,7 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Il frontend viene servito da `FE_HOST_PORT`; il backend legge Neo4j in sola lettura per la UI; il server MCP scrive nel grafo tramite strumenti controllati.
+Il frontend viene servito da `FE_HOST_PORT`. Le viste canoniche restano di sola lettura; l'editor del Cockpit può aggiornare soltanto il nodo `chapter_draft` corrente tramite il server MCP e un CAS hash+revisione. Nessuna API frontend può canonizzare un capitolo.
 
 ### Build e deploy di tutti i microservizi
 
@@ -176,9 +176,11 @@ Relazioni da preferire a `related_to`:
 
 `related_to` resta un fallback ammesso, ma il coverage report lo segnala per futura tipizzazione.
 
-Tool workflow editoriale (stato in un file di sessione, mai nel grafo — solo `novel_save_final_chapter` scrive canone, aggiornando il nodo `chapter` esistente in place):
+Tool workflow editoriale (finding/decisioni restano nel file di sessione; nel grafo esiste un solo `chapter_draft` corrente con storico limitato; solo `novel_save_final_chapter` scrive canone):
 
 - `novel_start_editing_session`
+- `novel_get_working_draft`
+- `novel_update_working_draft`
 - `novel_split_chapter_blocks`
 - `novel_save_editorial_findings`
 - `novel_save_user_decisions`
@@ -188,6 +190,8 @@ Tool workflow editoriale (stato in un file di sessione, mai nel grafo — solo `
 - `novel_save_final_chapter`
 - `novel_create_visual_brief`
 - `novel_attach_generated_image`
+
+L'editor conserva al massimo 20 versioni complete totali per capitolo (la corrente più 19 precedenti) dentro l'unico nodo `chapter_draft`, con aggiornamento Neo4j atomico e retention FIFO. Il file di sessione contiene soltanto baseline hash/conteggi e bookkeeping editoriale, mai copie integrali aggiuntive. Il nodo di bozza è protetto da SHA-256 completo più revisione monotona. In caso di `DRAFT_VERSION_CONFLICT` il frontend non esegue merge: l'utente sceglie se inviare la propria copia con un nuovo CAS sulla revisione remota appena osservata oppure ricaricare il testo remoto perdendo le modifiche locali. Ogni variazione invalida l'audit autonomo; la canonizzazione richiede un audit riuscito sullo stesso hash e sulla stessa revisione. Alla canonizzazione il draft con tutto lo storico, il documento/chunk derivati e il file di sessione vengono eliminati.
 
 Tool pipeline capitolo (mirror della Bibbia, ma validazione in un solo passaggio contro il resto del canone — mai contro bozze proprie di sessioni precedenti):
 

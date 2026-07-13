@@ -14,6 +14,7 @@ export const config = {
   port: intFromEnv('PORT', 3001),
   projectId: process.env.PROJECT_ID || 'romanzo-gabriele',
   mcpSharedSecret: process.env.MCP_SHARED_SECRET || '',
+  mcpEditorUrl: (process.env.MCP_EDITOR_URL || 'http://localhost:3002').replace(/\/+$/, ''),
   appEnv: normalizeAppEnv(process.env.APP_ENV),
   appVersion: process.env.APP_VERSION || process.env.npm_package_version || '0.1.0',
   buildSha: process.env.BUILD_SHA || 'unknown',
@@ -31,6 +32,9 @@ export function validateConfig(): string[] {
   if (!config.projectId.trim()) errors.push('PROJECT_ID must not be empty');
   if (config.appEnv === 'production' && !config.neo4j.password.trim()) {
     errors.push('NEO4J_PASSWORD is required in production');
+  }
+  if (config.appEnv === 'production' && !config.mcpSharedSecret.trim()) {
+    errors.push('MCP_SHARED_SECRET is required in production for the draft editor proxy');
   }
   return errors;
 }

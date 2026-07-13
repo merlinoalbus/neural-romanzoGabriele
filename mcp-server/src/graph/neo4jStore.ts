@@ -1,6 +1,17 @@
 import crypto from 'node:crypto';
-import neo4j, { Driver, Node, Record as Neo4jRecord, Relationship } from 'neo4j-driver';
+import neo4j, { Driver, type ManagedTransaction, Node, Record as Neo4jRecord, Relationship } from 'neo4j-driver';
 import { config } from '../config.js';
+import {
+  decideWorkingDraftCas,
+  normalizeWorkingDraftContent,
+  retainWorkingDraftHistory,
+  workingDraftContentHash,
+  workingDraftWordCount,
+  type WorkingDraftAuditStatus,
+  type WorkingDraftAuthor,
+  type WorkingDraftHistoryEntry,
+  type WorkingDraftSnapshot,
+} from '../novel/workingDraft.js';
 import { saveDocumentSource, type SavedDocumentSource } from '../services/backendClient.js';
 import { embeddingText } from '../services/embeddingService.js';
 import { assertCanonicalKind, isCanonicalKind, KG_KINDS_LIST } from './ontology.js';
@@ -1564,6 +1575,600 @@ export async function getDocumentChunks(opts: { sourceId?: string; documentId?: 
     .map((record) => nodeFrom(record.get('chunk')))
     .sort((a, b) => Number(a.metadata.order ?? 0) - Number(b.metadata.order ?? 0));
   return { document, chunks };
+}
+
+export interface WorkingDraftCasInput {
+  chapterNumber: number;
+  content: string;
+  expectedContentHash: string;
+  expectedRevision: number;
+  author: WorkingDraftAuthor;
+  clientMutationId?: string;
+  changeSummary?: string;
+}
+
+export type WorkingDraftCasResult =
+  | { status: 'updated'; draft: WorkingDraftSnapshot; previous: WorkingDraftSnapshot }
+  | { status: 'unchanged'; draft: WorkingDraftSnapshot }
+  | { status: 'conflict'; current: WorkingDraftSnapshot };
+
+export interface WorkingDraftCleanupResult {
+  draftNodes: number;
+  documents: number;
+  chunks: number;
+  findings: number;
+  assets: number;
+}
+
+export class WorkingDraftDocumentMissingError extends Error {
+  readonly chapterNumber: number;
+
+  constructor(chapterNumber: number) {
+    super(`working_draft_document_missing: chapter ${chapterNumber}`);
+    this.name = 'WorkingDraftDocumentMissingError';
+    this.chapterNumber = chapterNumber;
+  }
+}
+
+function workingDraftLabel(chapterNumber: number): string {
+  return `Capitolo ${chapterNumber} draft`;
+}
+
+function asWorkingDraftAuthor(value: unknown): WorkingDraftAuthor {
+  return value === 'ingest' || value === 'user' || value === 'llm' || value === 'system' ? value : 'system';
+}
+
+function workingDraftHistory(value: unknown): WorkingDraftHistoryEntry[] {
+  let parsed: unknown = value;
+  if (typeof value === 'string') {
+    if (!value.trim()) return [];
+    try {
+      parsed = JSON.parse(value) as unknown;
+    } catch {
+      throw new Error('working_draft_history_corrupt: invalid JSON');
+    }
+  }
+  if (parsed === undefined || parsed === null) return [];
+  if (!Array.isArray(parsed)) throw new Error('working_draft_history_corrupt: expected an array');
+  const history: WorkingDraftHistoryEntry[] = [];
+  for (const candidate of parsed) {
+    if (!candidate || typeof candidate !== 'object') throw new Error('working_draft_history_corrupt: invalid entry');
+    const item = candidate as Partial<WorkingDraftHistoryEntry>;
+    if (
+      !Number.isInteger(item.revision) || Number(item.revision) < 1
+      || typeof item.content !== 'string'
+      || typeof item.contentHash !== 'string'
+      || !/^[a-f0-9]{64}$/i.test(item.contentHash)
+    ) throw new Error('working_draft_history_corrupt: invalid entry fields');
+    const normalizedContent = normalizeWorkingDraftContent(item.content);
+    if (workingDraftContentHash(normalizedContent) !== item.contentHash.toLowerCase()) {
+      throw new Error(`working_draft_history_corrupt: hash mismatch at revision ${item.revision}`);
+    }
+    const computedWordCount = workingDraftWordCount(normalizedContent);
+    if (typeof item.wordCount === 'number' && item.wordCount !== computedWordCount) {
+      throw new Error(`working_draft_history_corrupt: word count mismatch at revision ${item.revision}`);
+    }
+    if (typeof item.charCount === 'number' && item.charCount !== normalizedContent.length) {
+      throw new Error(`working_draft_history_corrupt: char count mismatch at revision ${item.revision}`);
+    }
+    if (history.length && history[history.length - 1].revision + 1 !== Number(item.revision)) {
+      throw new Error(`working_draft_history_corrupt: non-contiguous revision ${item.revision}`);
+    }
+    history.push({
+      revision: Number(item.revision),
+      content: normalizedContent,
+      contentHash: item.contentHash.toLowerCase(),
+      wordCount: computedWordCount,
+      charCount: normalizedContent.length,
+      updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : '',
+      updatedBy: asWorkingDraftAuthor(item.updatedBy),
+      clientMutationId: typeof item.clientMutationId === 'string' ? item.clientMutationId : undefined,
+      changeSummary: typeof item.changeSummary === 'string' ? item.changeSummary : undefined,
+    });
+  }
+  return retainWorkingDraftHistory(history);
+}
+
+function archivedWorkingDraft(
+  snapshot: WorkingDraftSnapshot,
+  draftProps: Record<string, unknown>,
+): WorkingDraftHistoryEntry {
+  return {
+    revision: snapshot.revision,
+    content: snapshot.content,
+    contentHash: snapshot.contentHash,
+    wordCount: snapshot.wordCount,
+    charCount: snapshot.charCount,
+    updatedAt: snapshot.updatedAt,
+    updatedBy: snapshot.updatedBy,
+    clientMutationId: typeof draftProps.lastWorkingMutationId === 'string' ? draftProps.lastWorkingMutationId : undefined,
+    changeSummary: typeof draftProps.lastWorkingChangeSummary === 'string' ? draftProps.lastWorkingChangeSummary : undefined,
+  };
+}
+
+function workingDraftSnapshotFromNodes(chapterNumber: number, draft: Node, document: Node | null, chunks: Node[]): WorkingDraftSnapshot {
+  const draftProps = draft.properties as Record<string, unknown>;
+  const draftMetadata = safeJson(draftProps.metadata);
+  const orderedChunks = chunks
+    .map((chunk) => nodeFrom(chunk))
+    .sort((a, b) => Number(a.metadata.order ?? 0) - Number(b.metadata.order ?? 0));
+  const storedHash = String(draftProps.workingContentHash ?? '');
+  const history = workingDraftHistory(draftProps.workingHistory);
+  const legacyContent = orderedChunks.map((chunk) => chunk.content).join('\n\n');
+  const content = normalizeWorkingDraftContent(storedHash ? String(draftProps.content ?? '') : legacyContent || String(draftProps.content ?? ''));
+  const computedHash = workingDraftContentHash(content);
+  if (storedHash && storedHash.toLowerCase() !== computedHash) {
+    throw new Error(`working_draft_integrity_error: content/hash mismatch for chapter ${chapterNumber}`);
+  }
+  const contentHash = storedHash.toLowerCase() || computedHash;
+  const revision = Math.max(1, toInt(draftProps.workingRevision ?? 1));
+  if (history.some((entry, index) => entry.revision >= revision || (index > 0 && history[index - 1].revision >= entry.revision))) {
+    throw new Error(`working_draft_history_corrupt: non-monotonic revisions for chapter ${chapterNumber}`);
+  }
+  if (history.length && history[history.length - 1].revision !== revision - 1) {
+    throw new Error(`working_draft_history_corrupt: history does not precede revision ${revision} for chapter ${chapterNumber}`);
+  }
+  const sourceId = String(draftMetadata.sourceId ?? `chapter-${String(chapterNumber).padStart(3, '0')}-draft`);
+  const documentProps = document?.properties as Record<string, unknown> | undefined;
+  const rawAuditStatus = String(draftProps.workingAuditStatus ?? 'pending');
+  const auditStatus: WorkingDraftAuditStatus = rawAuditStatus === 'passed' || rawAuditStatus === 'failed'
+    ? rawAuditStatus
+    : 'pending';
+  const auditRevision = toInt(draftProps.workingAuditRevision ?? 0);
+  return {
+    chapterNumber,
+    title: String(draftMetadata.title ?? `Capitolo ${chapterNumber}`),
+    content,
+    contentHash,
+    revision,
+    wordCount: workingDraftWordCount(content),
+    charCount: content.length,
+    updatedAt: String(draftProps.workingUpdatedAt ?? draftProps.updatedAt ?? ''),
+    updatedBy: asWorkingDraftAuthor(draftProps.workingUpdatedBy),
+    draftNodeId: String(draftProps.id),
+    documentId: String(documentProps?.id ?? draftMetadata.documentId ?? ''),
+    sourceId,
+    retainedVersionCount: history.length + 1,
+    auditStatus,
+    auditContentHash: typeof draftProps.workingAuditContentHash === 'string' && draftProps.workingAuditContentHash
+      ? draftProps.workingAuditContentHash.toLowerCase()
+      : undefined,
+    auditRevision: auditRevision > 0 ? auditRevision : undefined,
+    auditAt: typeof draftProps.workingAuditAt === 'string' && draftProps.workingAuditAt ? draftProps.workingAuditAt : undefined,
+    auditError: typeof draftProps.workingAuditError === 'string' && draftProps.workingAuditError ? draftProps.workingAuditError : undefined,
+  };
+}
+
+async function queryWorkingDraft(
+  runner: (cypher: string, params: Record<string, unknown>) => Promise<{ records: Neo4jRecord[] }>,
+  chapterNumber: number,
+  lockToken?: string,
+): Promise<{ snapshot: WorkingDraftSnapshot; draft: Node; document: Node; chunks: Node[]; initialized: boolean } | null> {
+  const lockClause = lockToken ? 'SET draft._workingDraftLock = $lockToken' : '';
+  const result = await runner(
+    `MATCH (draft:Entity {projectId:$pid, type:'chapter_draft', label:$label})
+     ${lockClause}
+     OPTIONAL MATCH (draft)-[:REL {kind:'derived_from'}]->(document:Entity {projectId:$pid, type:'document'})
+     OPTIONAL MATCH (chunk:Entity {projectId:$pid, type:'chunk'})-[:REL {kind:'part_of'}]->(document)
+     RETURN draft, document, collect(chunk) AS chunks`,
+    { pid: pid(), label: workingDraftLabel(chapterNumber), lockToken: lockToken ?? null },
+  );
+  if (!result.records.length) return null;
+  const record = result.records[0];
+  const draft = record.get('draft') as Node;
+  const document = record.get('document') as Node | null;
+  if (!document) throw new WorkingDraftDocumentMissingError(chapterNumber);
+  const chunks = ((record.get('chunks') as Array<Node | null>) ?? []).filter((chunk): chunk is Node => Boolean(chunk));
+  const props = draft.properties as Record<string, unknown>;
+  return {
+    snapshot: workingDraftSnapshotFromNodes(chapterNumber, draft, document, chunks),
+    draft,
+    document,
+    chunks,
+    initialized: Boolean(String(props.workingContentHash ?? '')),
+  };
+}
+
+export async function getWorkingDraft(chapterNumber: number): Promise<WorkingDraftSnapshot | null> {
+  await ensureReady();
+  const found = await queryWorkingDraft(async (cypher, params) => ({ records: await raw(cypher, params) }), chapterNumber);
+  return found?.snapshot ?? null;
+}
+
+async function replaceWorkingDraftProjection(
+  tx: ManagedTransaction,
+  current: { snapshot: WorkingDraftSnapshot; draft: Node; document: Node },
+  input: {
+    content: string;
+    revision: number;
+    author: WorkingDraftAuthor;
+    clientMutationId?: string;
+    changeSummary?: string;
+    updatedAt: string;
+    archivePrevious: boolean;
+  },
+): Promise<WorkingDraftSnapshot> {
+  const content = normalizeWorkingDraftContent(input.content);
+  const contentHash = workingDraftContentHash(content);
+  const wordCount = workingDraftWordCount(content);
+  const draftProps = current.draft.properties as Record<string, unknown>;
+  const storedHistory = workingDraftHistory(draftProps.workingHistory);
+  const history = input.archivePrevious
+    ? retainWorkingDraftHistory([...storedHistory, archivedWorkingDraft(current.snapshot, draftProps)])
+    : storedHistory;
+  const documentProps = current.document.properties as Record<string, unknown>;
+  const draftMetadata = {
+    ...safeJson(draftProps.metadata),
+    contentHash,
+    revision: input.revision,
+    wordCount,
+    charCount: content.length,
+    updatedBy: input.author,
+    updatedAt: input.updatedAt,
+  };
+  const documentMetadata = {
+    ...safeJson(documentProps.metadata),
+    contentHash,
+    revision: input.revision,
+    chunkCount: chunkText(content).length,
+    updatedAt: input.updatedAt,
+  };
+  await tx.run(
+    `MATCH (draft:Entity {projectId:$pid, id:$draftId}), (document:Entity {projectId:$pid, id:$documentId})
+     SET draft.content=$content,
+         draft.metadata=$draftMetadata,
+         draft.workingContentHash=$contentHash,
+         draft.workingRevision=$revision,
+         draft.workingUpdatedAt=$updatedAt,
+         draft.workingUpdatedBy=$author,
+         draft.lastWorkingMutationId=$clientMutationId,
+         draft.lastWorkingChangeSummary=$changeSummary,
+         draft.workingHistory=$workingHistory,
+         draft.workingAuditStatus='pending',
+         draft.workingAuditContentHash=null,
+         draft.workingAuditRevision=null,
+         draft.workingAuditAt=null,
+         draft.workingAuditError=null,
+         draft.updatedAt=$updatedAt,
+         draft.embedding=null,
+         draft.embeddingTextHash=null
+     REMOVE draft._workingDraftLock
+     SET document.metadata=$documentMetadata,
+         document.updatedAt=$updatedAt,
+         document.embedding=null,
+         document.embeddingTextHash=null`,
+    {
+      pid: pid(),
+      draftId: current.snapshot.draftNodeId,
+      documentId: current.snapshot.documentId,
+      content,
+      draftMetadata: JSON.stringify(draftMetadata),
+      documentMetadata: JSON.stringify(documentMetadata),
+      contentHash,
+      revision: neo4j.int(input.revision),
+      updatedAt: input.updatedAt,
+      author: input.author,
+      clientMutationId: input.clientMutationId ?? null,
+      changeSummary: input.changeSummary ?? null,
+      workingHistory: JSON.stringify(history),
+    },
+  );
+
+  await tx.run(
+    `MATCH (document:Entity {projectId:$pid, id:$documentId})
+     OPTIONAL MATCH (chunk:Entity {projectId:$pid, type:'chunk'})-[:REL {kind:'part_of'}]->(document)
+     OPTIONAL MATCH (chunk)-[:HAS_ASSET]->(asset:Asset {projectId:$pid})
+     WITH [item IN collect(DISTINCT asset) WHERE item IS NOT NULL] AS assets,
+          [item IN collect(DISTINCT chunk) WHERE item IS NOT NULL] AS chunks
+     FOREACH (asset IN assets | DETACH DELETE asset)
+     FOREACH (chunk IN chunks | DETACH DELETE chunk)`,
+    { pid: pid(), documentId: current.snapshot.documentId },
+  );
+
+  const sourceId = current.snapshot.sourceId;
+  const title = current.snapshot.title;
+  const provenance = JSON.stringify({ source: 'working_draft_update', sourceId, chapterNumber: current.snapshot.chapterNumber, author: input.author });
+  const rows = chunkText(content).map((text, index, all) => {
+    const id = uuid();
+    return {
+      id,
+      nextId: index < all.length - 1 ? '' : null,
+      label: `${sourceId}#${String(index + 1).padStart(5, '0')}`,
+      content: text,
+      metadata: JSON.stringify({
+        sourceId,
+        sourceType: 'chapter_draft',
+        documentId: current.snapshot.documentId,
+        documentLabel: sourceId,
+        title,
+        order: index + 1,
+        chapterNumber: current.snapshot.chapterNumber,
+        revision: input.revision,
+        contentHash,
+      }),
+    };
+  });
+  for (let index = 0; index < rows.length - 1; index++) rows[index].nextId = rows[index + 1].id;
+  if (rows.length) {
+    await tx.run(
+      `MATCH (document:Entity {projectId:$pid, id:$documentId})
+       UNWIND $rows AS row
+       CREATE (chunk:Entity {
+         id:row.id, projectId:$pid, type:'chunk', label:row.label, content:row.content,
+         metadata:row.metadata, provenance:$provenance, createdAt:$updatedAt, updatedAt:$updatedAt,
+         draftRevision:$revision, contentHash:$contentHash
+       })
+       CREATE (chunk)-[:REL {
+         id:randomUUID(), kind:'part_of', weight:1, metadata:'{}', provenance:$provenance, createdAt:$updatedAt
+       }]->(document)`,
+      {
+        pid: pid(),
+        documentId: current.snapshot.documentId,
+        rows,
+        provenance,
+        updatedAt: input.updatedAt,
+        revision: neo4j.int(input.revision),
+        contentHash,
+      },
+    );
+    await tx.run(
+      `UNWIND [row IN $rows WHERE row.nextId IS NOT NULL] AS row
+       MATCH (chunk:Entity {projectId:$pid, id:row.id}), (next:Entity {projectId:$pid, id:row.nextId})
+       CREATE (chunk)-[:REL {
+         id:randomUUID(), kind:'precedes', weight:1, metadata:'{}', provenance:$provenance, createdAt:$updatedAt
+       }]->(next)`,
+      { pid: pid(), rows, provenance, updatedAt: input.updatedAt },
+    );
+  }
+
+  return {
+    ...current.snapshot,
+    content,
+    contentHash,
+    revision: input.revision,
+    wordCount,
+    charCount: content.length,
+    updatedAt: input.updatedAt,
+    updatedBy: input.author,
+    retainedVersionCount: history.length + 1,
+    auditStatus: 'pending',
+    auditContentHash: undefined,
+    auditRevision: undefined,
+    auditAt: undefined,
+    auditError: undefined,
+  };
+}
+
+export async function initializeWorkingDraftProjection(input: {
+  chapterNumber: number;
+  content: string;
+  author?: WorkingDraftAuthor;
+}): Promise<WorkingDraftSnapshot> {
+  await ensureReady();
+  const session = getDriver().session();
+  try {
+    return await session.executeWrite(async (tx) => {
+      const current = await queryWorkingDraft((cypher, params) => tx.run(cypher, params), input.chapterNumber, uuid());
+      if (!current) throw new Error(`working_draft_not_found: chapter ${input.chapterNumber}`);
+      const proposedContent = normalizeWorkingDraftContent(input.content);
+      const proposedHash = workingDraftContentHash(proposedContent);
+      if (current.initialized && current.snapshot.contentHash !== proposedHash) {
+        await tx.run('MATCH (draft:Entity {projectId:$pid, id:$draftId}) REMOVE draft._workingDraftLock', {
+          pid: pid(),
+          draftId: current.snapshot.draftNodeId,
+        });
+        throw new Error(`draft_version_conflict: current=${current.snapshot.contentHash}`);
+      }
+      return replaceWorkingDraftProjection(tx, current, {
+        content: proposedContent,
+        revision: current.initialized ? current.snapshot.revision : 1,
+        author: input.author ?? 'ingest',
+        updatedAt: nowIso(),
+        archivePrevious: false,
+      });
+    });
+  } finally {
+    await session.close();
+  }
+}
+
+export async function compareAndSwapWorkingDraft(input: WorkingDraftCasInput): Promise<WorkingDraftCasResult> {
+  await ensureReady();
+  const content = normalizeWorkingDraftContent(input.content);
+  if (!content.trim()) throw new Error('invalid_working_draft: content is required');
+  const session = getDriver().session();
+  try {
+    return await session.executeWrite(async (tx) => {
+      const current = await queryWorkingDraft((cypher, params) => tx.run(cypher, params), input.chapterNumber, uuid());
+      if (!current) throw new Error(`working_draft_not_found: chapter ${input.chapterNumber}`);
+      const proposedHash = workingDraftContentHash(content);
+      const draftProps = current.draft.properties as Record<string, unknown>;
+      const lastMutationId = String(draftProps.lastWorkingMutationId ?? '');
+      const decision = decideWorkingDraftCas({
+        currentContentHash: current.snapshot.contentHash,
+        currentRevision: current.snapshot.revision,
+        lastMutationId,
+        proposedContentHash: proposedHash,
+        expectedContentHash: input.expectedContentHash,
+        expectedRevision: input.expectedRevision,
+        clientMutationId: input.clientMutationId,
+      });
+      if (decision !== 'update') {
+        await tx.run('MATCH (draft:Entity {projectId:$pid, id:$draftId}) REMOVE draft._workingDraftLock', {
+          pid: pid(),
+          draftId: current.snapshot.draftNodeId,
+        });
+        if (decision === 'unchanged') return { status: 'unchanged', draft: current.snapshot };
+        return { status: 'conflict', current: current.snapshot };
+      }
+      const draft = await replaceWorkingDraftProjection(tx, current, {
+        content,
+        revision: current.snapshot.revision + 1,
+        author: input.author,
+        clientMutationId: input.clientMutationId,
+        changeSummary: input.changeSummary,
+        updatedAt: nowIso(),
+        archivePrevious: true,
+      });
+      return { status: 'updated', draft, previous: current.snapshot };
+    });
+  } finally {
+    await session.close();
+  }
+}
+
+/**
+ * Records the autonomous linter outcome only when it still refers to the exact current draft.
+ * This prevents a slow audit from blessing text that changed while the audit was running.
+ */
+export async function markWorkingDraftAudit(input: {
+  chapterNumber: number;
+  expectedContentHash: string;
+  expectedRevision: number;
+  status: Exclude<WorkingDraftAuditStatus, 'pending'>;
+  error?: string;
+}): Promise<WorkingDraftSnapshot> {
+  await ensureReady();
+  const session = getDriver().session();
+  try {
+    return await session.executeWrite(async (tx) => {
+      const current = await queryWorkingDraft((cypher, params) => tx.run(cypher, params), input.chapterNumber, uuid());
+      if (!current) throw new Error(`working_draft_not_found: chapter ${input.chapterNumber}`);
+      if (
+        current.snapshot.contentHash !== input.expectedContentHash.toLowerCase()
+        || current.snapshot.revision !== input.expectedRevision
+      ) {
+        await tx.run('MATCH (draft:Entity {projectId:$pid, id:$draftId}) REMOVE draft._workingDraftLock', {
+          pid: pid(),
+          draftId: current.snapshot.draftNodeId,
+        });
+        throw new Error(`working_draft_audit_stale: chapter ${input.chapterNumber}`);
+      }
+      const auditedAt = nowIso();
+      await tx.run(
+        `MATCH (draft:Entity {projectId:$pid, id:$draftId})
+         WHERE draft.workingContentHash=$contentHash AND draft.workingRevision=$revision
+         SET draft.workingAuditStatus=$status,
+             draft.workingAuditContentHash=$contentHash,
+             draft.workingAuditRevision=$revision,
+             draft.workingAuditAt=$auditedAt,
+             draft.workingAuditError=$auditError,
+             draft.updatedAt=$auditedAt
+         REMOVE draft._workingDraftLock
+         RETURN draft.id AS id`,
+        {
+          pid: pid(),
+          draftId: current.snapshot.draftNodeId,
+          contentHash: current.snapshot.contentHash,
+          revision: neo4j.int(current.snapshot.revision),
+          status: input.status,
+          auditedAt,
+          auditError: input.error?.slice(0, 4000) ?? null,
+        },
+      ).then((result) => {
+        if (!result.records.length) throw new Error(`working_draft_audit_stale: chapter ${input.chapterNumber}`);
+      });
+      return {
+        ...current.snapshot,
+        auditStatus: input.status,
+        auditContentHash: current.snapshot.contentHash,
+        auditRevision: current.snapshot.revision,
+        auditAt: auditedAt,
+        auditError: input.error?.slice(0, 4000),
+      };
+    });
+  } finally {
+    await session.close();
+  }
+}
+
+export async function listWorkingDraftFindings(chapterNumber: number): Promise<GraphNode[]> {
+  await ensureReady();
+  const sourceId = `chapter-${String(chapterNumber).padStart(3, '0')}-draft`;
+  const records = await run(
+    `MATCH (finding:Entity {projectId:$pid, type:'continuity_finding'})
+     WHERE finding.provenance CONTAINS $linterSourceMarker
+       AND finding.provenance CONTAINS $draftSourceMarker
+       AND finding.metadata CONTAINS $draftOwnedMarker
+     RETURN DISTINCT finding ORDER BY finding.createdAt`,
+    {
+      pid: pid(),
+      linterSourceMarker: '"source":"autonomous_ingest_linter"',
+      draftSourceMarker: `"sourceId":"${sourceId}"`,
+      draftOwnedMarker: '"draftOwned":true',
+    },
+  );
+  return records.map((record) => nodeFrom(record.get('finding')));
+}
+
+export async function clearWorkingDraftLinterFindings(chapterNumber: number): Promise<number> {
+  await ensureReady();
+  const sourceId = `chapter-${String(chapterNumber).padStart(3, '0')}-draft`;
+  const records = await run(
+    `MATCH (finding:Entity {projectId:$pid, type:'continuity_finding'})
+     WHERE finding.provenance CONTAINS $linterSourceMarker
+       AND finding.provenance CONTAINS $draftSourceMarker
+     WITH collect(DISTINCT finding) AS findings
+     WITH findings, size(findings) AS deleted
+     FOREACH (finding IN findings | DETACH DELETE finding)
+     RETURN deleted`,
+    {
+      pid: pid(),
+      linterSourceMarker: '"source":"autonomous_ingest_linter"',
+      draftSourceMarker: `"sourceId":"${sourceId}"`,
+    },
+  );
+  return records.length ? toInt(records[0].get('deleted')) : 0;
+}
+
+export async function cleanupWorkingDraftArtifacts(chapterNumber: number): Promise<WorkingDraftCleanupResult> {
+  await ensureReady();
+  const sourceId = `chapter-${String(chapterNumber).padStart(3, '0')}-draft`;
+  const chunkPrefix = `${sourceId}#`;
+  const records = await run(
+    `OPTIONAL MATCH (draft:Entity {projectId:$pid, type:'chapter_draft', label:$label})
+     OPTIONAL MATCH (document:Entity {projectId:$pid, type:'document', label:$sourceId})
+     OPTIONAL MATCH (chunk:Entity {projectId:$pid, type:'chunk'})
+       WHERE chunk.label STARTS WITH $chunkPrefix
+          OR (document IS NOT NULL AND (chunk)-[:REL {kind:'part_of'}]->(document))
+     OPTIONAL MATCH (asset:Asset {projectId:$pid})
+       WHERE asset.nodeId IN [draft.id, document.id, chunk.id]
+     OPTIONAL MATCH (finding:Entity {projectId:$pid, type:'continuity_finding'})
+       WHERE finding.provenance CONTAINS $linterSourceMarker
+         AND finding.provenance CONTAINS $draftSourceMarker
+         AND finding.metadata CONTAINS $draftOwnedMarker
+     WITH [item IN collect(DISTINCT asset) WHERE item IS NOT NULL] AS assets,
+          [item IN collect(DISTINCT finding) WHERE item IS NOT NULL] AS findings,
+          [item IN collect(DISTINCT chunk) WHERE item IS NOT NULL] AS chunks,
+          [item IN collect(DISTINCT document) WHERE item IS NOT NULL] AS documents,
+          [item IN collect(DISTINCT draft) WHERE item IS NOT NULL] AS drafts
+     WITH assets, findings, chunks, documents, drafts,
+          size(assets) AS assetCount, size(findings) AS findingCount, size(chunks) AS chunkCount,
+          size(documents) AS documentCount, size(drafts) AS draftCount
+     FOREACH (item IN assets | DETACH DELETE item)
+     FOREACH (item IN findings | DETACH DELETE item)
+     FOREACH (item IN chunks | DETACH DELETE item)
+     FOREACH (item IN documents | DETACH DELETE item)
+     FOREACH (item IN drafts | DETACH DELETE item)
+     RETURN assetCount, findingCount, chunkCount, documentCount, draftCount`,
+    {
+      pid: pid(),
+      label: workingDraftLabel(chapterNumber),
+      sourceId,
+      chunkPrefix,
+      linterSourceMarker: '"source":"autonomous_ingest_linter"',
+      draftSourceMarker: `"sourceId":"${sourceId}"`,
+      draftOwnedMarker: '"draftOwned":true',
+    },
+  );
+  if (!records.length) return { draftNodes: 0, documents: 0, chunks: 0, findings: 0, assets: 0 };
+  return {
+    draftNodes: toInt(records[0].get('draftCount')),
+    documents: toInt(records[0].get('documentCount')),
+    chunks: toInt(records[0].get('chunkCount')),
+    findings: toInt(records[0].get('findingCount')),
+    assets: toInt(records[0].get('assetCount')),
+  };
 }
 
 export async function listDocuments(opts: { sourceType?: string; limit?: number } = {}): Promise<GraphNode[]> {

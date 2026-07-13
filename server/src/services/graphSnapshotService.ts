@@ -1,8 +1,35 @@
+import crypto from 'node:crypto';
 import neo4j, { Driver, Node, Record as Neo4jRecord, Relationship } from 'neo4j-driver';
 import { config } from '../config.js';
 import type { GraphEdge, GraphNode } from './neo4jReadService.js';
 
 export const GRAPH_SNAPSHOT_SCHEMA_VERSION = 'romanzo-gabriele.graph-snapshot.v1';
+
+const WORKING_DRAFT_HISTORY_LIMIT = 19;
+const WORKING_DRAFT_HASH_PATTERN = /^[a-f0-9]{64}$/i;
+const WORKING_DRAFT_AUTHORS = new Set(['ingest', 'user', 'llm', 'system']);
+
+/**
+ * Mutable working-draft state lives on the chapter_draft node rather than in
+ * its generic metadata. Keep it in the snapshot so a restore does not reset
+ * or desynchronise optimistic-concurrency state.
+ */
+export interface WorkingDraftSnapshotFields {
+  workingHistory?: string;
+  workingRevision?: number;
+  workingContentHash?: string;
+  workingUpdatedAt?: string;
+  workingUpdatedBy?: string;
+  lastWorkingMutationId?: string;
+  lastWorkingChangeSummary?: string;
+  workingAuditStatus?: string;
+  workingAuditContentHash?: string;
+  workingAuditRevision?: number;
+  workingAuditAt?: string;
+  workingAuditError?: string;
+}
+
+export type SnapshotGraphNode = GraphNode & WorkingDraftSnapshotFields;
 
 export interface GraphSnapshot {
   schemaVersion: typeof GRAPH_SNAPSHOT_SCHEMA_VERSION;
@@ -13,7 +40,7 @@ export interface GraphSnapshot {
     nodes: number;
     edges: number;
   };
-  nodes: GraphNode[];
+  nodes: SnapshotGraphNode[];
   edges: GraphEdge[];
 }
 
@@ -88,7 +115,43 @@ function stringProp(props: Record<string, unknown>, key: string): string {
   return value == null ? '' : String(value);
 }
 
-function nodeFrom(node: Node): GraphNode {
+function optionalStringProp(props: Record<string, unknown>, key: string): string | undefined {
+  const value = props[key];
+  return value == null ? undefined : String(value);
+}
+
+export function workingDraftSnapshotFieldsFromProperties(props: Record<string, unknown>): WorkingDraftSnapshotFields {
+  const rawRevision = props.workingRevision;
+  const workingRevision = rawRevision == null ? undefined : toInt(rawRevision);
+  const workingHistory = optionalStringProp(props, 'workingHistory');
+  const workingContentHash = optionalStringProp(props, 'workingContentHash');
+  const workingUpdatedAt = optionalStringProp(props, 'workingUpdatedAt');
+  const workingUpdatedBy = optionalStringProp(props, 'workingUpdatedBy');
+  const lastWorkingMutationId = optionalStringProp(props, 'lastWorkingMutationId');
+  const lastWorkingChangeSummary = optionalStringProp(props, 'lastWorkingChangeSummary');
+  const workingAuditStatus = optionalStringProp(props, 'workingAuditStatus');
+  const workingAuditContentHash = optionalStringProp(props, 'workingAuditContentHash');
+  const rawAuditRevision = props.workingAuditRevision;
+  const workingAuditRevision = rawAuditRevision == null ? undefined : toInt(rawAuditRevision);
+  const workingAuditAt = optionalStringProp(props, 'workingAuditAt');
+  const workingAuditError = optionalStringProp(props, 'workingAuditError');
+  return {
+    ...(workingHistory !== undefined ? { workingHistory } : {}),
+    ...(workingRevision !== undefined ? { workingRevision } : {}),
+    ...(workingContentHash !== undefined ? { workingContentHash } : {}),
+    ...(workingUpdatedAt !== undefined ? { workingUpdatedAt } : {}),
+    ...(workingUpdatedBy !== undefined ? { workingUpdatedBy } : {}),
+    ...(lastWorkingMutationId !== undefined ? { lastWorkingMutationId } : {}),
+    ...(lastWorkingChangeSummary !== undefined ? { lastWorkingChangeSummary } : {}),
+    ...(workingAuditStatus !== undefined ? { workingAuditStatus } : {}),
+    ...(workingAuditContentHash !== undefined ? { workingAuditContentHash } : {}),
+    ...(workingAuditRevision !== undefined ? { workingAuditRevision } : {}),
+    ...(workingAuditAt !== undefined ? { workingAuditAt } : {}),
+    ...(workingAuditError !== undefined ? { workingAuditError } : {}),
+  };
+}
+
+function nodeFrom(node: Node): SnapshotGraphNode {
   const props = node.properties as Record<string, unknown>;
   return {
     id: stringProp(props, 'id'),
@@ -99,6 +162,7 @@ function nodeFrom(node: Node): GraphNode {
     provenance: safeJson(props.provenance),
     createdAt: stringProp(props, 'createdAt'),
     updatedAt: stringProp(props, 'updatedAt'),
+    ...workingDraftSnapshotFieldsFromProperties(props),
   };
 }
 
@@ -120,11 +184,137 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-function isGraphNode(value: unknown): value is GraphNode {
+function isGraphNode(value: unknown): value is SnapshotGraphNode {
   if (!isPlainObject(value)) return false;
   return ['id', 'type', 'label', 'content', 'createdAt', 'updatedAt'].every((key) => typeof value[key] === 'string')
     && isPlainObject(value.metadata)
     && isPlainObject(value.provenance);
+}
+
+function normalizeWorkingDraftContent(content: string): string {
+  return content.replace(/\r\n?/g, '\n');
+}
+
+function workingDraftContentHash(content: string): string {
+  return crypto.createHash('sha256').update(normalizeWorkingDraftContent(content), 'utf8').digest('hex');
+}
+
+function validateWorkingDraftHistory(rawHistory: string, currentRevision: number): string[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawHistory) as unknown;
+  } catch {
+    return ['working_history_invalid_json'];
+  }
+  if (!Array.isArray(parsed)) return ['working_history_must_be_array'];
+  if (parsed.length > WORKING_DRAFT_HISTORY_LIMIT) return ['working_history_exceeds_retention_limit'];
+
+  const errors: string[] = [];
+  let previousRevision: number | null = null;
+  parsed.forEach((candidate, index) => {
+    if (!isPlainObject(candidate)) {
+      errors.push(`working_history_invalid_entry_${index}`);
+      return;
+    }
+    const revision = candidate.revision;
+    const content = candidate.content;
+    const contentHash = candidate.contentHash;
+    if (!Number.isSafeInteger(revision) || Number(revision) < 1) {
+      errors.push(`working_history_invalid_revision_${index}`);
+      return;
+    }
+    if (Number(revision) >= currentRevision || (previousRevision !== null && Number(revision) !== previousRevision + 1)) {
+      errors.push(`working_history_non_monotonic_revision_${index}`);
+    }
+    previousRevision = Number(revision);
+    if (typeof content !== 'string' || typeof contentHash !== 'string' || !WORKING_DRAFT_HASH_PATTERN.test(contentHash)) {
+      errors.push(`working_history_invalid_content_${index}`);
+      return;
+    }
+    if (workingDraftContentHash(content) !== contentHash.toLowerCase()) {
+      errors.push(`working_history_hash_mismatch_${index}`);
+    }
+    const normalizedContent = normalizeWorkingDraftContent(content);
+    const computedWords = normalizedContent.trim().split(/\s+/u).filter(Boolean).length;
+    if (candidate.wordCount !== undefined && candidate.wordCount !== computedWords) {
+      errors.push(`working_history_word_count_mismatch_${index}`);
+    }
+    if (candidate.charCount !== undefined && candidate.charCount !== normalizedContent.length) {
+      errors.push(`working_history_char_count_mismatch_${index}`);
+    }
+  });
+  if (parsed.length && previousRevision !== currentRevision - 1) errors.push('working_history_does_not_precede_current');
+  return errors;
+}
+
+/** Validate the CAS/history state without touching Neo4j (also used by tests). */
+export function validateWorkingDraftSnapshotNode(node: SnapshotGraphNode): string[] {
+  const fields: Array<keyof WorkingDraftSnapshotFields> = [
+    'workingHistory',
+    'workingRevision',
+    'workingContentHash',
+    'workingUpdatedAt',
+    'workingUpdatedBy',
+    'lastWorkingMutationId',
+    'lastWorkingChangeSummary',
+    'workingAuditStatus',
+    'workingAuditContentHash',
+    'workingAuditRevision',
+    'workingAuditAt',
+    'workingAuditError',
+  ];
+  const hasWorkingState = fields.some((key) => node[key] !== undefined && node[key] !== null);
+  if (!hasWorkingState) return [];
+
+  const errors: string[] = [];
+  if (node.type !== 'chapter_draft') errors.push('working_state_on_non_chapter_draft');
+
+  if (!Number.isSafeInteger(node.workingRevision) || Number(node.workingRevision) < 1) {
+    errors.push('working_revision_invalid');
+  }
+  if (typeof node.workingContentHash !== 'string' || !WORKING_DRAFT_HASH_PATTERN.test(node.workingContentHash)) {
+    errors.push('working_content_hash_invalid');
+  } else if (workingDraftContentHash(node.content) !== node.workingContentHash.toLowerCase()) {
+    errors.push('working_content_hash_mismatch');
+  }
+
+  const optionalStringFields: Array<Exclude<keyof WorkingDraftSnapshotFields, 'workingRevision' | 'workingAuditRevision' | 'workingContentHash'>> = [
+    'workingHistory',
+    'workingUpdatedAt',
+    'workingUpdatedBy',
+    'lastWorkingMutationId',
+    'lastWorkingChangeSummary',
+    'workingAuditStatus',
+    'workingAuditContentHash',
+    'workingAuditAt',
+    'workingAuditError',
+  ];
+  for (const key of optionalStringFields) {
+    const value = node[key];
+    if (value !== undefined && value !== null && typeof value !== 'string') errors.push(`${key}_must_be_string`);
+  }
+  if (typeof node.workingUpdatedBy === 'string' && !WORKING_DRAFT_AUTHORS.has(node.workingUpdatedBy)) {
+    errors.push('working_updated_by_invalid');
+  }
+  if (node.workingAuditStatus !== undefined && !['pending', 'passed', 'failed'].includes(node.workingAuditStatus)) {
+    errors.push('working_audit_status_invalid');
+  }
+  if (node.workingAuditRevision !== undefined && (!Number.isSafeInteger(node.workingAuditRevision) || Number(node.workingAuditRevision) < 1)) {
+    errors.push('working_audit_revision_invalid');
+  }
+  if (node.workingAuditContentHash !== undefined && !WORKING_DRAFT_HASH_PATTERN.test(node.workingAuditContentHash)) {
+    errors.push('working_audit_content_hash_invalid');
+  }
+  if (node.workingAuditStatus === 'passed' || node.workingAuditStatus === 'failed') {
+    if (node.workingAuditContentHash?.toLowerCase() !== node.workingContentHash?.toLowerCase()) {
+      errors.push('working_audit_content_hash_mismatch');
+    }
+    if (node.workingAuditRevision !== node.workingRevision) errors.push('working_audit_revision_mismatch');
+  }
+  if (typeof node.workingHistory === 'string' && Number.isSafeInteger(node.workingRevision)) {
+    errors.push(...validateWorkingDraftHistory(node.workingHistory, Number(node.workingRevision)));
+  }
+  return errors;
 }
 
 function isGraphEdge(value: unknown): value is GraphEdge {
@@ -224,6 +414,9 @@ export async function validateSnapshotImport(input: { snapshot: unknown; mode?: 
     if (!node.label.trim()) errors.push(`node_missing_label_at_${index}`);
     if (nodeIds.has(node.id)) errors.push(`duplicate_node_id:${node.id}`);
     nodeIds.add(node.id);
+    for (const workingStateError of validateWorkingDraftSnapshotNode(node)) {
+      errors.push(`${workingStateError}_at_${index}`);
+    }
   }
 
   for (const [index, edge] of edges.entries()) {
@@ -257,6 +450,32 @@ export async function validateSnapshotImport(input: { snapshot: unknown; mode?: 
   };
 }
 
+export function snapshotNodeImportRow(node: SnapshotGraphNode, now: string): Record<string, unknown> {
+  return {
+    id: node.id,
+    type: node.type,
+    label: node.label,
+    content: node.content ?? '',
+    metadataJson: JSON.stringify(node.metadata ?? {}),
+    provenanceJson: JSON.stringify(node.provenance ?? {}),
+    createdAt: node.createdAt || now,
+    updatedAt: node.updatedAt || now,
+    // Null deliberately removes stale CAS/history properties in upsert mode.
+    workingHistory: node.workingHistory ?? null,
+    workingRevision: node.workingRevision == null ? null : neo4j.int(node.workingRevision),
+    workingContentHash: node.workingContentHash?.toLowerCase() ?? null,
+    workingUpdatedAt: node.workingUpdatedAt ?? null,
+    workingUpdatedBy: node.workingUpdatedBy ?? null,
+    lastWorkingMutationId: node.lastWorkingMutationId ?? null,
+    lastWorkingChangeSummary: node.lastWorkingChangeSummary ?? null,
+    workingAuditStatus: node.workingAuditStatus ?? null,
+    workingAuditContentHash: node.workingAuditContentHash?.toLowerCase() ?? null,
+    workingAuditRevision: node.workingAuditRevision == null ? null : neo4j.int(node.workingAuditRevision),
+    workingAuditAt: node.workingAuditAt ?? null,
+    workingAuditError: node.workingAuditError ?? null,
+  };
+}
+
 export async function importGraphSnapshot(input: {
   snapshot: unknown;
   mode?: unknown;
@@ -282,14 +501,7 @@ export async function importGraphSnapshot(input: {
 
   const snapshot = input.snapshot as GraphSnapshot;
   const now = new Date().toISOString();
-  const nodes = snapshot.nodes.map((node) => ({
-    ...node,
-    content: node.content ?? '',
-    metadataJson: JSON.stringify(node.metadata ?? {}),
-    provenanceJson: JSON.stringify(node.provenance ?? {}),
-    createdAt: node.createdAt || now,
-    updatedAt: node.updatedAt || now,
-  }));
+  const nodes = snapshot.nodes.map((node) => snapshotNodeImportRow(node, now));
   const edges = snapshot.edges.map((edge) => ({
     ...edge,
     metadataJson: JSON.stringify(edge.metadata ?? {}),
@@ -312,7 +524,19 @@ export async function importGraphSnapshot(input: {
              n.metadata = row.metadataJson,
              n.provenance = row.provenanceJson,
              n.createdAt = row.createdAt,
-             n.updatedAt = row.updatedAt`,
+             n.updatedAt = row.updatedAt,
+             n.workingHistory = row.workingHistory,
+             n.workingRevision = row.workingRevision,
+             n.workingContentHash = row.workingContentHash,
+             n.workingUpdatedAt = row.workingUpdatedAt,
+             n.workingUpdatedBy = row.workingUpdatedBy,
+             n.lastWorkingMutationId = row.lastWorkingMutationId,
+             n.lastWorkingChangeSummary = row.lastWorkingChangeSummary,
+             n.workingAuditStatus = row.workingAuditStatus,
+             n.workingAuditContentHash = row.workingAuditContentHash,
+             n.workingAuditRevision = row.workingAuditRevision,
+             n.workingAuditAt = row.workingAuditAt,
+             n.workingAuditError = row.workingAuditError`,
         { pid: config.projectId, nodes },
       );
       await tx.run(

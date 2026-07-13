@@ -12,9 +12,10 @@ import {
 } from '../novel/domain.js';
 import {
   createOrResumeEditingSession,
-  deleteEditingSession,
+  EditingSessionNotFoundError,
+  finalizeEditingSession,
   readEditingSession,
-  writeEditingSession,
+  updateEditingSession,
   type EditingSessionState,
 } from '../novel/editingSessionStore.js';
 import {
@@ -25,6 +26,20 @@ import {
   splitChapterIntoBlocks,
   stableHash,
 } from '../novel/editingWorkflow.js';
+import {
+  ChapterFinalizationInProgressError,
+  DraftVersionConflictError,
+  getSessionWorkingDraft,
+  updateSessionWorkingDraft,
+  withWorkingDraftChapterLock,
+} from '../novel/workingDraftService.js';
+import {
+  checkWorkingDraftLength,
+  isWorkingDraftAuditCurrent,
+  normalizeWorkingDraftContent,
+  workingDraftContentHash,
+  workingDraftWordCount,
+} from '../novel/workingDraft.js';
 import { errorObj, toolError, toolStructured } from './responseHelpers.js';
 
 const jsonObj = z.record(z.string(), z.unknown());
@@ -138,6 +153,47 @@ const visualBriefRecordZ = z.object({
   createdAt: z.string(),
 });
 
+const workingDraftZ = z.object({
+  chapterNumber: z.number(),
+  sessionId: z.string(),
+  title: z.string(),
+  content: z.string(),
+  contentHash: z.string(),
+  revision: z.number(),
+  wordCount: z.number(),
+  charCount: z.number(),
+  updatedAt: z.string(),
+  updatedBy: z.enum(['ingest', 'user', 'llm', 'system']),
+  draftNodeId: z.string(),
+  documentId: z.string(),
+  sourceId: z.string(),
+  retainedVersionCount: z.number(),
+  auditStatus: z.enum(['pending', 'passed', 'failed']),
+  auditContentHash: z.string().optional(),
+  auditRevision: z.number().optional(),
+  auditAt: z.string().optional(),
+  auditError: z.string().optional(),
+});
+
+const workingDraftLengthGateZ = z.object({
+  baselineWords: z.number(),
+  currentWords: z.number(),
+  ratio: z.number(),
+  minWords: z.number(),
+  maxWords: z.number(),
+  valid: z.boolean(),
+  ok: z.boolean(),
+  message: z.string(),
+});
+
+const workingDraftCleanupZ = z.object({
+  draftNodes: z.number(),
+  documents: z.number(),
+  chunks: z.number(),
+  findings: z.number(),
+  assets: z.number(),
+});
+
 const editorialFindingInputZ = z.object({
   id: z.string().optional(),
   step: z.string(),
@@ -183,8 +239,65 @@ function newSessionId(input: { chapterNumber?: number; role?: ChapterSectionRole
   return `editing-${slug}-${stableHash(JSON.stringify(input), 12)}`;
 }
 
+function blockingErrorFindings(state: EditingSessionState): Array<{ findingId: string; decisionStatus: string }> {
+  const decisions = new Map(state.decisions.map((decision) => [decision.findingId, decision.status]));
+  return state.findings
+    .filter((finding) => finding.severity === 'error')
+    .map((finding) => ({ findingId: finding.id, decisionStatus: decisions.get(finding.id) ?? 'missing' }))
+    .filter(({ decisionStatus }) => decisionStatus !== 'approved' && decisionStatus !== 'applied');
+}
+
+function preservedChapterTitle(input: {
+  requestedTitle?: string;
+  existingChapter: kg.GraphNode | null;
+  sessionTitle?: string;
+  fallback: string;
+}): string {
+  const existingTitle = input.existingChapter?.metadata.title;
+  return input.requestedTitle?.trim()
+    || (typeof existingTitle === 'string' ? existingTitle.trim() : '')
+    || input.sessionTitle?.trim()
+    || input.fallback;
+}
+
+function isMatchingFinalizationRetry(input: {
+  existingChapter: kg.GraphNode | null;
+  sessionId: string;
+  finalHash: string;
+  normalizedContent: string;
+}): boolean {
+  return Boolean(
+    input.existingChapter &&
+    input.existingChapter.metadata.canonStatus === 'canonical' &&
+    input.existingChapter.metadata.finalHash === input.finalHash &&
+    input.existingChapter.metadata.lastFinalizedSessionId === input.sessionId &&
+    normalizeWorkingDraftContent(input.existingChapter.content) === input.normalizedContent
+  );
+}
+
+function isMatchingFinalizationInProgress(input: {
+  existingChapter: kg.GraphNode | null;
+  sessionId: string;
+  finalHash: string;
+  normalizedContent: string;
+}): boolean {
+  return Boolean(
+    input.existingChapter
+    && input.existingChapter.metadata.canonStatus === 'finalizing'
+    && input.existingChapter.metadata.editorialFinalizationStatus === 'cleanup_pending'
+    && input.existingChapter.metadata.finalHash === input.finalHash
+    && input.existingChapter.metadata.lastFinalizedSessionId === input.sessionId
+    && normalizeWorkingDraftContent(input.existingChapter.content) === input.normalizedContent
+  );
+}
+
 async function ensureChapter(identifier: { chapterNumber?: number; role?: ChapterSectionRole }, title?: string): Promise<kg.GraphNode> {
   const chapterLabel = resolveChapterSectionLabel(identifier);
+  const existing = await kg.getNodeByTypeLabel('chapter', chapterLabel);
+  // Opening an editorial session must never demote or overwrite an already canonical chapter.
+  // The chapter node is an immutable anchor until novel_save_final_chapter performs the explicit
+  // canonization update at the end of the workflow.
+  if (existing) return existing;
   const written = await kg.upsertNode({
     type: 'chapter',
     label: chapterLabel,
@@ -197,11 +310,98 @@ async function ensureChapter(identifier: { chapterNumber?: number; role?: Chapte
 
 export function registerNovelEditingTools(server: McpServer): void {
   server.registerTool(
+    'novel_get_working_draft',
+    {
+      title: 'Novel get working draft',
+      description: 'Reads the current full chapter draft, its SHA-256 CAS token and monotonic revision. It never reads or creates historical draft nodes.',
+      inputSchema: {
+        sessionId: z.string(),
+        chapterNumber: z.number().int().positive(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        draft: workingDraftZ.optional(),
+        changed: z.boolean().optional(),
+        historyCount: z.number().optional(),
+        lengthGate: workingDraftLengthGateZ.optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'Novel get working draft', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ sessionId, chapterNumber }) => {
+      try {
+        return toolStructured({ ok: true, ...(await getSessionWorkingDraft(sessionId, chapterNumber)) });
+      } catch (err) {
+        return toolError('NOVEL_GET_WORKING_DRAFT_FAILED', `novel_get_working_draft failed: ${String(err)}`, { sessionId, chapterNumber });
+      }
+    },
+  );
+
+  server.registerTool(
+    'novel_update_working_draft',
+    {
+      title: 'Novel update working draft',
+      description:
+        'Updates the single current chapter_draft node with optimistic concurrency. Both the full SHA-256 hash and monotonic revision must match. There is deliberately no force option for the LLM.',
+      inputSchema: {
+        sessionId: z.string(),
+        chapterNumber: z.number().int().positive(),
+        content: z.string(),
+        expectedContentHash: z.string().regex(/^[a-f0-9]{64}$/i),
+        expectedRevision: z.number().int().positive(),
+        clientMutationId: z.string().max(200).optional(),
+        changeSummary: z.string().max(2000).optional(),
+      },
+      outputSchema: {
+        ok: z.boolean(),
+        draft: workingDraftZ.optional(),
+        changed: z.boolean().optional(),
+        historyCount: z.number().optional(),
+        lengthGate: workingDraftLengthGateZ.optional(),
+        error: errorObj,
+      },
+      annotations: { title: 'Novel update working draft', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ sessionId, chapterNumber, content, expectedContentHash, expectedRevision, clientMutationId, changeSummary }) => {
+      try {
+        return toolStructured({
+          ok: true,
+          ...(await updateSessionWorkingDraft({
+            sessionId,
+            chapterNumber,
+            content,
+            expectedContentHash,
+            expectedRevision,
+            author: 'llm',
+            clientMutationId,
+            changeSummary,
+          })),
+        });
+      } catch (err) {
+        if (err instanceof DraftVersionConflictError) {
+          return toolError(err.code, err.message, {
+            current: err.current,
+            expectedContentHash: err.expectedContentHash,
+            expectedRevision: err.expectedRevision,
+          });
+        }
+        if (err instanceof ChapterFinalizationInProgressError) {
+          return toolError(err.code, err.message, {
+            chapterNumber: err.chapterNumber,
+            finalizingSessionId: err.finalizingSessionId,
+          });
+        }
+        return toolError('NOVEL_UPDATE_WORKING_DRAFT_FAILED', `novel_update_working_draft failed: ${String(err)}`, { sessionId, chapterNumber });
+      }
+    },
+  );
+
+  server.registerTool(
     'novel_start_editing_session',
     {
       title: 'Novel start editing session',
       description:
-        'Creates or resumes an editorial workflow session for a chapter, Prologo or Epilogo (pass chapterNumber for a numbered chapter, or role for Prologo/Epilogo). Session state (blocks, findings, decisions, rewrites, seam review, visual briefs) lives in a file, never as a graph node — the neural model only ever contains the canonical chapter itself.',
+        'Creates or resumes an editorial workflow session for a chapter, Prologo or Epilogo. Findings, decisions, revisions and briefs live in a bounded session file; Neo4j keeps at most one current non-canonical chapter_draft.',
       inputSchema: {
         ...chapterIdentifierShape,
         title: z.string().optional(),
@@ -246,8 +446,72 @@ export function registerNovelEditingTools(server: McpServer): void {
       try {
         const blocks = splitChapterIntoBlocks(content, maxWords ?? 2500);
         if (!persist) return toolStructured({ ok: true, blocks });
-        const state = await readEditingSession(sessionId);
-        await writeEditingSession({ ...state, blocks });
+        const baselineContent = normalizeWorkingDraftContent(content);
+        const persistBlocks = () => updateEditingSession(sessionId, async (state) => {
+          if (state.status !== 'active') throw new Error(`editing_session_closed: ${sessionId}`);
+          if (state.chapterNumber !== undefined) {
+            const currentDraft = await kg.getWorkingDraft(state.chapterNumber);
+            if (!currentDraft) throw new Error(`working_draft_not_found: chapter ${state.chapterNumber}`);
+            const splitHash = workingDraftContentHash(baselineContent);
+            if (currentDraft.contentHash !== splitHash || currentDraft.content !== baselineContent) {
+              throw new Error(`working_draft_split_conflict: chapter ${state.chapterNumber} content must match revision ${currentDraft.revision}`);
+            }
+            if (state.workingDraftBaseline?.draftNodeId) {
+              if (state.workingDraftBaseline.draftNodeId !== currentDraft.draftNodeId) {
+                throw new Error(`editing_session_stale_draft: chapter ${state.chapterNumber}`);
+              }
+              return { ...state, blocks };
+            }
+            if (state.workingDraftBaseline) {
+              if (
+                currentDraft.revision !== 1 ||
+                currentDraft.retainedVersionCount !== 1 ||
+                currentDraft.contentHash !== state.workingDraftBaseline.contentHash
+              ) {
+                throw new Error(`editing_session_stale_legacy_baseline: chapter ${state.chapterNumber}`);
+              }
+              return {
+                ...state,
+                blocks,
+                workingDraftBaseline: { ...state.workingDraftBaseline, draftNodeId: currentDraft.draftNodeId },
+              };
+            }
+            if (
+              currentDraft.revision !== 1 ||
+              currentDraft.retainedVersionCount !== 1 ||
+              currentDraft.contentHash !== splitHash
+            ) {
+              throw new Error(`working_draft_baseline_mismatch: chapter ${state.chapterNumber} must be seeded from revision 1`);
+            }
+            return {
+              ...state,
+              blocks,
+              workingDraftBaseline: {
+                contentHash: currentDraft.contentHash,
+                wordCount: currentDraft.wordCount,
+                charCount: currentDraft.charCount,
+                draftNodeId: currentDraft.draftNodeId,
+                createdAt: currentDraft.updatedAt || new Date().toISOString(),
+              },
+            };
+          }
+
+          // Prologo/Epilogo do not currently have a numbered working-draft projection.
+          if (state.workingDraftBaseline) return { ...state, blocks };
+          return {
+            ...state,
+            blocks,
+            workingDraftBaseline: {
+              contentHash: workingDraftContentHash(baselineContent),
+              wordCount: workingDraftWordCount(baselineContent),
+              charCount: baselineContent.length,
+              createdAt: new Date().toISOString(),
+            },
+          };
+        });
+        const targetSession = await readEditingSession(sessionId);
+        if (targetSession.chapterNumber === undefined) await persistBlocks();
+        else await withWorkingDraftChapterLock(targetSession.chapterNumber, persistBlocks);
         return toolStructured({ ok: true, blocks });
       } catch (err) {
         return toolError('NOVEL_SPLIT_CHAPTER_BLOCKS_FAILED', `novel_split_chapter_blocks failed: ${String(err)}`, { sessionId });
@@ -269,21 +533,23 @@ export function registerNovelEditingTools(server: McpServer): void {
     },
     async ({ sessionId, findings }) => {
       try {
-        const state = await readEditingSession(sessionId);
         const now = new Date().toISOString();
         const summary: Record<string, number> = { total: findings.length };
-        const byId = new Map(state.findings.map((finding) => [finding.id, finding]));
-        for (let index = 0; index < findings.length; index++) {
-          const finding = findings[index];
-          const { step: rawStep, ...findingWithoutStep } = finding;
-          const step = normalizeEditingStep(rawStep);
-          const findingId = finding.id?.trim() || makeFindingId({ sessionId, step, blockNumber: finding.blockNumber, index: index + 1 });
-          summary[`severity:${finding.severity}`] = (summary[`severity:${finding.severity}`] ?? 0) + 1;
-          summary[`category:${finding.category}`] = (summary[`category:${finding.category}`] ?? 0) + 1;
-          byId.set(findingId, { ...findingWithoutStep, step, id: findingId, createdAt: byId.get(findingId)?.createdAt ?? now });
-        }
-        const nextFindings = [...byId.values()];
-        await writeEditingSession({ ...state, findings: nextFindings });
+        let nextFindings: EditingSessionState['findings'] = [];
+        await updateEditingSession(sessionId, (state) => {
+          const byId = new Map(state.findings.map((finding) => [finding.id, finding]));
+          for (let index = 0; index < findings.length; index++) {
+            const finding = findings[index];
+            const { step: rawStep, ...findingWithoutStep } = finding;
+            const step = normalizeEditingStep(rawStep);
+            const findingId = finding.id?.trim() || makeFindingId({ sessionId, step, blockNumber: finding.blockNumber, index: index + 1 });
+            summary[`severity:${finding.severity}`] = (summary[`severity:${finding.severity}`] ?? 0) + 1;
+            summary[`category:${finding.category}`] = (summary[`category:${finding.category}`] ?? 0) + 1;
+            byId.set(findingId, { ...findingWithoutStep, step, id: findingId, createdAt: byId.get(findingId)?.createdAt ?? now });
+          }
+          nextFindings = [...byId.values()];
+          return { ...state, findings: nextFindings };
+        });
         return toolStructured({ ok: true, findings: nextFindings, summary });
       } catch (err) {
         return toolError('NOVEL_SAVE_EDITORIAL_FINDINGS_FAILED', `novel_save_editorial_findings failed: ${String(err)}`, { sessionId });
@@ -305,14 +571,14 @@ export function registerNovelEditingTools(server: McpServer): void {
     },
     async ({ sessionId, decisions }) => {
       try {
-        const state = await readEditingSession(sessionId);
         const now = new Date().toISOString();
-        const byFindingId = new Map(state.decisions.map((decision) => [decision.findingId, decision]));
-        for (const decision of decisions) {
-          byFindingId.set(decision.findingId, { ...decision, updatedAt: now });
-        }
-        const nextDecisions = [...byFindingId.values()];
-        await writeEditingSession({ ...state, decisions: nextDecisions });
+        let nextDecisions: EditingSessionState['decisions'] = [];
+        await updateEditingSession(sessionId, (state) => {
+          const byFindingId = new Map(state.decisions.map((decision) => [decision.findingId, decision]));
+          for (const decision of decisions) byFindingId.set(decision.findingId, { ...decision, updatedAt: now });
+          nextDecisions = [...byFindingId.values()];
+          return { ...state, decisions: nextDecisions };
+        });
         return toolStructured({ ok: true, decisions: nextDecisions });
       } catch (err) {
         return toolError('NOVEL_SAVE_USER_DECISIONS_FAILED', `novel_save_user_decisions failed: ${String(err)}`, { sessionId });
@@ -340,7 +606,6 @@ export function registerNovelEditingTools(server: McpServer): void {
       try {
         const lengthCheck = checkRewriteLength(originalText, revisedText);
         if (!lengthCheck.valid) return toolError('NOVEL_REWRITE_LENGTH_INVALID', 'Rewrite block is outside the allowed 85%-140% length range.', { lengthCheck, sessionId, blockNumber });
-        const state = await readEditingSession(sessionId);
         const record = {
           blockNumber,
           revisedText,
@@ -351,8 +616,10 @@ export function registerNovelEditingTools(server: McpServer): void {
           approved: Boolean(approved),
           updatedAt: new Date().toISOString(),
         };
-        const nextRewrites = [...state.rewrites.filter((rewrite) => rewrite.blockNumber !== blockNumber), record];
-        await writeEditingSession({ ...state, rewrites: nextRewrites });
+        await updateEditingSession(sessionId, (state) => ({
+          ...state,
+          rewrites: [...state.rewrites.filter((rewrite) => rewrite.blockNumber !== blockNumber), record],
+        }));
         return toolStructured({ ok: true, rewrite: record, lengthCheck });
       } catch (err) {
         return toolError('NOVEL_SAVE_REWRITE_BLOCK_FAILED', `novel_save_rewrite_block failed: ${String(err)}`, { sessionId, blockNumber });
@@ -374,17 +641,18 @@ export function registerNovelEditingTools(server: McpServer): void {
     },
     async ({ sessionId, expectedBlocks }) => {
       try {
-        const state = await readEditingSession(sessionId);
-        const blocks = state.rewrites.map((rewrite) => ({ blockNumber: rewrite.blockNumber, text: rewrite.revisedText }));
-        const expectedMissing = expectedBlocks
-          ? Array.from({ length: expectedBlocks }, (_value, index) => index + 1).filter((blockNumber) => !blocks.some((block) => block.blockNumber === blockNumber))
-          : [];
-        if (expectedMissing.length) return toolStructured({ ok: false, missingBlocks: expectedMissing });
-        const content = assembleRevisedBlocks(blocks);
-        await writeEditingSession({
-          ...state,
-          assembledRevision: { content, blockCount: blocks.length, assembledAt: new Date().toISOString() },
+        let content = '';
+        let expectedMissing: number[] = [];
+        await updateEditingSession(sessionId, (state) => {
+          const blocks = state.rewrites.map((rewrite) => ({ blockNumber: rewrite.blockNumber, text: rewrite.revisedText }));
+          expectedMissing = expectedBlocks
+            ? Array.from({ length: expectedBlocks }, (_value, index) => index + 1).filter((blockNumber) => !blocks.some((block) => block.blockNumber === blockNumber))
+            : [];
+          if (expectedMissing.length) return state;
+          content = assembleRevisedBlocks(blocks);
+          return { ...state, assembledRevision: { content, blockCount: blocks.length, assembledAt: new Date().toISOString() } };
         });
+        if (expectedMissing.length) return toolStructured({ ok: false, missingBlocks: expectedMissing });
         return toolStructured({ ok: true, content, missingBlocks: [] });
       } catch (err) {
         return toolError('NOVEL_ASSEMBLE_CHAPTER_REVISION_FAILED', `novel_assemble_chapter_revision failed: ${String(err)}`, { sessionId });
@@ -408,9 +676,8 @@ export function registerNovelEditingTools(server: McpServer): void {
     },
     async ({ sessionId, summary, findings, approved }) => {
       try {
-        const state = await readEditingSession(sessionId);
         const record = { summary, findings: findings ?? [], approved: Boolean(approved), updatedAt: new Date().toISOString() };
-        await writeEditingSession({ ...state, seamReview: record });
+        await updateEditingSession(sessionId, (state) => ({ ...state, seamReview: record }));
         return toolStructured({ ok: true, seamReview: record });
       } catch (err) {
         return toolError('NOVEL_SAVE_SEAM_REVIEW_FAILED', `novel_save_seam_review failed: ${String(err)}`, { sessionId });
@@ -431,36 +698,243 @@ export function registerNovelEditingTools(server: McpServer): void {
         content: z.string(),
         status: draftStatusZ.optional(),
       },
-      outputSchema: { ok: z.boolean(), chapter: nodeZ.optional(), error: errorObj },
-      annotations: { title: 'Novel save final chapter', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      outputSchema: { ok: z.boolean(), chapter: nodeZ.optional(), cleanup: workingDraftCleanupZ.optional(), error: errorObj },
+      annotations: { title: 'Novel save final chapter', readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     },
     async ({ sessionId, chapterNumber, role, title, content, status }) => {
       try {
         if (chapterNumber === undefined && !role) {
           return toolError('NOVEL_SAVE_FINAL_CHAPTER_BAD_INPUT', 'Provide chapterNumber (numbered chapter) or role (prologo/epilogo).');
         }
-        await readEditingSession(sessionId); // throws EditingSessionNotFoundError if sessionId is invalid
-        const chapterLabel = resolveChapterSectionLabel({ chapterNumber, role });
-        const finalHash = stableHash(content);
-        const written = await kg.upsertNode({
-          type: 'chapter',
-          label: chapterLabel,
-          content,
-          metadata: {
+        const finalize = async () => finalizeEditingSession(sessionId, async (state) => {
+          if (state.status !== 'active') {
+            return {
+              finalized: false,
+              value: toolError('NOVEL_FINAL_SESSION_CLOSED', 'The editing session is not active.', { sessionId }),
+            };
+          }
+          if (state.chapterNumber !== chapterNumber || state.role !== role) {
+            return {
+              finalized: false,
+              value: toolError('NOVEL_SAVE_FINAL_CHAPTER_SESSION_MISMATCH', 'The editing session belongs to a different chapter or role.', {
+                sessionId,
+                sessionChapterNumber: state.chapterNumber,
+                sessionRole: state.role,
+                chapterNumber,
+                role,
+              }),
+            };
+          }
+          const normalizedContent = normalizeWorkingDraftContent(content);
+          if (!state.workingDraftBaseline) {
+            return {
+              finalized: false,
+              value: toolError('NOVEL_FINAL_BASELINE_MISSING', 'Finalization requires the immutable original-draft baseline.', {
+                sessionId,
+                chapterNumber,
+              }),
+            };
+          }
+          const unresolvedErrors = blockingErrorFindings(state);
+          if (unresolvedErrors.length) {
+            return {
+              finalized: false,
+              value: toolError('NOVEL_FINAL_ERROR_FINDINGS_OPEN', 'Resolve or approve every severity-error finding before canonization.', {
+                sessionId,
+                chapterNumber,
+                findings: unresolvedErrors,
+              }),
+            };
+          }
+          const lengthGate = checkWorkingDraftLength(state.workingDraftBaseline.wordCount, normalizedContent);
+          if (!lengthGate.valid) {
+            return {
+              finalized: false,
+              value: toolError('NOVEL_FINAL_LENGTH_GATE_FAILED', 'The final chapter is outside the required 85%-140% length gate.', {
+                sessionId,
+                chapterNumber,
+                lengthGate,
+              }),
+            };
+          }
+          const finalHash = workingDraftContentHash(normalizedContent);
+          const chapterLabel = resolveChapterSectionLabel({ chapterNumber, role });
+          const existingChapter = await kg.getNodeByTypeLabel('chapter', chapterLabel);
+          if (
+            existingChapter?.metadata.canonStatus === 'finalizing'
+            && existingChapter.metadata.lastFinalizedSessionId !== sessionId
+          ) {
+            return {
+              finalized: false,
+              value: toolError('CHAPTER_FINALIZATION_IN_PROGRESS', 'A different editorial session owns the pending chapter finalization.', {
+                sessionId,
+                chapterNumber,
+                role,
+                finalizingSessionId: existingChapter.metadata.lastFinalizedSessionId,
+              }),
+            };
+          }
+          const currentDraft = chapterNumber === undefined ? null : await kg.getWorkingDraft(chapterNumber);
+          if (currentDraft && !isWorkingDraftAuditCurrent(currentDraft)) {
+            return {
+              finalized: false,
+              value: toolError('NOVEL_FINAL_AUDIT_REQUIRED', 'Run the autonomous draft audit successfully on the exact current hash and revision before canonization.', {
+                sessionId,
+                chapterNumber,
+                contentHash: currentDraft.contentHash,
+                revision: currentDraft.revision,
+                auditStatus: currentDraft.auditStatus,
+                auditContentHash: currentDraft.auditContentHash,
+                auditRevision: currentDraft.auditRevision,
+                auditError: currentDraft.auditError,
+              }),
+            };
+          }
+          const blockingGraphFindings = chapterNumber === undefined || !currentDraft
+            ? []
+            : (await kg.listWorkingDraftFindings(chapterNumber)).filter((finding) => (
+                finding.metadata.severity === 'error'
+                && finding.metadata.contentHash === currentDraft.contentHash
+                && Number(finding.metadata.revision) === currentDraft.revision
+              ));
+          if (blockingGraphFindings.length) {
+            return {
+              finalized: false,
+              value: toolError('NOVEL_FINAL_GRAPH_ERRORS_OPEN', 'The autonomous draft audit still contains severity-error findings. Correct and re-ingest the draft before canonization.', {
+                sessionId,
+                chapterNumber,
+                findings: blockingGraphFindings.map((finding) => ({ id: finding.id, label: finding.label, content: finding.content })),
+              }),
+            };
+          }
+          if (currentDraft && state.workingDraftBaseline.draftNodeId && state.workingDraftBaseline.draftNodeId !== currentDraft.draftNodeId) {
+            return {
+              finalized: false,
+              value: toolError('NOVEL_FINAL_STALE_SESSION', 'The session belongs to an older working-draft generation.', {
+                sessionId,
+                chapterNumber,
+                sessionDraftNodeId: state.workingDraftBaseline.draftNodeId,
+                currentDraftNodeId: currentDraft.draftNodeId,
+              }),
+            };
+          }
+          if (
+            currentDraft &&
+            !state.workingDraftBaseline.draftNodeId &&
+            (
+              currentDraft.revision !== 1 ||
+              currentDraft.retainedVersionCount !== 1 ||
+              currentDraft.contentHash !== state.workingDraftBaseline.contentHash
+            )
+          ) {
+            return {
+              finalized: false,
+              value: toolError('NOVEL_FINAL_STALE_LEGACY_SESSION', 'The legacy session baseline cannot be bound safely to the current draft.', {
+                sessionId,
+                chapterNumber,
+                currentDraftNodeId: currentDraft.draftNodeId,
+                currentRevision: currentDraft.revision,
+              }),
+            };
+          }
+          if (chapterNumber !== undefined && !currentDraft) {
+            const completedRetry = isMatchingFinalizationRetry({ existingChapter, sessionId, finalHash, normalizedContent });
+            const inProgressRetry = isMatchingFinalizationInProgress({ existingChapter, sessionId, finalHash, normalizedContent });
+            if (!completedRetry && !inProgressRetry) {
+              return {
+                finalized: false,
+                value: toolError('NOVEL_FINAL_WORKING_DRAFT_REQUIRED', 'A matching current working draft is required before canonization.', {
+                  sessionId,
+                  chapterNumber,
+                  proposedContentHash: finalHash,
+                }),
+              };
+            }
+            if (completedRetry) {
+              // The canonical write and cleanup succeeded, but embedding or session deletion may
+              // have lost its response. Re-embed idempotently, then let the session finalizer
+              // remove the still-present file without demoting the chapter again.
+              await embedNodesInline([existingChapter!.id]);
+              return {
+                finalized: true,
+                value: toolStructured({
+                  ok: true,
+                  chapter: existingChapter!,
+                  cleanup: { draftNodes: 0, documents: 0, chunks: 0, findings: 0, assets: 0 },
+                }),
+              };
+            }
+          } else if (currentDraft && (currentDraft.contentHash !== finalHash || currentDraft.content !== normalizedContent)) {
+            return {
+              finalized: false,
+              value: toolError('DRAFT_VERSION_CONFLICT', 'Update the working draft with the approved final text before canonizing it.', {
+                sessionId,
+                chapterNumber,
+                current: currentDraft,
+                proposedContentHash: finalHash,
+              }),
+            };
+          }
+          const finalizedAt = state.updatedAt;
+          const finalizationMetadata = {
             chapterNumber,
             role,
-            title: title ?? chapterLabel,
-            canonStatus: 'canonical',
+            title: preservedChapterTitle({ requestedTitle: title, existingChapter, sessionTitle: state.title, fallback: chapterLabel }),
             editorialStatus: status ?? 'approved',
             finalHash,
-            revisionHistory: [{ sessionId, finalHash, editedAt: new Date().toISOString() }],
-          },
-          provenance: { source: 'novel_save_final_chapter', sessionId, chapterNumber, role },
+            lastFinalizedSessionId: sessionId,
+            revisionHistory: [{ sessionId, finalHash, editedAt: finalizedAt }],
+          };
+          await kg.upsertNode({
+            type: 'chapter',
+            label: chapterLabel,
+            content: normalizedContent,
+            metadata: {
+              ...finalizationMetadata,
+              canonStatus: 'finalizing',
+              editorialFinalizationStatus: 'cleanup_pending',
+            },
+            provenance: { source: 'novel_save_final_chapter', sessionId, chapterNumber, role },
+          });
+          const cleanup = chapterNumber === undefined
+            ? { draftNodes: 0, documents: 0, chunks: 0, findings: 0, assets: 0 }
+            : await kg.cleanupWorkingDraftArtifacts(chapterNumber);
+          const written = await kg.upsertNode({
+            type: 'chapter',
+            label: chapterLabel,
+            content: normalizedContent,
+            metadata: {
+              ...finalizationMetadata,
+              canonStatus: 'canonical',
+              editorialFinalizationStatus: 'completed',
+            },
+            provenance: { source: 'novel_save_final_chapter', sessionId, chapterNumber, role },
+          });
+          await embedNodesInline([written.node.id]);
+          return { finalized: true, value: toolStructured({ ok: true, chapter: written.node, cleanup }) };
         });
-        await embedNodesInline([written.node.id]);
-        await deleteEditingSession(sessionId);
-        return toolStructured({ ok: true, chapter: written.node });
+        return chapterNumber === undefined ? await finalize() : await withWorkingDraftChapterLock(chapterNumber, finalize);
       } catch (err) {
+        // A lost HTTP/MCP response may arrive after the successful finalizer removed its session.
+        // Recognize only the exact same canonical result; never use this path to overwrite canon
+        // or to clean up a newer working-draft generation.
+        if (err instanceof EditingSessionNotFoundError && (chapterNumber !== undefined || role)) {
+          try {
+            const normalizedContent = normalizeWorkingDraftContent(content);
+            const finalHash = workingDraftContentHash(normalizedContent);
+            const chapterLabel = resolveChapterSectionLabel({ chapterNumber, role });
+            const existingChapter = await kg.getNodeByTypeLabel('chapter', chapterLabel);
+            if (isMatchingFinalizationRetry({ existingChapter, sessionId, finalHash, normalizedContent })) {
+              return toolStructured({
+                ok: true,
+                chapter: existingChapter!,
+                cleanup: { draftNodes: 0, documents: 0, chunks: 0, findings: 0, assets: 0 },
+              });
+            }
+          } catch {
+            // Preserve the original session-not-found failure below if retry verification fails.
+          }
+        }
         return toolError('NOVEL_SAVE_FINAL_CHAPTER_FAILED', `novel_save_final_chapter failed: ${String(err)}`, { sessionId, chapterNumber, role });
       }
     },
@@ -486,7 +960,6 @@ export function registerNovelEditingTools(server: McpServer): void {
     },
     async ({ sessionId, sceneSummary, characters, promptIt, promptEn, styleModifier, sourceText, metadata }) => {
       try {
-        const state = await readEditingSession(sessionId);
         const record = {
           sceneSummary,
           characters: characters ?? [],
@@ -497,7 +970,7 @@ export function registerNovelEditingTools(server: McpServer): void {
           metadata,
           createdAt: new Date().toISOString(),
         };
-        await writeEditingSession({ ...state, visualBriefs: [...state.visualBriefs, record] });
+        await updateEditingSession(sessionId, (state) => ({ ...state, visualBriefs: [...state.visualBriefs, record] }));
         return toolStructured({ ok: true, visualBrief: record });
       } catch (err) {
         return toolError('NOVEL_CREATE_VISUAL_BRIEF_FAILED', `novel_create_visual_brief failed: ${String(err)}`, { sessionId });

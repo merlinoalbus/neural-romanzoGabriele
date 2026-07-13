@@ -1,9 +1,12 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
+import { config } from '../config.js';
 import * as kg from '../graph/neo4jStore.js';
 import { NOVEL_DRAFT_STATUSES, NOVEL_SOURCE_TYPES, normalizeChapterLabel } from '../novel/domain.js';
 import { buildOutlinePlan, type OutlineEntry, type OutlinePlan } from '../novel/outline.js';
 import { auditChapterContent } from '../novel/context.js';
+import { normalizeWorkingDraftContent, workingDraftContentHash } from '../novel/workingDraft.js';
+import { withWorkingDraftChapterLock } from '../novel/workingDraftService.js';
 import { errorObj, toolError, toolStructured } from './responseHelpers.js';
 
 const jsonObj = z.record(z.string(), z.unknown());
@@ -262,20 +265,66 @@ export function registerNovelIngestionTools(server: McpServer): void {
       },
       annotations: { title: 'Novel ingest chapter draft', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ chapterNumber, title, content, draftId, status }) => {
+    async ({ chapterNumber, title, content, draftId, status }) => withWorkingDraftChapterLock(chapterNumber, async () => {
       try {
         if (!content.trim()) throw new Error('invalid_chapter_draft: content is required');
+        const normalizedContent = normalizeWorkingDraftContent(content);
+        const proposedHash = workingDraftContentHash(normalizedContent);
         const chapterLabel = normalizeChapterLabel(chapterNumber);
         // Stable per-chapter identifiers: re-ingesting a revised draft of the SAME chapter must
         // update the existing document/draft node in place, never stratify a new one alongside it.
         // `draftId`, when given, is kept only as informational metadata (e.g. "which round"), not
         // as part of the node's identity.
         const sourceId = `chapter-${String(chapterNumber).padStart(3, '0')}-draft`;
+        const existingChapter = await kg.getNodeByTypeLabel('chapter', chapterLabel);
+        if (existingChapter?.metadata.canonStatus === 'finalizing') {
+          return toolError('CHAPTER_FINALIZATION_IN_PROGRESS', 'Complete or retry the existing chapter finalization before ingesting another draft generation.', {
+            chapterNumber,
+            finalizingSessionId: existingChapter.metadata.lastFinalizedSessionId,
+            finalHash: existingChapter.metadata.finalHash,
+          });
+        }
+        let existingWorkingDraft: Awaited<ReturnType<typeof kg.getWorkingDraft>> = null;
+        let strandedDraft: kg.GraphNode | null = null;
+        try {
+          existingWorkingDraft = await kg.getWorkingDraft(chapterNumber);
+        } catch (err) {
+          if (!(err instanceof kg.WorkingDraftDocumentMissingError)) throw err;
+          // A previous ingest may have stopped after creating the stable draft anchor but before
+          // linking its document. Recover only when the stranded anchor proves that it contains
+          // this exact text; never overwrite an unknown partial state.
+          strandedDraft = await kg.getNodeByTypeLabel('chapter_draft', `${chapterLabel} draft`);
+          const recordedHash = typeof strandedDraft?.metadata.contentHash === 'string'
+            ? strandedDraft.metadata.contentHash.toLowerCase()
+            : '';
+          const strandedHash = strandedDraft?.content
+            ? workingDraftContentHash(normalizeWorkingDraftContent(strandedDraft.content))
+            : '';
+          const hasRecordedHash = /^[a-f0-9]{64}$/.test(recordedHash);
+          const hashEvidenceConflicts = hasRecordedHash && Boolean(strandedHash) && recordedHash !== strandedHash;
+          const recoverableHash = strandedHash || (hasRecordedHash ? recordedHash : '');
+          if (!strandedDraft || hashEvidenceConflicts || recoverableHash !== proposedHash) {
+            return toolError('DRAFT_STRUCTURE_REPAIR_REQUIRED', 'A partial working draft exists without its document and cannot be repaired safely from different text.', {
+              chapterNumber,
+              draftNodeId: strandedDraft?.id,
+              currentContentHash: recoverableHash || undefined,
+              recordedContentHash: recordedHash || undefined,
+              hashEvidenceConflicts,
+              proposedContentHash: proposedHash,
+            });
+          }
+        }
+        if (existingWorkingDraft && existingWorkingDraft.contentHash !== proposedHash) {
+          return toolError('DRAFT_VERSION_CONFLICT', 'The working draft already changed. Read it and update it with novel_update_working_draft using its current hash and revision.', {
+            chapterNumber,
+            current: existingWorkingDraft,
+          });
+        }
         const documentResult = await kg.ingestDocument({
           sourceId,
           title: title ?? chapterLabel,
           sourceType: NOVEL_SOURCE_TYPES.chapterDraft,
-          content,
+          content: normalizedContent,
           metadata: {
             sourceType: NOVEL_SOURCE_TYPES.chapterDraft,
             chapterNumber,
@@ -285,21 +334,23 @@ export function registerNovelIngestionTools(server: McpServer): void {
           },
           provenance: { source: 'novel_ingest_chapter_draft', sourceId, chapterNumber },
         });
-        const chapterWrite = await kg.upsertNode({
-          type: 'chapter',
-          label: chapterLabel,
-          content: title ?? chapterLabel,
-          metadata: {
-            chapterNumber,
-            title: title ?? chapterLabel,
-            canonStatus: 'draft',
-          },
-          provenance: { source: 'novel_ingest_chapter_draft', sourceId, chapterNumber },
-        });
+        const chapterWrite = existingChapter
+          ? { node: existingChapter, created: false }
+          : await kg.upsertNode({
+              type: 'chapter',
+              label: chapterLabel,
+              content: title ?? chapterLabel,
+              metadata: {
+                chapterNumber,
+                title: title ?? chapterLabel,
+                canonStatus: 'draft',
+              },
+              provenance: { source: 'novel_ingest_chapter_draft', sourceId, chapterNumber },
+            });
         const draftWrite = await kg.upsertNode({
           type: 'chapter_draft',
           label: `${chapterLabel} draft`,
-          content: title ?? chapterLabel,
+          content: existingWorkingDraft?.content ?? strandedDraft?.content ?? normalizedContent,
           metadata: {
             sourceId,
             documentId: documentResult.document.id,
@@ -307,8 +358,10 @@ export function registerNovelIngestionTools(server: McpServer): void {
             title: title ?? chapterLabel,
             draftId: draftId?.trim() || undefined,
             status: status ?? 'draft',
-            wordCount: countWords(content),
-            charCount: content.length,
+            wordCount: countWords(normalizedContent),
+            charCount: normalizedContent.length,
+            contentHash: proposedHash,
+            revision: existingWorkingDraft?.revision ?? Number(strandedDraft?.metadata.revision ?? 1),
             canonStatus: 'draft',
           },
           provenance: { source: 'novel_ingest_chapter_draft', sourceId, chapterNumber },
@@ -327,6 +380,8 @@ export function registerNovelIngestionTools(server: McpServer): void {
           metadata: { chapterNumber, draftId: draftId?.trim() || undefined },
           provenance: { source: 'novel_ingest_chapter_draft', sourceId, chapterNumber },
         });
+        const initializedDraft = await kg.initializeWorkingDraftProjection({ chapterNumber, content: normalizedContent, author: 'ingest' });
+        const currentDraftNode = (await kg.getNodeById(initializedDraft.draftNodeId)) ?? draftWrite.node;
 
         // --- AUTONOMOUS LINTING ON INGEST ---
         let linterStatus: 'ok' | 'failed' = 'ok';
@@ -339,13 +394,14 @@ export function registerNovelIngestionTools(server: McpServer): void {
             kg.listNodesByType('theme', { limit: 500 }),
             kg.listNodesByType('timeline_event', { limit: 500 }),
             kg.runQuery(`
-              MATCH (t:Entity {type: 'character_trait'})-[:applies_to|part_of|derived_from]-(c:Entity {type: 'character'}) 
-              RETURN t.id as id, t.label as label, t.content as content, c.id as charId, c.label as charLabel
-            `, {}),
+              MATCH (t:Entity {projectId: $pid, type: 'character_trait'})-[r:REL]-(c:Entity {projectId: $pid, type: 'character'})
+              WHERE r.kind IN ['applies_to', 'part_of', 'derived_from']
+              RETURN DISTINCT t.id as id, t.label as label, t.content as content, c.id as charId, c.label as charLabel
+            `, { pid: config.projectId }),
             kg.runQuery(`
-              MATCH (s:Entity {type: 'secret'})-[r]-(c:Entity {type: 'character'}) 
-              RETURN s.id as id, s.label as label, s.content as content, c.id as charId, c.label as charLabel, type(r) as relKind
-            `, {}),
+              MATCH (s:Entity {projectId: $pid, type: 'secret'})-[r:REL]-(c:Entity {projectId: $pid, type: 'character'})
+              RETURN DISTINCT s.id as id, s.label as label, s.content as content, c.id as charId, c.label as charLabel, r.kind as relKind
+            `, { pid: config.projectId }),
           ]);
 
           const characterTraits = traitsRes.map((r) => ({
@@ -379,15 +435,14 @@ export function registerNovelIngestionTools(server: McpServer): void {
           });
 
           // Rimuovi eventuali continuity_finding vecchi per questo capitolo prima di inserire quelli nuovi
-          await kg.runQuery(`
-            MATCH (cf:Entity {type: 'continuity_finding'})-[:applies_to]->(c:Entity {type: 'chapter', label: $chapterLabel})
-            DETACH DELETE cf
-          `, { chapterLabel });
+          await kg.clearWorkingDraftLinterFindings(chapterNumber);
 
           // Scrivi i nuovi warning trovati
           for (const finding of audit.findings) {
             if (finding.severity === 'warning' || finding.severity === 'error') {
-              const findingLabel = `${finding.code}:${chapterLabel}`;
+              // Dedicated namespace prevents an autonomous linter upsert from ever taking over
+              // a manually-authored continuity finding that happens to use the same code/title.
+              const findingLabel = `draft-linter:${sourceId}:${finding.code}`;
               const cfNode = await kg.upsertNode({
                 type: 'continuity_finding',
                 label: findingLabel,
@@ -397,6 +452,9 @@ export function registerNovelIngestionTools(server: McpServer): void {
                   code: finding.code,
                   severity: finding.severity,
                   evidence: finding.evidence || {},
+                  contentHash: initializedDraft.contentHash,
+                  revision: initializedDraft.revision,
+                  draftOwned: true,
                 },
                 provenance: { source: 'autonomous_ingest_linter', chapterNumber, sourceId },
               });
@@ -408,6 +466,15 @@ export function registerNovelIngestionTools(server: McpServer): void {
                 metadata: { chapterNumber },
                 provenance: { source: 'autonomous_ingest_linter', chapterNumber, sourceId },
               });
+              // Explicit ownership lets final cleanup remove draft-only linter findings without
+              // touching manually-authored or cross-chapter continuity findings.
+              await kg.link({
+                fromId: cfNode.node.id,
+                toId: currentDraftNode.id,
+                kind: 'applies_to',
+                metadata: { chapterNumber, draftOwned: true },
+                provenance: { source: 'autonomous_ingest_linter', chapterNumber, sourceId },
+              });
             }
           }
         } catch (linterErr) {
@@ -416,10 +483,26 @@ export function registerNovelIngestionTools(server: McpServer): void {
           console.error('Autonomous ingest linter failed:', linterErr);
         }
 
+        try {
+          await kg.markWorkingDraftAudit({
+            chapterNumber,
+            expectedContentHash: initializedDraft.contentHash,
+            expectedRevision: initializedDraft.revision,
+            status: linterStatus === 'ok' ? 'passed' : 'failed',
+            error: linterError,
+          });
+        } catch (auditMarkerErr) {
+          linterStatus = 'failed';
+          linterError = linterError
+            ? `${linterError}; audit marker failed: ${String(auditMarkerErr)}`
+            : `audit marker failed: ${String(auditMarkerErr)}`;
+          console.error('Working draft audit marker failed:', auditMarkerErr);
+        }
+
         return toolStructured({
           ok: true,
           chapter: chapterWrite.node,
-          draft: draftWrite.node,
+          draft: currentDraftNode,
           document: documentResult.document,
           nas: documentResult.nas,
           chunkCount: documentResult.chunkCount,
@@ -429,6 +512,6 @@ export function registerNovelIngestionTools(server: McpServer): void {
       } catch (err) {
         return toolError('NOVEL_INGEST_CHAPTER_DRAFT_FAILED', `novel_ingest_chapter_draft failed: ${String(err)}`, { chapterNumber, draftId });
       }
-    },
+    }),
   );
 }

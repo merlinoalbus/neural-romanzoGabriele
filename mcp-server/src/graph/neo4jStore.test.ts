@@ -4,6 +4,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import {
+  buildWorkingDraftQuery,
   chunkText,
   classifyNonRelPhysicalEdge,
   embeddingTextHash,
@@ -15,6 +16,21 @@ import {
   type GraphNode,
   type NonRelPhysicalEdgeCandidate,
 } from './neo4jStore.js';
+
+test('working draft query introduces a WITH boundary only after acquiring a write lock', () => {
+  const readQuery = buildWorkingDraftQuery(false);
+  assert.equal(readQuery.includes('SET draft._workingDraftLock = $lockToken'), false);
+  assert.equal(readQuery.includes('WITH draft'), false);
+  assert.ok(readQuery.includes('OPTIONAL MATCH (draft)'));
+
+  const lockedQuery = buildWorkingDraftQuery(true);
+  const setIndex = lockedQuery.indexOf('SET draft._workingDraftLock = $lockToken');
+  const withIndex = lockedQuery.indexOf('WITH draft');
+  const optionalMatchIndex = lockedQuery.indexOf('OPTIONAL MATCH (draft)');
+  assert.ok(setIndex >= 0);
+  assert.ok(withIndex > setIndex);
+  assert.ok(optionalMatchIndex > withIndex);
+});
 
 function chapterNode(id: string, label: string, chapterNumber: number): GraphNode {
   return {

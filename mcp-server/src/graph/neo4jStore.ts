@@ -1766,18 +1766,25 @@ function workingDraftSnapshotFromNodes(chapterNumber: number, draft: Node, docum
   };
 }
 
+export function buildWorkingDraftQuery(lockRequested: boolean): string {
+  const lockClause = lockRequested
+    ? `SET draft._workingDraftLock = $lockToken
+     WITH draft`
+    : '';
+  return `MATCH (draft:Entity {projectId:$pid, type:'chapter_draft', label:$label})
+     ${lockClause}
+     OPTIONAL MATCH (draft)-[:REL {kind:'derived_from'}]->(document:Entity {projectId:$pid, type:'document'})
+     OPTIONAL MATCH (chunk:Entity {projectId:$pid, type:'chunk'})-[:REL {kind:'part_of'}]->(document)
+     RETURN draft, document, collect(chunk) AS chunks`;
+}
+
 async function queryWorkingDraft(
   runner: (cypher: string, params: Record<string, unknown>) => Promise<{ records: Neo4jRecord[] }>,
   chapterNumber: number,
   lockToken?: string,
 ): Promise<{ snapshot: WorkingDraftSnapshot; draft: Node; document: Node; chunks: Node[]; initialized: boolean } | null> {
-  const lockClause = lockToken ? 'SET draft._workingDraftLock = $lockToken' : '';
   const result = await runner(
-    `MATCH (draft:Entity {projectId:$pid, type:'chapter_draft', label:$label})
-     ${lockClause}
-     OPTIONAL MATCH (draft)-[:REL {kind:'derived_from'}]->(document:Entity {projectId:$pid, type:'document'})
-     OPTIONAL MATCH (chunk:Entity {projectId:$pid, type:'chunk'})-[:REL {kind:'part_of'}]->(document)
-     RETURN draft, document, collect(chunk) AS chunks`,
+    buildWorkingDraftQuery(Boolean(lockToken)),
     { pid: pid(), label: workingDraftLabel(chapterNumber), lockToken: lockToken ?? null },
   );
   if (!result.records.length) return null;

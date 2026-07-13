@@ -11,6 +11,7 @@ import {
   type EditorChapterDraft,
   type EditorDraftResponse,
 } from './api';
+import { MarkdownRichEditor } from './MarkdownRichEditor';
 
 type EditorPhase = 'idle' | 'loading' | 'ready' | 'refreshing' | 'saving' | 'forcing' | 'conflict';
 
@@ -385,13 +386,11 @@ export function ChapterDraftEditor({ chapter, sessionId, onDirtyChange, onSaved 
         </div>
       )}
 
-      <textarea
-        className="draft-editor-textarea"
+      <MarkdownRichEditor
         value={content}
         disabled={!snapshot || busy}
-        onChange={(event) => changeContent(event.target.value)}
-        spellCheck
-        aria-label={`Testo della bozza del Capitolo ${chapterNumber}`}
+        onChange={changeContent}
+        ariaLabel={`Testo della bozza del Capitolo ${chapterNumber}`}
         placeholder={phase === 'loading' ? 'Caricamento della bozza…' : 'Carica la bozza per iniziare a lavorare sul testo.'}
       />
 
